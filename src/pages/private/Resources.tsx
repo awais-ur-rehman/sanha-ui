@@ -303,7 +303,7 @@ const Resources = () => {
 
   return (
     <div className="py-4">
-      <div className='bg-white rounded-lg shadow-lg overflow-hidden min-h-[calc(100vh-35px)] p-6'>
+      <div className='bg-white rounded-lg shadow-lg overflow-hidden min-h-[calc(100vh-35px)] px-6 py-10'>
          {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-semibold text-gray-900">Resources</h1>

@@ -156,8 +156,8 @@ function App() {
           />
           
           {/* Default redirect */}
-          <Route path="/" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
-          <Route path="*" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
+          <Route path="/" element={<Navigate to={ROUTES.LOGIN} replace />} />
+          <Route path="*" element={<Navigate to={ROUTES.LOGIN} replace />} />
         </Routes>
       </Router>
     </ToastProvider>
