@@ -1,0 +1,109 @@
+// API Configuration
+export const API_CONFIG = {
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3003/api/v1',
+  timeout: import.meta.env.VITE_API_TIMEOUT || 10000,
+  headers: {
+    'Content-Type': 'application/json',
+    'ngrok-skip-browser-warning': 'true',
+  },
+}
+
+// Get headers with authorization token
+export const getAuthHeaders = () => {
+  const token = localStorage.getItem('token')
+  return {
+    ...API_CONFIG.headers,
+    'ngrok-skip-browser-warning': 'true',
+    ...(token && { Authorization: `Bearer ${token}` }),
+  }
+}
+
+// Auth Endpoints from Backend
+export const AUTH_ENDPOINTS = {
+  // Admin Auth
+  adminLogin: '/admin/login',
+  adminSignup: '/admin/signup',
+  adminProfile: '/admin/profile',
+  adminUpdateProfile: '/admin/profile',
+  adminGetAll: '/admin',
+  adminDelete: '/admin',
+
+  // User Auth
+  userLogin: '/user/login',
+  userSignup: '/user/signup',
+  userGetAll: '/user',
+  userGetById: '/user',
+  userUpdate: '/user',
+  userDelete: '/user',
+}
+
+// Book Endpoints
+export const BOOK_ENDPOINTS = {
+  getAll: '/books',
+  getById: '/books',
+  create: '/books',
+  update: '/books',
+  delete: '/books',
+}
+
+// File Upload Endpoints
+export const FILE_ENDPOINTS = {
+  upload: '/files/upload',
+}
+
+// E-Code Endpoints
+export const ECODE_ENDPOINTS = {
+  getAll: '/ecodes',
+  getById: '/ecodes',
+  create: '/ecodes',
+  update: '/ecodes',
+  delete: '/ecodes',
+}
+
+// Resources Endpoints
+export const RESOURCE_ENDPOINTS = {
+  getAll: '/resources',
+  getById: '/resources',
+  create: '/resources',
+  update: '/resources',
+  delete: '/resources',
+}
+
+// FAQ Endpoints
+export const FAQ_ENDPOINTS = {
+  getAll: '/faqs',
+  getById: '/faqs',
+  create: '/faqs',
+  update: '/faqs',
+  delete: '/faqs',
+}
+
+// User FAQ Endpoints
+export const USER_FAQ_ENDPOINTS = {
+  getAll: '/user-faqs',
+  getById: '/user-faqs',
+  create: '/user-faqs',
+  update: '/user-faqs',
+  delete: '/user-faqs',
+  respond: '/user-faqs/respond',
+}
+
+// Client Endpoints
+export const CLIENT_ENDPOINTS = {
+  getAll: '/clients',
+  getById: '/clients',
+  create: '/clients',
+  update: '/clients',
+  delete: '/clients',
+  getNames: '/clients/names',
+} 
+
+// Product Endpoints
+export const PRODUCT_ENDPOINTS = {
+  getAll: '/products',
+  getById: '/products',
+  create: '/products',
+  update: '/products',
+  delete: '/products',
+  getByName: '/products/name',
+} 

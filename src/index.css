@@ -1,0 +1,323 @@
+@import "tailwindcss";
+
+:root {
+    --d-bg: 0 0% 100%;
+    --d-muted: 0 0% 90%;
+    --d-fg: 0 0% 0%;
+    --d-border: 0 0% 90%;
+    --d-sheet: 0 0% 98%;
+
+}
+
+
+@theme inline {
+    --color-d-bg: hsl(var(--d-bg));
+    --color-d-fg: hsl(var(--d-fg));
+    --color-d-border: hsl(var(--d-border));
+    --color-d-sheet: hsl(var(--d-sheet));
+    --color-d-muted: hsl(var(--d-muted));
+    --font-display: "Poppins", sans-serif;
+}
+
+/* Global font family */
+* {
+    font-family: 'Poppins', sans-serif;
+}
+
+@keyframes bubble-float {
+
+    0%,
+    100% {
+        transform: translateY(0px) scale(1);
+    }
+
+    50% {
+        transform: translateY(-10px) scale(1.02);
+    }
+}
+
+@keyframes oval-morph {
+    0% {
+        border-radius: 50% 50% 50% 50% / 50% 50% 50% 50%;
+        transform: scale(1) rotate(0deg);
+    }
+
+    12.5% {
+        border-radius: 52% 48% 48% 52% / 52% 48% 48% 52%;
+        transform: scale(1.01) rotate(45deg);
+    }
+
+    25% {
+        border-radius: 50% 50% 50% 50% / 50% 50% 50% 50%;
+        transform: scale(1) rotate(90deg);
+    }
+
+    37.5% {
+        border-radius: 48% 52% 52% 48% / 48% 52% 52% 48%;
+        transform: scale(1.01) rotate(135deg);
+    }
+
+    50% {
+        border-radius: 50% 50% 50% 50% / 50% 50% 50% 50%;
+        transform: scale(1) rotate(180deg);
+    }
+
+    62.5% {
+        border-radius: 52% 48% 48% 52% / 52% 48% 48% 52%;
+        transform: scale(1.01) rotate(225deg);
+    }
+
+    75% {
+        border-radius: 50% 50% 50% 50% / 50% 50% 50% 50%;
+        transform: scale(1) rotate(270deg);
+    }
+
+    87.5% {
+        border-radius: 48% 52% 52% 48% / 48% 52% 52% 48%;
+        transform: scale(1.01) rotate(315deg);
+    }
+
+    100% {
+        border-radius: 50% 50% 50% 50% / 50% 50% 50% 50%;
+        transform: scale(1) rotate(360deg);
+    }
+}
+
+@keyframes bubble-breathe {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.3;
+    }
+
+    50% {
+        transform: scale(1.05);
+        opacity: 0.5;
+    }
+}
+
+@keyframes bubble-glow {
+
+    0%,
+    100% {
+        filter: brightness(1) blur(16px);
+    }
+
+    50% {
+        filter: brightness(1.2) blur(20px);
+    }
+}
+
+@keyframes inner-spin-glow {
+    0% {
+        transform: rotate(0deg);
+        opacity: 0.8;
+    }
+
+    25% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.6;
+    }
+
+    75% {
+        opacity: 1;
+    }
+
+    100% {
+        transform: rotate(360deg);
+        opacity: 0.8;
+    }
+}
+
+@keyframes crescent-glow {
+
+    0%,
+    100% {
+        filter: brightness(1) drop-shadow(0 0 8px rgba(255, 215, 0, 0.6));
+    }
+
+    50% {
+        filter: brightness(1.3) drop-shadow(0 0 12px rgba(255, 215, 0, 0.8));
+    }
+}
+
+@keyframes outer-glow-revolve {
+    0% {
+        transform: rotate(0deg);
+        opacity: 0.8;
+    }
+
+    25% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.6;
+    }
+
+    75% {
+        opacity: 1;
+    }
+
+    100% {
+        transform: rotate(360deg);
+        opacity: 0.8;
+    }
+}
+
+.bubble-animation {
+    animation: bubble-float 4s ease-in-out infinite;
+}
+
+.bubble-distort {
+    animation: oval-morph 10s linear infinite;
+}
+
+.bubble-glow {
+    animation: bubble-glow 3s ease-in-out infinite;
+}
+
+.bubble-breathe {
+    animation: bubble-breathe 5s ease-in-out infinite;
+}
+
+.inner-spin-glow {
+    animation: inner-spin-glow 3s linear infinite;
+}
+
+.crescent-glow {
+    animation: crescent-glow 2s ease-in-out infinite;
+}
+
+.outer-glow-revolve {
+    animation: outer-glow-revolve 4s linear infinite;
+}
+
+/* Override browser autofill styles */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px white inset !important;
+    -webkit-text-fill-color: #374151 !important;
+    transition: background-color 5000s ease-in-out 0s;
+    border: 1px solid #0c684b;
+}
+
+/* For Firefox */
+input:-moz-autofill {
+    background-color: white !important;
+
+    color: #374151 !important;
+}
+
+/* For Edge */
+input:-ms-input-placeholder {
+    background-color: white !important;
+    color: #374151 !important;
+}
+
+/* Page transition animations */
+.page-enter {
+    opacity: 0;
+    transform: translateX(20px);
+}
+
+.page-enter-active {
+    opacity: 1;
+    transform: translateX(0);
+    transition: opacity 300ms ease-in-out, transform 300ms ease-in-out;
+}
+
+.page-exit {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.page-exit-active {
+    opacity: 0;
+    transform: translateX(-20px);
+    transition: opacity 300ms ease-in-out, transform 300ms ease-in-out;
+}
+
+/* Fade transition for smoother navigation */
+.fade-enter {
+    opacity: 0;
+}
+
+.fade-enter-active {
+    opacity: 1;
+    transition: opacity 300ms ease-in-out;
+}
+
+.fade-exit {
+    opacity: 1;
+}
+
+.fade-exit-active {
+    opacity: 0;
+    transition: opacity 300ms ease-in-out;
+}
+
+/* Fade in animation for page content */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Enhanced sidebar button transitions */
+.sidebar-button {
+    position: relative;
+    overflow: hidden;
+}
+
+.sidebar-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.7s ease-out;
+}
+
+.sidebar-button:hover::before {
+    left: 100%;
+}
+
+.sidebar-button.active {
+    animation: buttonActivate 0.7s ease-out;
+}
+
+@keyframes buttonActivate {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(12, 104, 75, 0.7);
+    }
+
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 10px rgba(12, 104, 75, 0.3);
+    }
+
+    100% {
+        transform: scale(1.02);
+        box-shadow: 0 10px 25px rgba(12, 104, 75, 0.2);
+    }
+}

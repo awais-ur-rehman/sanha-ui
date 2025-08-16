@@ -1,0 +1,21 @@
+/* Custom dropdown styling */
+select option {
+  background-color: white !important;
+  color: black !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
+  padding: 8px 12px !important;
+}
+
+select option:hover {
+  background-color: #f3f4f6 !important;
+}
+
+select option:checked {
+  background-color: #10b981 !important;
+  color: white !important;
+}
+
+select option:focus {
+  background-color: #10b981 !important;
+  color: white !important;
+} 
