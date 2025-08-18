@@ -7,15 +7,25 @@ interface MainLayoutProps {
 }
 
 const MainLayout = ({ children }: MainLayoutProps) => {
-  const { isSidebarCollapsed } = useUIStore()
+  const { isSidebarCollapsed, isMobileMenuOpen } = useUIStore()
   
   return (
     <div className="min-h-screen bg-gray-50">
       <Sidebar />
       
       {/* Main Content Area */}
-      <main className={`transition-all duration-300 ${isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-72'}`}>
-        <div className={` animate-fade-in max-h-screen min-h-screen overflow-y-auto ${isSidebarCollapsed ? 'lg:px-6' : 'lg:px-2'}`}>
+      <main className={`transition-all duration-300 ${
+        isMobileMenuOpen 
+          ? 'ml-0' 
+          : isSidebarCollapsed 
+            ? 'lg:ml-20' 
+            : 'lg:ml-72'
+      }`}>
+        <div className={`animate-fade-in max-h-screen min-h-screen overflow-y-auto px-4 sm:px-6 ${
+          isSidebarCollapsed 
+            ? 'lg:px-6 xl:px-8' 
+            : 'lg:px-4 xl:px-6'
+        }`}>
           <div className="transition-all duration-300 ease-in-out min-h-screen transform">
             {children}
           </div>

@@ -156,7 +156,7 @@ export default function Sheet({
         <div className="relative h-full flex">
           {/* Grabbable Handle on Left Edge */}
           <div 
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 z-10"
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 z-10 pl-2"
             onMouseDown={handleDragStart}
           >
             <div className="h-16 w-2 bg-gray-300 rounded-full cursor-grab active:cursor-grabbing flex items-center justify-center hover:bg-gray-400 transition-colors select-none">

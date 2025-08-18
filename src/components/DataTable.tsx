@@ -59,21 +59,21 @@ const DataTable = <T extends { id?: number }>({
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
       {/* Table Header */}
-      <div className="px-6 py-4 border-b border-gray-200">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+      <div className="px-4 lg:px-6 py-3 lg:py-4 border-b border-gray-200">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-3 lg:space-y-0">
+          <div className="flex items-center space-x-3 lg:space-x-4">
             <input
               type="text"
               placeholder="Search..."
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
+              className="px-3 py-2 text-sm lg:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
             />
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 lg:space-x-3">
             <button
               onClick={onAddClick}
-              className="flex items-center space-x-2 px-4 cursor-pointer py-2 bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors"
+              className="flex items-center space-x-1 lg:space-x-2 px-3 lg:px-4 py-2 text-sm lg:text-base cursor-pointer bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors"
             >
               {addButtonIcon}
               <span>{addButtonText}</span>
@@ -101,7 +101,7 @@ const DataTable = <T extends { id?: number }>({
               {columns.map((column) => (
                 <th
                   key={column.key}
-                  className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${
+                  className={`px-4 lg:px-6 py-2 lg:py-3 text-left text-xs lg:text-sm font-medium text-gray-500 uppercase tracking-wider ${
                     column.width || ''
                   }`}
                 >
@@ -109,7 +109,7 @@ const DataTable = <T extends { id?: number }>({
                 </th>
               ))}
               {actions && actions.length > 0 && (
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                <th className="px-4 lg:px-6 py-2 lg:py-3 text-left text-xs lg:text-sm font-medium text-gray-500 uppercase tracking-wider w-24 lg:w-32">
                   Actions
                 </th>
               )}
@@ -127,7 +127,7 @@ const DataTable = <T extends { id?: number }>({
             ) : (
               data.map((item, index) => (
                 <tr key={item.id || index} className="hover:bg-gray-50">
-                  <td className="px-6 py-4">
+                  <td className="px-4 lg:px-6 py-3 lg:py-4">
                     <input
                       type="checkbox"
                       checked={selectedRows.includes(item.id || 0)}
@@ -136,18 +136,18 @@ const DataTable = <T extends { id?: number }>({
                     />
                   </td>
                   {columns.map((column) => (
-                    <td key={column.key} className="px-6 py-4 whitespace-nowrap text-black/80">
+                    <td key={column.key} className="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-sm lg:text-base text-black/80">
                       {column.render ? column.render(item, index) : (item as any)[column.key]}
                     </td>
                   ))}
                   {actions && actions.length > 0 && (
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center space-x-2">
+                    <td className="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap">
+                      <div className="flex items-center space-x-1 lg:space-x-2">
                         {actions.map((action, actionIndex) => (
                           <button
                             key={actionIndex}
                             onClick={() => action.onClick(item)}
-                            className={`p-2 rounded-lg transition-colors cursor-pointer ${
+                            className={`p-1.5 lg:p-2 rounded-lg transition-colors cursor-pointer ${
                               action.variant === 'danger'
                                 ? 'text-red-600 hover:bg-red-50 hover:text-red-700'
                                 : action.variant === 'primary'
@@ -170,12 +170,12 @@ const DataTable = <T extends { id?: number }>({
       </div>
 
       {/* Table Footer */}
-      <div className="px-6 py-3 border-t border-gray-200">
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-gray-500">
+      <div className="px-4 lg:px-6 py-3 border-t border-gray-200">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-2 lg:space-y-0">
+          <div className="text-xs lg:text-sm text-gray-500">
             {selectedRows.length} of {data.length} row(s) selected
             {pagination && (
-              <span className="ml-4">
+              <span className="ml-2 lg:ml-4">
                 Showing {((pagination.currentPage - 1) * pagination.itemsPerPage) + 1} to{' '}
                 {Math.min(pagination.currentPage * pagination.itemsPerPage, pagination.totalItems)} of{' '}
                 {pagination.totalItems} results
@@ -187,19 +187,19 @@ const DataTable = <T extends { id?: number }>({
               <button
                 onClick={() => pagination.onPageChange(pagination.currentPage - 1)}
                 disabled={pagination.currentPage <= 1}
-                className="p-2 text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-1.5 lg:p-2 text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
-              <span className="text-sm text-gray-500">
+              <span className="text-xs lg:text-sm text-gray-500">
                 Page {pagination.currentPage} of {pagination.totalPages}
               </span>
               <button
                 onClick={() => pagination.onPageChange(pagination.currentPage + 1)}
                 disabled={pagination.currentPage >= pagination.totalPages}
-                className="p-2 text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-1.5 lg:p-2 text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

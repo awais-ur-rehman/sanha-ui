@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { FiSearch, FiMail, FiGlobe, FiMessageCircle, FiPlus, FiEdit, FiTrash2 } from 'react-icons/fi'
 import { usePermissions } from '../../hooks/usePermissions'
 import { useFaqsApi, useUserFaqsApi } from '../../hooks'
@@ -81,8 +81,6 @@ const FAQs = () => {
   })
   
   // Simple reply state
-  const [replyingTo, setReplyingTo] = useState<number | null>(null)
-  const [replyText, setReplyText] = useState('')
   const [isSubmittingReply, setIsSubmittingReply] = useState(false)
 
   // FAQ modal state
@@ -122,7 +120,7 @@ const FAQs = () => {
     page: pagination.currentPage.toString(),
     limit: pagination.itemsPerPage.toString(),
     ...(searchTerm && { search: searchTerm }),
-    ...(filters.country && { country: filters.country }),
+    ...(filters.country && filters.country.trim() && { country: filters.country }),
     ...(filters.startDate && { startDate: filters.startDate }),
     ...(filters.endDate && { endDate: filters.endDate }),
   })
@@ -189,6 +187,8 @@ const FAQs = () => {
     setPagination(prev => ({ ...prev, currentPage: 1 }))
   }, [activeTab])
 
+
+
   // Handlers
   const handleSearch = (term: string) => {
     setSearchTerm(term)
@@ -213,17 +213,7 @@ const FAQs = () => {
     setPagination(prev => ({ ...prev, currentPage: page }))
   }
 
-  const handleReplyClick = (userFaqId: number) => {
-    setReplyingTo(userFaqId)
-    setReplyText('')
-  }
-
-  const handleCancelReply = () => {
-    setReplyingTo(null)
-    setReplyText('')
-  }
-
-  const handleSubmitReply = async (userFaq: UserFAQ) => {
+  const handleSubmitReply = async (userFaq: UserFAQ, replyText: string) => {
     if (!replyText.trim()) {
       showToast('error', 'Please enter a reply')
       return
@@ -250,8 +240,6 @@ const FAQs = () => {
       }
 
       showToast('success', 'Reply sent successfully!')
-      setReplyingTo(null)
-      setReplyText('')
       refetchUserFaqs()
     } catch (error) {
       console.error('Error sending reply:', error)
@@ -515,125 +503,187 @@ const FAQs = () => {
   )
 
   // User FAQ Card Component (Column Layout)
-  const UserFAQCard = ({ userFaq }: { userFaq: UserFAQ }) => (
-    <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-6 mb-6 border border-[#0c684b]/20">
-      {/* Top Right: Add To FAQs Button (only if answer exists) */}
-      <div className='flex justify-between'>      
-      {/* Middle: User details */}
-      <div className=" p-4 rounded-lg">
-        <div className="flex items-center space-x-3 mb-3">
-          {/* User Avatar */}
-          <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-            <span className="text-sm font-medium text-gray-600">
-              {userFaq.firstName.charAt(0)}{userFaq.lastName.charAt(0)}
-            </span>
-          </div>
-          
-          {/* User Info */}
-          <div className="flex-1">
-            <div className="flex items-center space-x-2 mb-1">
-              <h4 className="font-medium text-gray-900">
-                {userFaq.firstName} {userFaq.lastName}
-              </h4>
-              <span className="text-xs text-gray-500">
-                {new Date(userFaq.createdAt).toLocaleDateString()}
+  const UserFAQCard = ({ userFaq }: { userFaq: UserFAQ }) => {
+    const [isReplying, setIsReplying] = useState(false)
+    const [replyText, setReplyText] = useState('')
+    const replyTextareaRef = useRef<HTMLTextAreaElement>(null)
+
+    const handleReplyClick = () => {
+      setIsReplying(true)
+      setReplyText('')
+    }
+
+    const handleCancelReply = () => {
+      setIsReplying(false)
+      setReplyText('')
+    }
+
+    const handleSubmitReply = async () => {
+      if (!replyText.trim()) {
+        showToast('error', 'Please enter a reply')
+        return
+      }
+
+      setIsSubmittingReply(true)
+      try {
+        const payload = {
+          userName: `${userFaq.firstName} ${userFaq.lastName}`,
+          email: userFaq.email,
+          question: userFaq.question,
+          answer: replyText.trim(),
+        }
+
+        const response = await fetch(`${API_CONFIG.baseURL}${USER_FAQ_ENDPOINTS.respond}`, {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: JSON.stringify(payload),
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.message || 'Failed to send reply')
+        }
+
+        showToast('success', 'Reply sent successfully!')
+        setIsReplying(false)
+        setReplyText('')
+        refetchUserFaqs()
+      } catch (error) {
+        console.error('Error sending reply:', error)
+        showToast('error', error instanceof Error ? error.message : 'Failed to send reply')
+      } finally {
+        setIsSubmittingReply(false)
+      }
+    }
+
+    // Focus textarea when reply section opens
+    useEffect(() => {
+      if (isReplying && replyTextareaRef.current) {
+        replyTextareaRef.current.focus()
+      }
+    }, [isReplying])
+
+    return (
+      <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-6 mb-6 border border-[#0c684b]/20">
+        {/* Top Right: Add To FAQs Button (only if answer exists) */}
+        <div className='flex justify-between'>      
+        {/* Middle: User details */}
+        <div className=" p-4 rounded-lg">
+          <div className="flex items-center space-x-3 mb-3">
+            {/* User Avatar */}
+            <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+              <span className="text-sm font-medium text-gray-600">
+                {userFaq.firstName.charAt(0)}{userFaq.lastName.charAt(0)}
               </span>
             </div>
             
-            {/* Contact Details */}
-            <div className="flex items-center space-x-4 text-xs text-gray-500">
-              <div className="flex items-center space-x-1">
-                <FiMail className="w-3 h-3" />
-                <span>{userFaq.email}</span>
+            {/* User Info */}
+            <div className="flex-1">
+              <div className="flex items-center space-x-2 mb-1">
+                <h4 className="font-medium text-gray-900">
+                  {userFaq.firstName} {userFaq.lastName}
+                </h4>
+                <span className="text-xs text-gray-500">
+                  {new Date(userFaq.createdAt).toLocaleDateString()}
+                </span>
               </div>
-              <div className="flex items-center space-x-1">
-                <FiGlobe className="w-3 h-3" />
-                <span>{userFaq.country}</span>
+              
+              {/* Contact Details */}
+              <div className="flex items-center space-x-4 text-xs text-gray-500">
+                <div className="flex items-center space-x-1">
+                  <FiMail className="w-3 h-3" />
+                  <span>{userFaq.email}</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <FiGlobe className="w-3 h-3" />
+                  <span>{userFaq.country}</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {userFaq.answer && (
-        <div className="flex justify-end ">
-          <button
-            onClick={() => handleAddToFaqs(userFaq)}
-            className="flex items-center space-x-1 h-8 px-2  bg-green-100 text-green-700 rounded-lg text-xs font-medium hover:bg-green-200 transition-colors"
-          >
-            <FiPlus className="w-3 h-3" />
-            <span>Add To FAQs</span>
-          </button>
-        </div>
-      )}
-      
-      </div>
-
-      {/* Top: Question asked by user */}
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 leading-relaxed">
-          {userFaq.question}
-        </h3>
-      </div>
-      
-      {/* Bottom: Admin answer or reply button */}
-      {userFaq.answer ? (
-        <div className=" border border-[#0c684b]/20 rounded-lg p-4">
-          <div className="flex items-center space-x-2 mb-2">
-            <FiMessageCircle className="w-4 h-4 text-green-600" />
-            <span className="text-sm font-medium text-green-700">Admin Response</span>
+        {userFaq.answer && (
+          <div className="flex justify-end ">
+            <button
+              onClick={() => handleAddToFaqs(userFaq)}
+              className="flex items-center space-x-1 h-8 px-2  bg-green-100 text-green-700 rounded-lg text-xs font-medium hover:bg-green-200 transition-colors"
+            >
+              <FiPlus className="w-3 h-3" />
+              <span>Add To FAQs</span>
+            </button>
           </div>
-          <p className="text-gray-700 text-sm leading-relaxed">
-            {userFaq.answer}
-          </p>
+        )}
+        
         </div>
-      ) : (
-        <div className="flex justify-start">
-          <button
-            onClick={() => handleReplyClick(userFaq.id)}
-            className="flex items-center space-x-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
-          >
-            <FiMessageCircle className="w-4 h-4" />
-            <span>Reply</span>
-          </button>
+
+        {/* Top: Question asked by user */}
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold text-gray-900 leading-relaxed">
+            {userFaq.question}
+          </h3>
         </div>
-      )}
-      
-      {/* Reply Input Section */}
-      {replyingTo === userFaq.id && (
-        <div className="border-t border-gray-200 pt-4 mt-4">
-          <textarea
-            value={replyText}
-            onChange={(e) => setReplyText(e.target.value)}
-            placeholder="Write your reply..."
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
-            rows={3}
-            maxLength={500}
-          />
-          <div className="flex items-center justify-between mt-2">
-            <span className="text-xs text-gray-500">
-              {500 - replyText.length} characters remaining
-            </span>
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={handleCancelReply}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors text-sm"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleSubmitReply(userFaq)}
-                disabled={!replyText.trim() || isSubmittingReply}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSubmittingReply ? 'Sending...' : 'Submit Reply'}
-              </button>
+        
+        {/* Bottom: Admin answer or reply button */}
+        {userFaq.answer ? (
+          <div className=" border border-[#0c684b]/20 rounded-lg p-4">
+            <div className="flex items-center space-x-2 mb-2">
+              <FiMessageCircle className="w-4 h-4 text-green-600" />
+              <span className="text-sm font-medium text-green-700">Admin Response</span>
+            </div>
+            <p className="text-gray-700 text-sm leading-relaxed">
+              {userFaq.answer}
+            </p>
+          </div>
+        ) : (
+          <div className="flex justify-start">
+            <button
+              onClick={handleReplyClick}
+              className="flex items-center space-x-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+            >
+              <FiMessageCircle className="w-4 h-4" />
+              <span>Reply</span>
+            </button>
+          </div>
+        )}
+        
+        {/* Reply Input Section */}
+        {isReplying && (
+          <div className="border-t border-gray-200 pt-4 mt-4">
+            <textarea
+              ref={replyTextareaRef}
+              value={replyText}
+              onChange={(e) => setReplyText(e.target.value)}
+              placeholder="Write your reply..."
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+              rows={3}
+              maxLength={500}
+            />
+            <div className="flex items-center justify-between mt-2">
+              <span className="text-xs text-gray-500">
+                {500 - replyText.length} characters remaining
+              </span>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={handleCancelReply}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSubmitReply}
+                  disabled={!replyText.trim() || isSubmittingReply}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSubmittingReply ? 'Sending...' : 'Submit Reply'}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
-  )
+        )}
+      </div>
+    )
+  }
 
   // Loading shimmer for cards
   const CardShimmer = () => (
@@ -710,6 +760,7 @@ const FAQs = () => {
             endDate={filters.endDate}
             onDateRangeChange={handleDateFilterApply}
             placeholder="Select date range"
+            includeTime={true}
             className="w-64"
           />
 
@@ -736,7 +787,10 @@ const FAQs = () => {
                 placeholder="Filter by country"
                 value={filters.country}
                 onChange={(value) => handleFilterChange('country', value)}
-                options={COUNTRIES.map(country => ({ value: country, label: country }))}
+                options={[
+                  { value: '', label: 'All Countries' },
+                  ...COUNTRIES.map(country => ({ value: country, label: country }))
+                ]}
               />
             </div>
           )}
@@ -807,7 +861,7 @@ const FAQs = () => {
           onSubmit={handleFAQFormSubmit}
           onCancel={handleFAQFormCancel}
           isLoading={isSubmittingFAQ}
-          showActiveCheckbox={!!selectedFAQ} // Only show checkbox when editing
+          showActiveCheckbox={false} // Never show checkbox when editing
           willBeInactive={!selectedFAQ && !shouldNewFAQBeActive()} // Show inactive message when creating and max active reached
         />
         </Modal>

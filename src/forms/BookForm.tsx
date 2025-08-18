@@ -217,14 +217,7 @@ const BookForm = ({ book, onSubmit, onCancel, loading = false }: BookFormProps) 
         />
       </div>
 
-      {/* Status Toggle */}
-      <div className="flex items-center justify-start">
-        <CustomCheckbox
-          label="Active"
-          checked={formData.isActive}
-          onChange={(e) => handleInputChange('isActive', e.target.checked)}
-        />
-      </div>
+
 
       {/* Image URL and PDF URL - Parallel */}
       <div className="grid grid-cols-2 gap-4">
@@ -272,9 +265,6 @@ const BookForm = ({ book, onSubmit, onCancel, loading = false }: BookFormProps) 
                 <FiUpload className="mr-1" size={12} />
                 {uploadingImage ? 'Uploading...' : 'Upload Image'}
               </label>
-              {uploadingImage && (
-                <p className="text-xs text-blue-600 mt-1">Uploading...</p>
-              )}
             </div>
           </div>
         </div>
@@ -321,9 +311,6 @@ const BookForm = ({ book, onSubmit, onCancel, loading = false }: BookFormProps) 
                 <FiUpload className="mr-1" size={12} />
                 {uploadingPdf ? 'Uploading...' : 'Upload PDF'}
               </label>
-              {uploadingPdf && (
-                <p className="text-xs text-blue-600 mt-1">Uploading...</p>
-              )}
             </div>
           </div>
         </div>

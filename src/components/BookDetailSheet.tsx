@@ -39,7 +39,7 @@ const BookDetailSheet: React.FC<BookDetailSheetProps> = ({
     setLocalIsActive(checked);
     
     try {
-      // Call the API
+      // Call the API with the new state (checked value)
       await onToggleStatus({ ...book, isActive: checked });
     } catch (error) {
       // If API call fails, revert the local state
@@ -96,11 +96,13 @@ const BookDetailSheet: React.FC<BookDetailSheetProps> = ({
 
           {/* Description */}
           {book.description && (
-            <div className="flex-1">
+            <div>
               <h3 className="font-semibold text-gray-900 mb-2">Description</h3>
-              <p className="text-sm text-gray-600 leading-relaxed">
-                {book.description}
-              </p>
+              <div className='max-h-[140px] overflow-y-auto bg-gray-50 p-3 rounded-lg'>
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  {book.description}
+                </p>
+              </div>
             </div>
           )}
 

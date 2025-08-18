@@ -411,12 +411,12 @@ const AccessControl = () => {
   })
 
   return (
-    <div className=" py-4">
-      <div className='bg-white rounded-lg shadow-lg overflow-hidden min-h-[calc(100vh-35px)] p-6 space-y-6'>
- {/* Page Header */}
+    <div className="py-3 lg:py-4">
+      <div className='bg-white rounded-lg shadow-lg overflow-hidden min-h-[calc(100vh-35px)] p-4 lg:p-6 space-y-4 lg:space-y-6'>
+       {/* Page Header */}
  <div>
-        <h1 className="text-2xl font-semibold text-gray-900">Roles and Permissions</h1>
-        <p className="text-gray-600">View & manage permissions and roles.</p>
+        <h1 className="text-xl lg:text-2xl font-semibold text-gray-900">Roles and Permissions</h1>
+        <p className="text-sm lg:text-base text-gray-600">View & manage permissions and roles.</p>
       </div>
 
       {/* Tab Navigation */}

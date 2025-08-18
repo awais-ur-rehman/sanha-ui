@@ -132,11 +132,14 @@ const Books = () => {
   }
 
   const handleToggleStatus = async (book: Book) => {
+    // Use the isActive value that was passed from the detail sheet
+    const newStatus = book.isActive
+    
     const response = await fetch(`${API_CONFIG.baseURL}${BOOK_ENDPOINTS.update}/${book.id}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
       body: JSON.stringify({
-        isActive: !book.isActive,
+        isActive: newStatus,
       }),
     })
 
@@ -147,10 +150,10 @@ const Books = () => {
 
     // Update selected book if it's the same
     if (selectedBook?.id === book.id) {
-      setSelectedBook(prev => prev ? { ...prev, isActive: !prev.isActive } : null)
+      setSelectedBook(prev => prev ? { ...prev, isActive: newStatus } : null)
     }
     
-    showToast('success', `Book ${!book.isActive ? 'activated' : 'deactivated'} successfully!`)
+    showToast('success', `Book ${newStatus ? 'activated' : 'deactivated'} successfully!`)
     
     // Refetch books to update the list
     refetch()
@@ -175,7 +178,10 @@ const Books = () => {
     setIsAddModalOpen(true)
   }
 
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
   const handleBookFormSubmit = async (formData: any) => {
+    setIsSubmitting(true)
     try {
       const isEditing = !!selectedBook
       const url = isEditing 
@@ -207,6 +213,8 @@ const Books = () => {
     } catch (error) {
       console.error('Error saving book:', error)
       showToast('error', error instanceof Error ? error.message : 'Failed to save book')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -235,17 +243,17 @@ const Books = () => {
   )
 
   return (
-    <div className="py-4">
-      <div className='bg-white rounded-lg shadow-lg overflow-hidden min-h-[calc(100vh-35px)] max-h-[calc(100vh-35px)] overflow-y-auto px-6 py-10'>
-{/* Header */}
-<div className="mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">Books</h1>
-        <p className="text-gray-600">View & manage books.</p>
+    <div className="py-3 lg:py-4">
+      <div className='bg-white rounded-lg shadow-lg overflow-hidden min-h-[calc(100vh-35px)] max-h-[calc(100vh-35px)] overflow-y-auto px-4 lg:px-6 py-6 lg:py-10'>
+      {/* Header */}
+<div className="mb-4 lg:mb-6">
+        <h1 className="text-xl lg:text-2xl font-semibold text-gray-900">Books</h1>
+        <p className="text-sm lg:text-base text-gray-600">View & manage books.</p>
       </div>
 
       {/* Clean Filters */}
-      <div className="mb-6">
-        <div className="flex items-center gap-4">
+      <div className="mb-4 lg:mb-6">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-3 lg:gap-4">
           {/* Search */}
           <div className="relative flex-1">
             <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
@@ -254,12 +262,12 @@ const Books = () => {
               placeholder="Search books by title, author, or published by..."
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 text-sm lg:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
             />
           </div>
 
           {/* Language Filter */}
-          <div className="w-48">
+          <div className="w-full lg:w-48">
             <CustomDropdown
               placeholder="All Languages"
               value={filters.contentLanguage}
@@ -274,7 +282,7 @@ const Books = () => {
           </div>
 
           {/* Status Filter */}
-          <div className="w-48">
+          <div className="w-full lg:w-48">
             <CustomDropdown
               placeholder="All Status"
               value={filters.isActive}
@@ -290,7 +298,7 @@ const Books = () => {
           {/* Add Book Button */}
           <button
             onClick={handleAddBook}
-            className="flex items-center space-x-2 cursor-pointer px-4 py-2 bg-[#0c684b] text-white rounded-lg hover:bg-green-900 transition-colors"
+            className="flex items-center space-x-1 lg:space-x-2 cursor-pointer px-3 lg:px-4 py-2 text-sm lg:text-base bg-[#0c684b] text-white rounded-lg hover:bg-green-900 transition-colors"
           >
             <FiPlus size={16} />
             <span>Add Book</span>
@@ -299,7 +307,7 @@ const Books = () => {
       </div>
 
       {/* Books Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 lg:gap-6">
         {loading ? (
           // Loading shimmer cards
           Array.from({ length: 12 }).map((_, index) => (
@@ -314,7 +322,7 @@ const Books = () => {
             <div
               key={book.id}
               onClick={() => handleViewBook(book)}
-              className=" p-4 cursor-pointer group"
+              className="p-3 lg:p-4 cursor-pointer group"
             >
               {/* Book Image with Language Chip */}
               <div className="relative mb-3">
@@ -336,10 +344,10 @@ const Books = () => {
 
               {/* Book Info */}
               <div className="space-y-1">
-                <h3 className="font-medium text-gray-900 line-clamp-2 group-hover:text-[#0c684b] transition-colors">
+                <h3 className="font-medium text-sm lg:text-base text-gray-900 line-clamp-2 group-hover:text-[#0c684b] transition-colors">
                   {book.title || 'Untitled'}
                 </h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-xs lg:text-sm text-gray-600">
                   {book.author || 'Unknown Author'}
                 </p>
                 <p className="text-xs text-gray-500">
@@ -390,11 +398,12 @@ const Books = () => {
           onClose={handleBookFormCancel}
           title={selectedBook ? 'Edit Book' : 'Add New Book'}
         >
-          <BookForm
-            book={selectedBook}
-            onSubmit={handleBookFormSubmit}
-            onCancel={handleBookFormCancel}
-          />
+                  <BookForm
+          book={selectedBook}
+          onSubmit={handleBookFormSubmit}
+          onCancel={handleBookFormCancel}
+          loading={isSubmitting}
+        />
         </Modal>
       )}
 

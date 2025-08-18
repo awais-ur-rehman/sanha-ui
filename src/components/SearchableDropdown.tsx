@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, forwardRef } from 'react'
-import { FiChevronDown, FiPlus } from 'react-icons/fi'
+import { FiChevronDown, FiPlus, FiX } from 'react-icons/fi'
 
 interface SearchableDropdownProps {
   label?: string
@@ -78,7 +78,7 @@ const SearchableDropdown = forwardRef<HTMLDivElement, SearchableDropdownProps>(
       const option = options.find(opt => opt.value === optionValue)
       if (option) {
         setInputValue(option.label)
-        onChange?.(option.label)
+        onChange?.(option.value.toString())
         setIsOpen(false)
         setSearchTerm('')
       }
@@ -132,8 +132,22 @@ const SearchableDropdown = forwardRef<HTMLDivElement, SearchableDropdownProps>(
             `}
           />
           
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <FiChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+            {inputValue && (
+              <button
+                type="button"
+                onClick={() => {
+                  setInputValue('')
+                  setSearchTerm('')
+                  onChange?.('')
+                  setIsOpen(false)
+                }}
+                className="p-1 hover:bg-gray-100 rounded transition-colors"
+              >
+                <FiX className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+              </button>
+            )}
+            <FiChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''} pointer-events-none`} />
           </div>
 
           {isOpen && (

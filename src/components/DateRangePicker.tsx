@@ -7,6 +7,7 @@ interface DateRangePickerProps {
   onDateRangeChange: (startDate: string, endDate: string) => void;
   placeholder?: string;
   className?: string;
+  includeTime?: boolean; // New prop to control time inclusion
 }
 
 const DateRangePicker: React.FC<DateRangePickerProps> = ({
@@ -14,7 +15,8 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
   endDate,
   onDateRangeChange,
   placeholder = 'Select date range',
-  className = ''
+  className = '',
+  includeTime = false
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -129,8 +131,22 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
     return date >= tempStartDate && date <= tempEndDate;
   };
 
-  // Fix timezone issue by using local date formatting
-  const formatDate = (date: Date) => {
+  // Fix timezone issue by using local date formatting with optional time
+  const formatDate = (date: Date, isEndDate: boolean = false) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    
+    if (includeTime) {
+      const time = isEndDate ? '23:59:59' : '00:00:00';
+      return `${year}-${month}-${day} ${time}`;
+    } else {
+      return `${year}-${month}-${day}`;
+    }
+  };
+
+  // Display format (date only, no time)
+  const formatDisplayDate = (date: Date) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
@@ -147,7 +163,7 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
     } else {
       if (tempStartDate && date >= tempStartDate) {
         setTempEndDate(date);
-        onDateRangeChange(formatDate(tempStartDate), formatDate(date));
+        onDateRangeChange(formatDate(tempStartDate, false), formatDate(date, true));
         setIsOpen(false);
         setSelectionMode('start');
       } else {
@@ -177,9 +193,11 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
 
   const getDisplayText = () => {
     if (tempStartDate && tempEndDate) {
-      return `${formatDate(tempStartDate)} - ${formatDate(tempEndDate)}`;
+      return `${formatDisplayDate(tempStartDate)} - ${formatDisplayDate(tempEndDate)}`;
     } else if (tempStartDate) {
-      return `${formatDate(tempStartDate)} - Select end date`;
+      return `${formatDisplayDate(tempStartDate)} - Select end date`;
+    } else if (tempEndDate) {
+      return `Select start date - ${formatDisplayDate(tempEndDate)}`;
     }
     return placeholder;
   };

@@ -366,6 +366,7 @@ const Resources = () => {
             }}
             placeholder="Select date range"
             className="w-64 text-sm"
+            includeTime={true}
           />
 
           {/* Status Filter */}
@@ -474,7 +475,7 @@ const Resources = () => {
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={() => deleteResourceMutation.mutate()}
         title="Delete Resource"
-        message={`Are you sure you want to permanently delete the resource "${resourceToDelete?.title}"? This action cannot be undone and the resource will be permanently removed from the database.`}
+        message={`Are you sure you want to permanently delete the resource "${resourceToDelete?.title}"? This action cannot be undone.`}
         isLoading={deleteResourceMutation.isPending}
       />
       </div>

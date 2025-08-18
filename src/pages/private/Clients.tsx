@@ -325,6 +325,7 @@ const Clients = () => {
             onDateRangeChange={handleDateFilterApply}
             placeholder="Filter by date range"
             className="w-64"
+            includeTime={true}
           />
 
 {hasCreatePermission && (
