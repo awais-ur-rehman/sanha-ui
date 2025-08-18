@@ -5,7 +5,7 @@ import Shimmer from './Shimmer'
 interface Column<T> {
   key: string
   header: string
-  render?: (item: T) => ReactNode
+  render?: (item: T, index?: number) => ReactNode
   width?: string
 }
 
@@ -117,11 +117,7 @@ const DataTable = <T extends { id?: number }>({
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {loading ? (
-              <tr>
-                <td colSpan={columns.length + 1}>
-                  <Shimmer rows={5} columns={columns.length} />
-                </td>
-              </tr>
+              <Shimmer rows={5} columns={columns.length} isTableRow={true} />
             ) : data.length === 0 ? (
               <tr>
                 <td colSpan={columns.length + 1} className="px-6 py-8 text-center text-gray-500">
@@ -141,7 +137,7 @@ const DataTable = <T extends { id?: number }>({
                   </td>
                   {columns.map((column) => (
                     <td key={column.key} className="px-6 py-4 whitespace-nowrap text-black/80">
-                      {column.render ? column.render(item) : (item as any)[column.key]}
+                      {column.render ? column.render(item, index) : (item as any)[column.key]}
                     </td>
                   ))}
                   {actions && actions.length > 0 && (

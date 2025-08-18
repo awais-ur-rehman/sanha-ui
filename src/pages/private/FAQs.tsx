@@ -13,6 +13,7 @@ import FAQForm from '../../forms/FAQForm'
 import DeleteConfirmationModal from '../../components/DeleteConfirmationModal'
 import ConfirmationModal from '../../components/ConfirmationModal'
 import { USER_FAQ_ENDPOINTS, FAQ_ENDPOINTS, API_CONFIG, getAuthHeaders } from '../../config/api'
+import { Pagination } from '../../components'
 
 // Common countries list
 const COUNTRIES = [
@@ -782,24 +783,15 @@ const FAQs = () => {
 
       {/* Pagination */}
       {!getCurrentLoading() && pagination.totalPages > 1 && (
-        <div className="flex items-center justify-center mt-8 space-x-2">
-          <button
-            onClick={() => handlePageChange(pagination.currentPage - 1)}
-            disabled={pagination.currentPage <= 1}
-            className="px-3 py-2 text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Previous
-          </button>
-          <span className="px-3 py-2 text-gray-700">
-            Page {pagination.currentPage} of {pagination.totalPages}
-          </span>
-          <button
-            onClick={() => handlePageChange(pagination.currentPage + 1)}
-            disabled={pagination.currentPage >= pagination.totalPages}
-            className="px-3 py-2 text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Next
-          </button>
+        <div className="mt-8">
+          <Pagination
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            totalItems={pagination.totalItems}
+            itemsPerPage={pagination.itemsPerPage}
+            onPageChange={handlePageChange}
+            className="justify-center"
+          />
         </div>
       )}
 

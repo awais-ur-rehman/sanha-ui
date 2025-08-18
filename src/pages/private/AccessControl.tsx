@@ -146,7 +146,15 @@ const AccessControl = () => {
     switch (activeTab) {
       case 'admins':
         return [
-          { key: 'id', header: 'Sr.no', width: 'w-16' },
+          { 
+            key: 'srNo', 
+            header: 'Sr.no', 
+            width: 'w-16',
+            render: (admin: Admin, index?: number) => {
+              const baseNumber = ((currentPage - 1) * itemsPerPage) + 1
+              return (index ?? 0) + baseNumber
+            }
+          },
           { key: 'username', header: 'Username' },
           { key: 'email', header: 'Email' },
           { 
@@ -170,7 +178,15 @@ const AccessControl = () => {
         ]
       case 'modules':
         return [
-          { key: 'id', header: 'Sr.no', width: 'w-16' },
+          { 
+            key: 'srNo', 
+            header: 'Sr.no', 
+            width: 'w-16',
+            render: (module: Module, index?: number) => {
+              const baseNumber = ((currentPage - 1) * itemsPerPage) + 1
+              return (index ?? 0) + baseNumber
+            }
+          },
           { key: 'name', header: 'Name' },
           { key: 'description', header: 'Description' },
           {
@@ -207,7 +223,15 @@ const AccessControl = () => {
         ]
       case 'roles':
         return [
-          { key: 'id', header: 'Sr.no', width: 'w-16' },
+          { 
+            key: 'srNo', 
+            header: 'Sr.no', 
+            width: 'w-16',
+            render: (role: Role, index?: number) => {
+              const baseNumber = ((currentPage - 1) * itemsPerPage) + 1
+              return (index ?? 0) + baseNumber
+            }
+          },
           { key: 'name', header: 'Name' },
           { key: 'description', header: 'Description' },
           {

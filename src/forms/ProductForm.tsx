@@ -6,6 +6,7 @@ import { API_CONFIG, FILE_ENDPOINTS } from '../config/api'
 import { useClientNamesApi } from '../hooks/useClientNamesApi'
 import type { Product, ProductCreateRequest, ProductUpdateRequest } from '../types/entities'
 import SearchableDropdown from '../components/SearchableDropdown'
+import CustomDropdown from '../components/CustomDropdown'
 
 interface ProductFormProps {
   product?: Product
@@ -170,15 +171,17 @@ const ProductForm: React.FC<ProductFormProps> = ({
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Status *
           </label>
-          <select
-            {...register('status', { required: 'Status is required' })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
-          >
-            <option value="">Select status</option>
-            <option value="Halaal">Halaal</option>
-            <option value="Haraam">Haraam</option>
-            <option value="Doubtful">Doubtful</option>
-          </select>
+          <CustomDropdown
+            options={[
+              { value: '', label: 'Select status' },
+              { value: 'Halaal', label: 'Halaal' },
+              { value: 'Haraam', label: 'Haraam' },
+              { value: 'Doubtful', label: 'Doubtful' }
+            ]}
+            value={watch('status')}
+            onChange={(value) => setValue('status', value)}
+            placeholder="Select status"
+          />
           {errors.status && (
             <p className="text-red-500 text-xs mt-1">{errors.status.message}</p>
           )}
