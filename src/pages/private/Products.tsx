@@ -94,7 +94,7 @@ const Products = () => {
   )
 
   const deleteProductMutation = useDeleteApi(
-    `${PRODUCT_ENDPOINTS.delete}/${selectedProduct?.id}`,
+    `${PRODUCT_ENDPOINTS.delete}/${selectedProduct?.id}?hardDelete=true`,
     {
       requireAuth: true,
       onSuccess: () => {
@@ -287,7 +287,7 @@ const Products = () => {
           {/* Status Filter */}
           <CustomDropdown
             options={[
-              { value: '', label: 'Status' },
+              { value: '', label: 'All Status' },
               { value: 'Halaal', label: 'Halaal' },
               { value: 'Haraam', label: 'Haraam' },
               { value: 'Doubtful', label: 'Doubtful' },
@@ -301,7 +301,7 @@ const Products = () => {
           {/* Active Status Filter */}
           <CustomDropdown
             options={[
-              { value: '', label: 'Records' },
+              { value: '', label: 'All Records' },
               { value: 'true', label: 'Active' },
               { value: 'false', label: 'Inactive' },
             ]}

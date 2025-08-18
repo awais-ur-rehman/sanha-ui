@@ -56,7 +56,7 @@ const ProductDetailSheet: React.FC<ProductDetailSheetProps> = ({
       <div className="flex flex-col h-full p-6">
         {/* Product Image */}
         <div className="flex justify-center mb-6">
-          <div className="relative w-32 h-32 overflow-hidden rounded-lg border">
+          <div className="relative w-32 h-32 overflow-hidden rounded-lg">
             {product.image ? (
               <img
                 draggable={false}
