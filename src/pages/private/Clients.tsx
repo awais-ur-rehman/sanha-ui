@@ -99,7 +99,7 @@ const Clients = () => {
 
 
   const deleteClientMutation = useDeleteApi(
-    `${CLIENT_ENDPOINTS.delete}/${selectedClient?.id}`,
+    `${CLIENT_ENDPOINTS.delete}/${selectedClient?.id}?hardDelete=true`,
     {
       requireAuth: true,
       onSuccess: () => {

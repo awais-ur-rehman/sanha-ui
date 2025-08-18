@@ -66,7 +66,7 @@ const ClientDetailSheet: React.FC<ClientDetailSheetProps> = ({
       <div className="flex flex-col h-full p-6">
         {/* Client Logo */}
         <div className="flex justify-center mb-6">
-          <div className="relative w-32 h-32 overflow-hidden rounded-lg border">
+          <div className="relative w-32 h-32 overflow-hidden rounded-lg">
             {client.logoUrl ? (
               <img
                 draggable={false}

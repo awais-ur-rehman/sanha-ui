@@ -5,18 +5,16 @@ interface DatePickerProps {
   value: string;
   onChange: (date: string) => void;
   placeholder?: string;
-  min?: string;
-  max?: string;
   className?: string;
+  maxDate?: Date; // Maximum allowed date (defaults to today)
 }
 
 const DatePicker: React.FC<DatePickerProps> = ({
   value,
   onChange,
   placeholder = 'Select date',
-  min,
-  max,
-  className = ''
+  className = '',
+  maxDate = new Date()
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -51,12 +49,16 @@ const DatePicker: React.FC<DatePickerProps> = ({
     // Add previous month days
     const prevMonth = new Date(year, month - 1, 0);
     for (let i = startOffset - 1; i >= 0; i--) {
+      const dayDate = new Date(year, month - 1, prevMonth.getDate() - i);
+      const dayOfWeek = dayDate.getDay();
+      const isSelected = selectedDate ? isSameDay(dayDate, selectedDate) : false;
+      
       days.push({
-        date: new Date(year, month - 1, prevMonth.getDate() - i),
+        date: dayDate,
         isCurrentMonth: false,
         isToday: false,
-        isSelected: false,
-        isWeekend: false
+        isSelected: isSelected,
+        isWeekend: dayOfWeek === 0 || dayOfWeek === 6
       });
     }
     
@@ -64,11 +66,13 @@ const DatePicker: React.FC<DatePickerProps> = ({
     for (let i = 1; i <= daysInMonth; i++) {
       const dayDate = new Date(year, month, i);
       const dayOfWeek = dayDate.getDay();
+      const isSelected = selectedDate ? isSameDay(dayDate, selectedDate) : false;
+      
       days.push({
         date: dayDate,
         isCurrentMonth: true,
         isToday: isToday(dayDate),
-        isSelected: selectedDate ? isSameDay(dayDate, selectedDate) : false,
+        isSelected: isSelected,
         isWeekend: dayOfWeek === 0 || dayOfWeek === 6
       });
     }
@@ -78,11 +82,13 @@ const DatePicker: React.FC<DatePickerProps> = ({
     for (let i = 1; i <= remainingDays; i++) {
       const dayDate = new Date(year, month + 1, i);
       const dayOfWeek = dayDate.getDay();
+      const isSelected = selectedDate ? isSameDay(dayDate, selectedDate) : false;
+      
       days.push({
         date: dayDate,
         isCurrentMonth: false,
         isToday: false,
-        isSelected: false,
+        isSelected: isSelected,
         isWeekend: dayOfWeek === 0 || dayOfWeek === 6
       });
     }
@@ -129,26 +135,16 @@ const DatePicker: React.FC<DatePickerProps> = ({
     setIsOpen(false);
   };
 
+  const getDisplayText = () => {
+    if (selectedDate) {
+      return formatDate(selectedDate);
+    }
+    return placeholder;
+  };
+
   const isDateDisabled = (date: Date) => {
-    const today = new Date();
-    today.setHours(23, 59, 59, 999); // End of today
-    
-    // Disable future dates
-    if (date > today) return true;
-    
-    // Check min date constraint
-    if (min) {
-      const minDate = new Date(min);
-      minDate.setHours(0, 0, 0, 0);
-      if (date < minDate) return true;
-    }
-    
-    // Check max date constraint
-    if (max) {
-      const maxDate = new Date(max);
-      maxDate.setHours(23, 59, 59, 999);
-      if (date > maxDate) return true;
-    }
+    // Disable dates after maxDate
+    if (date > maxDate) return true;
     
     return false;
   };
@@ -161,15 +157,16 @@ const DatePicker: React.FC<DatePickerProps> = ({
       <div className="relative">
         <input
           type="text"
-          value={selectedDate ? formatDate(selectedDate) : ''}
+          value={getDisplayText()}
           placeholder={placeholder}
           readOnly
           onClick={() => setIsOpen(!isOpen)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent cursor-pointer"
+          className="w-full px-3 py-2 border border-gray-300 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent cursor-pointer"
         />
         <div className="absolute inset-y-0 right-0 flex items-center pr-3">
           {selectedDate && (
             <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 handleClear();
@@ -189,15 +186,19 @@ const DatePicker: React.FC<DatePickerProps> = ({
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200">
             <button
+              type="button"
               onClick={handlePrevMonth}
               className="p-1 hover:bg-gray-100 rounded transition-colors"
             >
               <FiChevronLeft size={16} />
             </button>
-            <h3 className="text-sm font-semibold text-gray-900">
-              {months[currentDate.getMonth()]} {currentDate.getFullYear()}
-            </h3>
+            <div className="text-center">
+              <h3 className="text-sm font-semibold text-gray-900">
+                {months[currentDate.getMonth()]} {currentDate.getFullYear()}
+              </h3>
+            </div>
             <button
+              type="button"
               onClick={handleNextMonth}
               className="p-1 hover:bg-gray-100 rounded transition-colors"
             >
@@ -219,6 +220,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
             {days.map((day, index) => (
               <button
                 key={index}
+                type="button"
                 onClick={() => day.isCurrentMonth && !isDateDisabled(day.date) && handleDateSelect(day.date)}
                 disabled={!day.isCurrentMonth || isDateDisabled(day.date)}
                 className={`

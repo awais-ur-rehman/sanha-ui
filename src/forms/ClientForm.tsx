@@ -4,6 +4,7 @@ import { FiPlus, FiTrash2, FiUpload } from 'react-icons/fi'
 import { useToast } from '../components/CustomToast/ToastContext'
 import { API_CONFIG, FILE_ENDPOINTS } from '../config/api'
 import type { Client, ClientCreateRequest, ClientUpdateRequest } from '../types/entities'
+import DatePicker from '../components/DatePicker'
 
 interface ClientFormProps {
   client?: Client
@@ -361,10 +362,11 @@ const ClientForm: React.FC<ClientFormProps> = ({
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Certified Since *
           </label>
-          <input
-            type="date"
-            {...register('certifiedSince', { required: 'Certification date is required' })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
+          <DatePicker
+            value={watch('certifiedSince') || ''}
+            onChange={(date) => setValue('certifiedSince', date)}
+            placeholder="Select certification date"
+            maxDate={new Date()}
           />
           {errors.certifiedSince && (
             <p className="text-red-500 text-xs mt-1">{errors.certifiedSince.message}</p>
@@ -376,10 +378,11 @@ const ClientForm: React.FC<ClientFormProps> = ({
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Expiry Date *
         </label>
-        <input
-          type="date"
-          {...register('expiryDate', { required: 'Expiry date is required' })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
+        <DatePicker
+          value={watch('expiryDate') || ''}
+          onChange={(date) => setValue('expiryDate', date)}
+          placeholder="Select expiry date"
+          maxDate={new Date()}
         />
         {errors.expiryDate && (
           <p className="text-red-500 text-xs mt-1">{errors.expiryDate.message}</p>
@@ -491,27 +494,7 @@ const ClientForm: React.FC<ClientFormProps> = ({
         </button>
       </div>
 
-      {/* Active Status - Only show for edit mode */}
-      {client && (
-        <div className="flex items-center gap-3">
-          <Controller
-            name="isActive"
-            control={control}
-            defaultValue={true}
-            render={({ field }) => (
-              <input
-                type="checkbox"
-                checked={field.value}
-                onChange={(e) => field.onChange(e.target.checked)}
-                className="w-4 h-4 text-[#0c684b] border-gray-300 rounded focus:ring-[#0c684b] focus:ring-2"
-              />
-            )}
-          />
-          <label className="text-sm font-medium text-gray-700">
-            Active Client
-          </label>
-        </div>
-      )}
+
 
       {/* Form Actions */}
       <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
