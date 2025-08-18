@@ -66,6 +66,18 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
       setValue('description', resource.description || '');
       setValue('imageUrl', resource.imageUrl || '');
 
+      // Initialize resourceRows with existing URLs
+      if (resource.listUrl && resource.listUrl.length > 0) {
+        setResourceRows(resource.listUrl.map(link => ({
+          url: link.url,
+          type: link.type
+        })));
+      } else {
+        setResourceRows([{ url: '', type: 'link' }]);
+      }
+    } else {
+      // Reset to default for new resource
+      setResourceRows([{ url: '', type: 'link' }]);
     }
   }, [resource, setValue]);
 
@@ -448,8 +460,6 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
   };
 
   const handleFormSubmit = (data: any) => {
-    const currentDate = new Date().toISOString().split('T')[0];
-    
     // Convert resource rows to listUrl format
     const listUrl = resourceRows
       .filter(row => row.url.trim()) // Only include rows with URLs
@@ -461,9 +471,15 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
     const formData = {
       ...data,
       category,
-      publishedDate: currentDate,
       listUrl,
     };
+
+    // Only include publishedDate for new resources, not for editing
+    if (!resource) {
+      const currentDate = new Date().toISOString().split('T')[0];
+      formData.publishedDate = currentDate;
+    }
+
     onSubmit(formData);
   };
 
@@ -582,9 +598,6 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
                 <FiUpload className="mr-1" size={12} />
                 {uploadingImage ? 'Uploading...' : 'Upload Image'}
               </label>
-              {uploadingImage && (
-                <p className="text-xs text-blue-600 mt-1">Uploading...</p>
-              )}
             </div>
             {errors.imageUrl && (
               <p className="mt-1 text-sm text-red-600">{errors.imageUrl.message}</p>

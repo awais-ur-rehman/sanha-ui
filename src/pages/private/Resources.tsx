@@ -253,8 +253,14 @@ const Resources = () => {
             e.currentTarget.src = '/placeholder-resource.jpg'
           }}
         />
-        <div className="absolute top-2 right-2">
-          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+      </div>
+      
+      <div className="p-4">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="font-semibold text-gray-900 truncate flex-1 mr-2">
+            {resource.title}
+          </h3>
+          <span className={`px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${
             resource.isActive 
               ? 'bg-green-100 text-green-800'
               : 'bg-red-100 text-red-800'
@@ -262,12 +268,6 @@ const Resources = () => {
             {resource.isActive ? 'Active' : 'Inactive'}
           </span>
         </div>
-      </div>
-      
-      <div className="p-4">
-        <h3 className="font-semibold text-gray-900 mb-1 line-clamp-2">
-          {resource.title}
-        </h3>
         <p className="text-sm text-gray-600 mb-2">
           By {resource.authorName}
         </p>
@@ -440,10 +440,10 @@ const Resources = () => {
           setIsOverlayOpen(false)
           handleEditResource(resource)
         }}
-        onDelete={() => {
+        onDelete={(resource) => {
+          setResourceToDelete(resource)
           setIsOverlayOpen(false)
-          setSelectedResource(null)
-          showToast('success', 'Resource deleted successfully!')
+          setIsDeleteModalOpen(true)
         }}
         onToggleStatus={handleToggleStatus}
         hasUpdatePermission={hasPermission('Resources', 'update')}
@@ -474,8 +474,7 @@ const Resources = () => {
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={() => deleteResourceMutation.mutate()}
         title="Delete Resource"
-        message="Are you sure you want to delete this resource? This action cannot be undone."
-        
+        message={`Are you sure you want to permanently delete the resource "${resourceToDelete?.title}"? This action cannot be undone and the resource will be permanently removed from the database.`}
         isLoading={deleteResourceMutation.isPending}
       />
       </div>
