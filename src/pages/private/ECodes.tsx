@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react'
 import { FiSearch, FiPlus } from 'react-icons/fi'
 import { usePermissions } from '../../hooks/usePermissions'
-import { useGetApi } from '../../hooks'
+import { useGetApi, useDeleteApi } from '../../hooks'
 import CustomDropdown from '../../components/CustomDropdown'
 import { useToast } from '../../components/CustomToast/ToastContext'
 import { ECODE_ENDPOINTS, API_CONFIG, getAuthHeaders } from '../../config/api'
 import type { ECode } from '../../types/entities'
 import ECodeDetailSheet from '../../components/ECodeDetailSheet'
 import Modal from '../../components/Modal'
+import DeleteConfirmationModal from '../../components/DeleteConfirmationModal'
 
 import ECodeForm from '../../forms/ECodeForm'
 import { Pagination } from '../../components'
@@ -24,6 +25,7 @@ const ECodes = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [filters, setFilters] = useState({
     status: '',
+    isActive: '',
   })
   const [pagination, setPagination] = useState({
     currentPage: 1,
@@ -32,6 +34,7 @@ const ECodes = () => {
     itemsPerPage: 10,
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
 
   
   // Delete modal state
@@ -44,6 +47,7 @@ const ECodes = () => {
     limit: pagination.itemsPerPage.toString(),
     ...(searchTerm && { search: searchTerm }),
     ...(filters.status && { status: filters.status }),
+    ...(filters.isActive && { isActive: filters.isActive }),
   })
 
   // API hooks
@@ -56,6 +60,22 @@ const ECodes = () => {
   )
 
   // Delete E-Code mutation
+  const deleteECodeMutation = useDeleteApi(
+    `${ECODE_ENDPOINTS.delete}/${selectedECode?.id}?hardDelete=true`,
+    {
+      requireAuth: true,
+      onSuccess: () => {
+        showToast('success', 'E-Code deleted successfully!')
+        setIsDeleteModalOpen(false)
+        setIsOverlayOpen(false)
+        setSelectedECode(null)
+        refetch()
+      },
+      onError: (error) => {
+        showToast('error', error.message || 'Failed to delete E-Code')
+      },
+    }
+  )
   
 
   // Process E-Codes data
@@ -91,6 +111,14 @@ const ECodes = () => {
     setPagination(prev => ({ ...prev, currentPage: 1 }))
   }
 
+  const handleIsActiveFilterChange = (value: string | number) => {
+    setFilters(prev => ({ 
+      ...prev, 
+      isActive: value.toString() 
+    }))
+    setPagination(prev => ({ ...prev, currentPage: 1 }))
+  }
+
   const handlePageChange = (page: number) => {
     setPagination(prev => ({ ...prev, currentPage: page }))
   }
@@ -98,6 +126,12 @@ const ECodes = () => {
   const handleViewECode = (ecode: ECode) => {
     setSelectedECode(ecode)
     setIsOverlayOpen(true)
+  }
+
+  const handleDeleteECode = (ecode: ECode) => {
+    setSelectedECode(ecode)
+    setIsOverlayOpen(false) // Close the detail sheet
+    setIsDeleteModalOpen(true)
   }
 
   const handleAddECode = () => {
@@ -274,6 +308,20 @@ const ECodes = () => {
             />
           </div>
 
+          {/* Active Status Filter */}
+          <div className="w-48">
+            <CustomDropdown
+              placeholder="All Records"
+              value={filters.isActive}
+              onChange={handleIsActiveFilterChange}
+              options={[
+                { value: '', label: 'All Records' },
+                { value: 'true', label: 'Active' },
+                { value: 'false', label: 'Inactive' },
+              ]}
+            />
+          </div>
+
           {/* Add E-Code Button */}
           <button
             onClick={handleAddECode}
@@ -305,6 +353,9 @@ const ECodes = () => {
                   Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Active Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Source
                 </th>
               </tr>
@@ -333,7 +384,7 @@ const ECodes = () => {
                 ))
               ) : ecodes.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
                     No E-Codes found
                   </td>
                 </tr>
@@ -368,6 +419,15 @@ const ECodes = () => {
                         {ecode.status}
                       </span>
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        ecode.isActive 
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {ecode.isActive ? 'Active' : 'Inactive'}
+                      </span>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                       {displayArrayItems(ecode.source || [])}
                     </td>
@@ -398,15 +458,21 @@ const ECodes = () => {
           setIsOverlayOpen(false)
           handleEditECode(ecode)
         }}
-        onDelete={() => {
-          setIsOverlayOpen(false)
-          setSelectedECode(null)
-          showToast('success', 'E-Code deleted successfully!')
-        }}
+        onDelete={handleDeleteECode}
         onToggleStatus={handleToggleStatus}
         hasUpdatePermission={hasPermission('E-Codes', 'update')}
         hasDeletePermission={hasPermission('E-Codes', 'delete')}
         onRefetch={refetch}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={() => deleteECodeMutation.mutate()}
+        title="Delete E-Code"
+        message={`Are you sure you want to permanently delete the E-Code "${selectedECode?.name}"? This action cannot be undone.`}
+        isLoading={deleteECodeMutation.isPending}
       />
 
       {/* Add/Edit E-Code Modal */}

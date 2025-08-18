@@ -2,9 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { FiEdit, FiTrash2 } from 'react-icons/fi';
 import Sheet from './ui/sheet';
 import { Switch } from './ui/switch';
-import { useDeleteApi } from '../hooks/useDeleteApi';
-import { useToast } from '../components/CustomToast/ToastContext';
-import { ECODE_ENDPOINTS } from '../config/api';
 import type { ECode } from '../types/entities';
 import ChipList from './ChipList';
 
@@ -31,48 +28,12 @@ const ECodeDetailSheet: React.FC<ECodeDetailSheetProps> = ({
   hasDeletePermission,
   onRefetch,
 }) => {
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [localIsActive, setLocalIsActive] = useState(ecode?.isActive ?? false);
-  const { showToast } = useToast();
 
   // Update local state when ecode changes
   useEffect(() => {
     setLocalIsActive(ecode?.isActive ?? false);
   }, [ecode?.isActive]);
-
-  const deleteECodeMutation = useDeleteApi(
-    ecode ? `${ECODE_ENDPOINTS.delete}/${ecode.id}?hardDelete=true` : '',
-    {
-      requireAuth: true,
-      invalidateQueries: ['ecodes'],
-      onSuccess: () => {
-        if (ecode) {
-          onDelete(ecode);
-        }
-        setShowDeleteConfirm(false);
-        // Call the refetch function if provided
-        if (onRefetch) {
-          onRefetch();
-        }
-      },
-      onError: (error) => {
-        console.error('Error deleting E-Code:', error);
-        showToast('error', error instanceof Error ? error.message : 'Failed to delete E-Code');
-      },
-    }
-  );
-
-  const handleDeleteClick = () => {
-    setShowDeleteConfirm(true);
-  };
-
-  const handleConfirmDelete = () => {
-    deleteECodeMutation.mutate();
-  };
-
-  const handleCancelDelete = () => {
-    setShowDeleteConfirm(false);
-  };
 
   const handleToggleChange = async (checked: boolean) => {
     if (!ecode) return;
@@ -171,44 +132,15 @@ const ECodeDetailSheet: React.FC<ECodeDetailSheetProps> = ({
           
           {hasDeletePermission && (
             <button
-              onClick={handleDeleteClick}
-              disabled={deleteECodeMutation.isPending}
-              className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 text-red-400 hover:text-white border border-red-400 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+              onClick={() => onDelete(ecode)}
+              className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 text-red-400 hover:text-white border border-red-400 rounded-lg hover:bg-red-700 transition-colors"
             >
               <FiTrash2 size={16} />
-              <span>{deleteECodeMutation.isPending ? 'Deleting...' : 'Delete'}</span>
+              <span>Delete</span>
             </button>
           )}
         </div>
       </div>
-
-      {/* Delete Confirmation Modal */}
-      {showDeleteConfirm && ecode && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Confirm Delete</h3>
-            <p className="text-gray-600 mb-6">
-              Are you sure you want to permanently delete the E-Code "{ecode.name}"? This action cannot be undone and the E-Code will be permanently removed from the database.
-            </p>
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={handleCancelDelete}
-                disabled={deleteECodeMutation.isPending}
-                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleConfirmDelete}
-                disabled={deleteECodeMutation.isPending}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
-              >
-                {deleteECodeMutation.isPending ? 'Deleting...' : 'Permanently Delete'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </Sheet>
   );
 };
