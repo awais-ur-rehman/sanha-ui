@@ -12,7 +12,7 @@ const replySchema = yup.object({
     .string()
     .required('Reply message is required')
     .min(10, 'Reply message must be at least 10 characters')
-    .max(1000, 'Reply message must not exceed 1000 characters'),
+    .max(4000, 'Reply message must not exceed 4000 characters'),
 })
 
 interface ContactUsFormProps {

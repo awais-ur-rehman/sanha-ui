@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { FiSearch, FiMail, FiHome, FiMessageCircle } from 'react-icons/fi'
+import { FiSearch, FiMail, FiHome, FiMessageCircle, FiEdit2 } from 'react-icons/fi'
 import { usePermissions } from '../../hooks/usePermissions'
 import { useGetApi, usePutApi } from '../../hooks'
 import { useToast } from '../../components/CustomToast/ToastContext'
@@ -56,11 +56,25 @@ const ContactUs = () => {
     {
       requireAuth: true,
       onSuccess: () => {
-        showToast('success', 'Reply sent successfully!')
-        refetch()
+        // Success handling is done in handleSubmitReply
       },
-      onError: (error) => {
-        showToast('error', error.message || 'Failed to send reply')
+      onError: (error: any) => {
+        // Extract actual error message from API response
+        let errorMessage = 'Failed to send reply'
+        
+        if (error?.response?.data?.data?.errors && Array.isArray(error.response.data.data.errors)) {
+          // Show the first validation error and remove field prefix
+          const rawError = error.response.data.data.errors[0]
+          errorMessage = rawError.replace(/^[^:]+:\s*/, '') // Remove "replyMessage: " prefix
+        } else if (error?.response?.data?.message) {
+          // Fallback to general message
+          errorMessage = error.response.data.message
+        } else if (error?.message) {
+          // Fallback to error message
+          errorMessage = error.message
+        }
+        
+        showToast('error', errorMessage)
       },
     }
   )
@@ -128,16 +142,25 @@ const ContactUs = () => {
   // Contact Us Card Component
   const ContactUsCard = ({ contact }: { contact: ContactUsType }) => {
     const [isReplying, setIsReplying] = useState(false)
+    const [isEditing, setIsEditing] = useState(false)
     const [replyText, setReplyText] = useState('')
     const replyTextareaRef = useRef<HTMLTextAreaElement>(null)
 
     const handleReplyClick = () => {
       setIsReplying(true)
+      setIsEditing(false)
       setReplyText('')
+    }
+
+    const handleEditClick = () => {
+      setIsEditing(true)
+      setIsReplying(false)
+      setReplyText(contact.replyMessage || '')
     }
 
     const handleCancelReply = () => {
       setIsReplying(false)
+      setIsEditing(false)
       setReplyText('')
     }
 
@@ -147,15 +170,26 @@ const ContactUs = () => {
         return
       }
 
+      // Check if editing and no changes were made
+      if (isEditing && replyText.trim() === contact.replyMessage) {
+        showToast('error', 'No changes detected. Please modify the reply before updating.')
+        return
+      }
+
       const payload = {
         id: contact.id,
         replyMessage: replyText.trim(),
+        isUpdatedResponse: isEditing
       }
 
       try {
         await replyMutation.mutateAsync(payload)
         setIsReplying(false)
+        setIsEditing(false)
         setReplyText('')
+        // Show appropriate success message
+        showToast('success', isEditing ? 'Reply updated successfully!' : 'Reply sent successfully!')
+        refetch()
       } catch (error) {
         // Error handling is done in the mutation's onError callback
         console.error('Error sending reply:', error)
@@ -164,10 +198,10 @@ const ContactUs = () => {
 
     // Focus textarea when reply section opens
     useEffect(() => {
-      if (isReplying && replyTextareaRef.current) {
+      if ((isReplying || isEditing) && replyTextareaRef.current) {
         replyTextareaRef.current.focus()
       }
-    }, [isReplying])
+    }, [isReplying, isEditing])
 
     return (
       <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-6 mb-6 border border-[#0c684b]/20">
@@ -225,9 +259,21 @@ const ContactUs = () => {
         {/* Reply Section */}
         {contact.replyMessage ? (
           <div className="border border-[#0c684b]/20 rounded-lg p-4">
-            <div className="flex items-center space-x-2 mb-2">
-              <FiMessageCircle className="w-4 h-4 text-[#0c684b]" />
-              <span className="text-sm font-medium text-[#0c684b]">Admin Response</span>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center space-x-2">
+                <FiMessageCircle className="w-4 h-4 text-[#0c684b]" />
+                <span className="text-sm font-medium text-[#0c684b]">Admin Response</span>
+              </div>
+              {hasUpdatePermission && (
+                <button
+                  onClick={handleEditClick}
+                  className="flex items-center space-x-1 px-2 py-1 text-[#0c684b] hover:bg-[#0c684b]/10 rounded transition-colors text-xs"
+                  title="Edit reply"
+                >
+                  <FiEdit2 className="w-4 h-4" />
+                 
+                </button>
+              )}
             </div>
             <p className="text-gray-700 text-sm leading-relaxed">
               {contact.replyMessage}
@@ -247,20 +293,25 @@ const ContactUs = () => {
         )}
         
         {/* Reply Input Section */}
-        {isReplying && (
+        {(isReplying || isEditing) && (
           <div className="border-t border-gray-200 pt-4 mt-4">
+            <div className="mb-2">
+              <span className="text-sm font-medium text-gray-700">
+                {isEditing ? 'Edit Reply' : 'Write Reply'}
+              </span>
+            </div>
             <textarea
               ref={replyTextareaRef}
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
-              placeholder="Write your reply..."
+              placeholder={isEditing ? "Edit your reply..." : "Write your reply..."}
               className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
               rows={3}
-              maxLength={1000}
+              maxLength={4000}
             />
             <div className="flex items-center justify-between mt-2">
               <span className="text-xs text-gray-500">
-                {1000 - replyText.length} characters remaining
+                {4000 - replyText.length} characters remaining
               </span>
               <div className="flex items-center space-x-2">
                 <button
@@ -271,10 +322,17 @@ const ContactUs = () => {
                 </button>
                 <button
                   onClick={handleSubmitReply}
-                  disabled={!replyText.trim() || replyMutation.isPending}
+                  disabled={
+                    !replyText.trim() || 
+                    replyMutation.isPending || 
+                    (isEditing && replyText.trim() === contact.replyMessage)
+                  }
                   className="px-4 py-2 bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {replyMutation.isPending ? 'Sending...' : 'Submit Reply'}
+                  {replyMutation.isPending 
+                    ? (isEditing ? 'Updating...' : 'Sending...') 
+                    : (isEditing ? 'Update Reply' : 'Submit Reply')
+                  }
                 </button>
               </div>
             </div>

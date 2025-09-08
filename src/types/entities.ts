@@ -417,4 +417,5 @@ export interface ContactUs {
 export interface ContactUsReplyRequest {
   id: number;
   replyMessage: string;
+  isUpdatedResponse?: boolean;
 }
