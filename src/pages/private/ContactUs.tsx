@@ -4,7 +4,7 @@ import { usePermissions } from '../../hooks/usePermissions'
 import { useGetApi, usePutApi } from '../../hooks'
 import { useToast } from '../../components/CustomToast/ToastContext'
 import { CONTACT_US_ENDPOINTS } from '../../config/api'
-import type { ContactUs, ContactUsReplyRequest } from '../../types/entities'
+import type { ContactUs as ContactUsType, ContactUsReplyRequest } from '../../types/entities'
 import DateRangePicker from '../../components/DateRangePicker'
 import CustomDropdown from '../../components/CustomDropdown'
 import { Pagination } from '../../components'
@@ -126,7 +126,7 @@ const ContactUs = () => {
   }
 
   // Contact Us Card Component
-  const ContactUsCard = ({ contact }: { contact: ContactUs }) => {
+  const ContactUsCard = ({ contact }: { contact: ContactUsType }) => {
     const [isReplying, setIsReplying] = useState(false)
     const [replyText, setReplyText] = useState('')
     const replyTextareaRef = useRef<HTMLTextAreaElement>(null)
@@ -379,7 +379,7 @@ const ContactUs = () => {
               </div>
             </div>
           ) : (
-            contactUsEntries.map((contact: ContactUs) => (
+            contactUsEntries.map((contact: ContactUsType) => (
               <div key={contact.id} className="mb-6">
                 <ContactUsCard contact={contact} />
               </div>

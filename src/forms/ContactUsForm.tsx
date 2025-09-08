@@ -7,6 +7,7 @@ import Button from '../components/Button'
 import { type ContactUsReplyRequest } from '../types/entities'
 
 const replySchema = yup.object({
+  id: yup.number().required(),
   replyMessage: yup
     .string()
     .required('Reply message is required')
@@ -80,6 +81,9 @@ const ContactUsForm: React.FC<ContactUsFormProps> = ({
           </div>
         </div>
       )}
+
+      {/* Hidden ID field */}
+      <input type="hidden" {...register('id')} />
 
       {/* Reply Message */}
       <CustomTextarea
