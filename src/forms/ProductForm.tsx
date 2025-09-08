@@ -179,7 +179,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
               { value: 'Doubtful', label: 'Doubtful' }
             ]}
             value={watch('status')}
-            onChange={(value) => setValue('status', value)}
+            onChange={(value) => setValue('status', value as string)}
             placeholder="Select status"
           />
           {errors.status && (

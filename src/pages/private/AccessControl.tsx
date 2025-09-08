@@ -150,7 +150,7 @@ const AccessControl = () => {
             key: 'srNo', 
             header: 'Sr.no', 
             width: 'w-16',
-            render: (admin: Admin, index?: number) => {
+            render: (_admin: Admin, index?: number) => {
               const baseNumber = ((currentPage - 1) * itemsPerPage) + 1
               return (index ?? 0) + baseNumber
             }
@@ -182,7 +182,7 @@ const AccessControl = () => {
             key: 'srNo', 
             header: 'Sr.no', 
             width: 'w-16',
-            render: (module: Module, index?: number) => {
+            render: (_module: Module, index?: number) => {
               const baseNumber = ((currentPage - 1) * itemsPerPage) + 1
               return (index ?? 0) + baseNumber
             }
@@ -227,7 +227,7 @@ const AccessControl = () => {
             key: 'srNo', 
             header: 'Sr.no', 
             width: 'w-16',
-            render: (role: Role, index?: number) => {
+            render: (_role: Role, index?: number) => {
               const baseNumber = ((currentPage - 1) * itemsPerPage) + 1
               return (index ?? 0) + baseNumber
             }

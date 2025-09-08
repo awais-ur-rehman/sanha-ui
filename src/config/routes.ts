@@ -29,6 +29,8 @@ export const ROUTES = {
     FAQS: '/faqs',
     CLIENTS: '/clients',
     PRODUCTS: '/products',
+    ENQUIRIES: '/enquiries',
+    CONTACT_US: '/contact-us',
 } as const
 
 export type RouteKey = keyof typeof ROUTES 

@@ -122,7 +122,7 @@ const Clients = () => {
     logoUrl: client.logoUrl || '',
     name: client.name || '',
     email: client.email || '',
-    clientCode: client.clientCode || '',
+    clientCode: Array.isArray(client.clientCode) ? client.clientCode : (client.clientCode ? [client.clientCode as unknown as string] : []),
     standard: client.standard || '',
     address: client.address || [],
     phone: client.phone || [],
@@ -403,7 +403,9 @@ const Clients = () => {
                           )}
                           <div>
                             <div className="text-sm font-medium text-gray-900">{client.name}</div>
-                            <div className="text-sm text-gray-500">{client.clientCode}</div>
+                            <div className="text-sm text-gray-500">
+                              {client.clientCode && client.clientCode.length > 0 ? client.clientCode.join(', ') : ''}
+                            </div>
                           </div>
                         </div>
                       </td>

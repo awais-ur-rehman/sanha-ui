@@ -213,41 +213,41 @@ const FAQs = () => {
     setPagination(prev => ({ ...prev, currentPage: page }))
   }
 
-  const handleSubmitReply = async (userFaq: UserFAQ, replyText: string) => {
-    if (!replyText.trim()) {
-      showToast('error', 'Please enter a reply')
-      return
-    }
+  // const handleSubmitReply = async (userFaq: UserFAQ, replyText: string) => {
+  //   if (!replyText.trim()) {
+  //     showToast('error', 'Please enter a reply')
+  //     return
+  //   }
 
-    setIsSubmittingReply(true)
-    try {
-      const payload = {
-        userName: `${userFaq.firstName} ${userFaq.lastName}`,
-        email: userFaq.email,
-        question: userFaq.question,
-        answer: replyText.trim(),
-      }
+  //   setIsSubmittingReply(true)
+  //   try {
+  //     const payload = {
+  //       userName: `${userFaq.firstName} ${userFaq.lastName}`,
+  //       email: userFaq.email,
+  //       question: userFaq.question,
+  //       answer: replyText.trim(),
+  //     }
 
-      const response = await fetch(`${API_CONFIG.baseURL}${USER_FAQ_ENDPOINTS.respond}`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(payload),
-      })
+  //     const response = await fetch(`${API_CONFIG.baseURL}${USER_FAQ_ENDPOINTS.respond}`, {
+  //       method: 'POST',
+  //       headers: getAuthHeaders(),
+  //       body: JSON.stringify(payload),
+  //     })
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || 'Failed to send reply')
-      }
+  //     if (!response.ok) {
+  //       const errorData = await response.json()
+  //       throw new Error(errorData.message || 'Failed to send reply')
+  //     }
 
-      showToast('success', 'Reply sent successfully!')
-      refetchUserFaqs()
-    } catch (error) {
-      console.error('Error sending reply:', error)
-      showToast('error', error instanceof Error ? error.message : 'Failed to send reply')
-    } finally {
-      setIsSubmittingReply(false)
-    }
-  }
+  //     showToast('success', 'Reply sent successfully!')
+  //     refetchUserFaqs()
+  //   } catch (error) {
+  //     console.error('Error sending reply:', error)
+  //     showToast('error', error instanceof Error ? error.message : 'Failed to send reply')
+  //   } finally {
+  //     setIsSubmittingReply(false)
+  //   }
+  // }
 
   const handleAddToFaqs = (userFaq: UserFAQ) => {
     if (!userFaq.answer) {
@@ -628,8 +628,8 @@ const FAQs = () => {
         {userFaq.answer ? (
           <div className=" border border-[#0c684b]/20 rounded-lg p-4">
             <div className="flex items-center space-x-2 mb-2">
-              <FiMessageCircle className="w-4 h-4 text-green-600" />
-              <span className="text-sm font-medium text-green-700">Admin Response</span>
+              <FiMessageCircle className="w-4 h-4 text-[#0c684b]" />
+              <span className="text-sm font-medium text-[#0c684b]">Admin Response</span>
             </div>
             <p className="text-gray-700 text-sm leading-relaxed">
               {userFaq.answer}
@@ -639,7 +639,7 @@ const FAQs = () => {
           <div className="flex justify-start">
             <button
               onClick={handleReplyClick}
-              className="flex items-center space-x-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+              className="flex items-center space-x-2 px-6 py-3 bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
             >
               <FiMessageCircle className="w-4 h-4" />
               <span>Reply</span>
@@ -673,7 +673,7 @@ const FAQs = () => {
                 <button
                   onClick={handleSubmitReply}
                   disabled={!replyText.trim() || isSubmittingReply}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmittingReply ? 'Sending...' : 'Submit Reply'}
                 </button>

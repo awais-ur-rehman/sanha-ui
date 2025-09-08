@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { FiPlus, FiTrash2, FiUpload } from 'react-icons/fi'
 import { useToast } from '../components/CustomToast/ToastContext'
 import { API_CONFIG, FILE_ENDPOINTS } from '../config/api'
@@ -24,6 +24,7 @@ const ClientForm: React.FC<ClientFormProps> = ({
   const [products, setProducts] = useState<string[]>([''])
   const [categories, setCategories] = useState<string[]>([''])
   const [scopes, setScopes] = useState<string[]>([''])
+  const [clientCodes, setClientCodes] = useState<string[]>([''])
 
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const { showToast } = useToast()
@@ -31,7 +32,7 @@ const ClientForm: React.FC<ClientFormProps> = ({
   const {
     register,
     handleSubmit,
-    control,
+    // control,
     setValue,
     watch,
     formState: { errors }
@@ -57,9 +58,11 @@ const ClientForm: React.FC<ClientFormProps> = ({
       setProducts(client.products.length > 0 ? client.products : [''])
       setCategories(client.category.length > 0 ? client.category : [''])
       setScopes(client.scope.length > 0 ? client.scope : [''])
+      setClientCodes(client.clientCode.length > 0 ? client.clientCode : [''])
     } else {
       // Set default values for new client
       setValue('isActive', true)
+      setClientCodes([''])
     }
   }, [client, setValue])
 
@@ -134,6 +137,7 @@ const ClientForm: React.FC<ClientFormProps> = ({
       products: products.filter(product => product.trim() !== ''),
       category: categories.filter(cat => cat.trim() !== ''),
       scope: scopes.filter(scope => scope.trim() !== ''),
+      clientCode: clientCodes.filter(code => code.trim() !== ''),
       // Only include isActive for edit mode (when client prop is provided)
       ...(client && { isActive: data.isActive })
     }
@@ -161,17 +165,36 @@ const ClientForm: React.FC<ClientFormProps> = ({
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Client Code *
+            Client Codes *
           </label>
-          <input
-            type="text"
-            {...register('clientCode', { required: 'Client code is required' })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
-            placeholder="Enter client code"
-          />
-          {errors.clientCode && (
-            <p className="text-red-500 text-xs mt-1">{errors.clientCode.message}</p>
-          )}
+          {clientCodes.map((code, index) => (
+            <div key={index} className="flex gap-2 mb-2">
+              <input
+                type="text"
+                value={code}
+                onChange={(e) => setClientCodes(prev => prev.map((c, i) => i === index ? e.target.value : c))}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
+                placeholder="Enter client code (e.g., K-0026)"
+              />
+              {clientCodes.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => setClientCodes(prev => prev.filter((_, i) => i !== index))}
+                  className="px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                >
+                  <FiTrash2 size={16} />
+                </button>
+              )}
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => setClientCodes(prev => [...prev, ''])}
+            className="flex items-center gap-2 text-[#0c684b] hover:text-green-700 transition-colors text-sm"
+          >
+            <FiPlus size={14} />
+            Add Client Code
+          </button>
         </div>
       </div>
 

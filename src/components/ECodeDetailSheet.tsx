@@ -26,7 +26,7 @@ const ECodeDetailSheet: React.FC<ECodeDetailSheetProps> = ({
   onToggleStatus,
   hasUpdatePermission,
   hasDeletePermission,
-  onRefetch,
+  // onRefetch,
 }) => {
   const [localIsActive, setLocalIsActive] = useState(ecode?.isActive ?? false);
 

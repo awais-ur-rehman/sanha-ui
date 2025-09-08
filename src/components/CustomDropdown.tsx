@@ -38,7 +38,7 @@ const CustomDropdown = forwardRef<HTMLDivElement, CustomDropdownProps>(
     }
 
     return (
-      <div className="space-y-2 min-w-32 max-w-40" ref={ref}>
+      <div className="space-y-2 min-w-32 max-w-64" ref={ref}>
         {label && (
           <label className="block text-sm font-medium text-gray-700">
             {label}

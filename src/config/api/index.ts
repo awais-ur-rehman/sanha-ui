@@ -1,6 +1,6 @@
 // API Configuration
 export const API_CONFIG = {
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3003/api/v1',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://quiet-similarly-cattle.ngrok-free.app/api/v1',
   timeout: import.meta.env.VITE_API_TIMEOUT || 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -96,7 +96,7 @@ export const CLIENT_ENDPOINTS = {
   update: '/clients',
   delete: '/clients',
   getNames: '/clients/names',
-} 
+}
 
 // Product Endpoints
 export const PRODUCT_ENDPOINTS = {
@@ -106,4 +106,18 @@ export const PRODUCT_ENDPOINTS = {
   update: '/products',
   delete: '/products',
   getByName: '/products/name',
-} 
+}
+
+// Enquiry Endpoints
+export const ENQUIRY_ENDPOINTS = {
+  getAll: '/enquiries',
+  getById: '/enquiries',
+  update: '/enquiries',
+  delete: '/enquiries',
+}
+
+// Contact Us Endpoints
+export const CONTACT_US_ENDPOINTS = {
+  getAll: '/contact-us',
+  reply: '/contact-us/reply',
+}

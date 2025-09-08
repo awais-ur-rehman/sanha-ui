@@ -25,7 +25,7 @@ const ResourceDetailSheet: React.FC<ResourceDetailSheetProps> = ({
   onToggleStatus,
   hasUpdatePermission,
   hasDeletePermission,
-  onRefetch,
+  // onRefetch,
 }) => {
   const [localIsActive, setLocalIsActive] = useState(resource?.isActive ?? false);
 

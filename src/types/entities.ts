@@ -298,7 +298,7 @@ export interface Client {
   standard: string;
   category: string[];
   scope: string[];
-  clientCode: string;
+  clientCode: string[];
   certifiedSince: string;
   expiryDate: string;
   isActive: boolean;
@@ -318,7 +318,7 @@ export interface ClientCreateRequest {
   standard: string;
   category: string[];
   scope: string[];
-  clientCode: string;
+  clientCode: string[];
   certifiedSince: string;
   expiryDate: string;
   isActive?: boolean;
@@ -336,11 +336,11 @@ export interface ClientUpdateRequest {
   standard?: string;
   category?: string[];
   scope?: string[];
-  clientCode?: string;
+  clientCode?: string[];
   certifiedSince?: string;
   expiryDate?: string;
   isActive?: boolean;
-} 
+}
 
 // Client Name entity for dropdown
 export interface ClientName {
@@ -379,4 +379,42 @@ export interface ProductUpdateRequest {
   madeIn?: string;
   contains?: string[];
   isActive?: boolean;
+}
+
+// Enquiry entity
+export interface Enquiry {
+  id: number;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  email: string;
+  message: string;
+  state: 'Pending' | 'Accepted' | 'Rejected';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface EnquiryUpdateRequest {
+  state: 'Pending' | 'Accepted' | 'Rejected';
+}
+
+// Contact Us entity
+export interface ContactUs {
+  id: number;
+  type: 'General Inquiry' | 'Certification Inquiry (Businesses)' | 'Verification and Consumer Complaints' | 'Media and Press Inquiries' | 'Partnerships and Collaborations';
+  message: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  orgName?: string;
+  title?: string;
+  orgWebsite?: string;
+  replyMessage?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ContactUsReplyRequest {
+  id: number;
+  replyMessage: string;
 }

@@ -12,7 +12,9 @@ import {
   FiCode,
   FiBookOpen,
   FiHelpCircle,
-  FiUsers
+  FiUsers,
+  FiMail,
+  FiMessageSquare
 } from 'react-icons/fi'
 import { 
   HiHome,
@@ -27,7 +29,9 @@ import {
   HiChevronRight,
   HiCode,
   HiQuestionMarkCircle,
-  HiUsers
+  HiUsers,
+  HiMail,
+  HiChatAlt2
 } from 'react-icons/hi'
 import { useAuthStore, useUIStore } from '../store'
 import logo from '../assets/logo/sanhaLogo.png'
@@ -78,6 +82,10 @@ const Sidebar = () => {
           return <HiBookOpen className={iconClass} />
         case 'faqs':
           return <HiQuestionMarkCircle className={iconClass} />
+        case 'enquiries':
+          return <HiMail className={iconClass} />
+        case 'contact-us':
+          return <HiChatAlt2 className={iconClass} />
         case 'clients':
           return <HiUsers className={iconClass} />
         case 'products':
@@ -107,6 +115,10 @@ const Sidebar = () => {
           return <FiBookOpen className={iconClass} />
         case 'faqs':
           return <FiHelpCircle className={iconClass} />
+        case 'enquiries':
+          return <FiMail className={iconClass} />
+        case 'contact-us':
+          return <FiMessageSquare className={iconClass} />
         case 'clients':
           return <FiUsers className={iconClass} />
         case 'products':
@@ -176,6 +188,18 @@ const Sidebar = () => {
       title: 'FAQs',
       path: ROUTES.FAQS,
       icon: getIcon('faqs', isActive(ROUTES.FAQS))
+    },
+    {
+      id: 'enquiries',
+      title: 'Enquiries',
+      path: ROUTES.ENQUIRIES,
+      icon: getIcon('enquiries', isActive(ROUTES.ENQUIRIES))
+    },
+    {
+      id: 'contact-us',
+      title: 'Contact Us',
+      path: ROUTES.CONTACT_US,
+      icon: getIcon('contact-us', isActive(ROUTES.CONTACT_US))
     },
   ]
 

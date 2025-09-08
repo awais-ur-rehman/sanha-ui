@@ -93,7 +93,7 @@ const ClientDetailSheet: React.FC<ClientDetailSheetProps> = ({
               {client.name}
             </h2>
             <p className="text-base text-gray-700 mb-1">
-              Client Code: {client.clientCode}
+              Client Code: {client.clientCode && client.clientCode.length > 0 ? client.clientCode.join(', ') : '—'}
             </p>
             <p className="text-sm text-gray-600">
               Standard: {client.standard}

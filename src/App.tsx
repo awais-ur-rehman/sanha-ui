@@ -18,6 +18,8 @@ import Products from './pages/private/Products'
 import News from './pages/private/News'
 import Research from './pages/private/Research'
 import Settings from './pages/private/Settings'
+import Enquiries from './pages/private/Enquiries'
+import ContactUs from './pages/private/ContactUs'
 import { ROUTES } from './config/routes'
 import { useAuthStore } from './store'
 
@@ -120,6 +122,26 @@ function App() {
               <PermissionRoute moduleName="Products">
                 <MainLayout>
                   <Products />
+                </MainLayout>
+              </PermissionRoute>
+            }
+          />
+          <Route
+            path={ROUTES.ENQUIRIES}
+            element={
+              <PermissionRoute moduleName="Enquiry">
+                <MainLayout>
+                  <Enquiries />
+                </MainLayout>
+              </PermissionRoute>
+            }
+          />
+          <Route
+            path={ROUTES.CONTACT_US}
+            element={
+              <PermissionRoute moduleName="Contact Us">
+                <MainLayout>
+                  <ContactUs />
                 </MainLayout>
               </PermissionRoute>
             }
