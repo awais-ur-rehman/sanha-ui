@@ -231,10 +231,13 @@ export interface ResourceUpdateRequest {
 }
 
 // FAQ entity
+export type FAQType = 'Business' | 'Consumer';
+
 export interface FAQ {
   id: number;
   question: string;
   answer: string;
+  faqType: FAQType;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -243,12 +246,14 @@ export interface FAQ {
 export interface FAQCreateRequest {
   question: string;
   answer: string;
+  faqType: FAQType;
   isActive?: boolean;
 }
 
 export interface FAQUpdateRequest {
   question?: string;
   answer?: string;
+  faqType?: FAQType;
   isActive?: boolean;
 }
 

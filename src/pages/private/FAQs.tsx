@@ -11,7 +11,6 @@ import DateRangePicker from '../../components/DateRangePicker'
 import Modal from '../../components/Modal'
 import FAQForm from '../../forms/FAQForm'
 import DeleteConfirmationModal from '../../components/DeleteConfirmationModal'
-import ConfirmationModal from '../../components/ConfirmationModal'
 import { USER_FAQ_ENDPOINTS, FAQ_ENDPOINTS, API_CONFIG, getAuthHeaders } from '../../config/api'
 import { Pagination } from '../../components'
 
@@ -66,6 +65,7 @@ const FAQs = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [filters, setFilters] = useState({
     isActive: '',
+    faqType: '',
     email: '',
     country: '',
     firstName: '',
@@ -97,6 +97,7 @@ const FAQs = () => {
   const [isAddToFAQModalOpen, setIsAddToFAQModalOpen] = useState(false)
   const [userFaqToAdd, setUserFaqToAdd] = useState<UserFAQ | null>(null)
   const [isAddingToFAQ, setIsAddingToFAQ] = useState(false)
+  const [selectedFaqType, setSelectedFaqType] = useState<'Business' | 'Consumer'>('Business')
 
   // FAQ status toggle state
   const [togglingFAQId, setTogglingFAQId] = useState<number | null>(null)
@@ -111,6 +112,7 @@ const FAQs = () => {
     limit: pagination.itemsPerPage.toString(),
     ...(searchTerm && { search: searchTerm }),
     ...(filters.isActive && { isActive: filters.isActive }),
+    ...(filters.faqType && { faqType: filters.faqType }),
     ...(filters.startDate && { startDate: filters.startDate }),
     ...(filters.endDate && { endDate: filters.endDate }),
   })
@@ -256,6 +258,7 @@ const FAQs = () => {
     }
     
     setUserFaqToAdd(userFaq)
+    setSelectedFaqType('Business') // Reset to default
     setIsAddToFAQModalOpen(true)
   }
 
@@ -267,6 +270,7 @@ const FAQs = () => {
       const payload = {
         question: userFaqToAdd.question,
         answer: userFaqToAdd.answer,
+        faqType: selectedFaqType, // Use selected FAQ type
         isActive: false, // Set to inactive as requested
       }
 
@@ -296,6 +300,7 @@ const FAQs = () => {
   const handleCancelAddToFAQ = () => {
     setIsAddToFAQModalOpen(false)
     setUserFaqToAdd(null)
+    setSelectedFaqType('Business') // Reset to default
   }
 
   // Helper functions for FAQ status management
@@ -326,6 +331,7 @@ const FAQs = () => {
       const payload = {
         question: faq.question,
         answer: faq.answer,
+        faqType: faq.faqType,
         isActive: !Boolean(faq.isActive), // Toggle the status
       }
 
@@ -398,7 +404,7 @@ const FAQs = () => {
     setFaqToDelete(null)
   }
 
-  const handleFAQFormSubmit = async (formData: { question: string; answer: string; isActive?: boolean }) => {
+  const handleFAQFormSubmit = async (formData: { question: string; answer: string; faqType: string; isActive?: boolean }) => {
     setIsSubmittingFAQ(true)
     try {
       const isEditing = !!selectedFAQ
@@ -448,9 +454,9 @@ const FAQs = () => {
 
   // FAQ Card Component (Column Layout)
   const FAQCard = ({ faq }: { faq: FAQ }) => (
-    <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-6 mb-6 border border-[#0c684b]/20">
+    <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow px-6 pt-2 pb-6 border border-[#0c684b]/20">
       {/* Top Right: Status Toggle & Edit/Delete Actions */}
-      <div className="flex justify-between mb-4">
+      <div className="flex justify-between">
         <div className="flex items-center space-x-3">
           <CustomCheckbox
             checked={Boolean(faq.isActive)}
@@ -462,6 +468,7 @@ const FAQs = () => {
             {togglingFAQId === faq.id ? 'Updating...' : (Boolean(faq.isActive) ? 'Active' : 'Inactive')}
           </span>
         </div>
+        <div className='space-y-2'>
         <div className="flex items-center space-x-2">
           <button
             onClick={() => handleEditFAQ(faq)}
@@ -478,10 +485,16 @@ const FAQs = () => {
             <FiTrash2 size={16} />
           </button>
         </div>
+        <div className="flex items-center justify-between mb-2">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-[5px] text-xs font-medium bg-blue-100 text-blue-800">
+            {faq.faqType}
+          </span>
+        </div>
+        </div>
       </div>
 
-      {/* Top: Question */}
-      <div className="mb-4">
+      {/* Top: Question and FAQ Type */}
+      <div className="mb-4"> 
         <h3 className="text-lg font-semibold text-gray-900 leading-relaxed">
           {faq.question}
         </h3>
@@ -780,6 +793,22 @@ const FAQs = () => {
             </div>
           )}
 
+          {/* FAQ Type Filter (only for FAQs) */}
+          {activeTab === 'FAQs' && (
+            <div className="w-48">
+              <CustomDropdown
+                placeholder="All Types"
+                value={filters.faqType}
+                onChange={(value) => handleFilterChange('faqType', value as string)}
+                options={[
+                  { value: '', label: 'All Types' },
+                  { value: 'Business', label: 'Business' },
+                  { value: 'Consumer', label: 'Consumer' },
+                ]}
+              />
+            </div>
+          )}
+
           {/* User FAQ specific filters */}
           {activeTab === 'User FAQs' && (
             <div className="w-48">
@@ -878,18 +907,57 @@ const FAQs = () => {
         isLoading={isDeletingFAQ}
       />
 
-      {/* Add to FAQ Confirmation Modal */}
-      <ConfirmationModal
-        isOpen={isAddToFAQModalOpen}
-        onClose={handleCancelAddToFAQ}
-        onConfirm={handleConfirmAddToFAQ}
-        title="Add to FAQs"
-        message={`Are you sure you want to add this user question to the FAQ list? The FAQ will be created as inactive and you can activate it later.`}
-        confirmText="Add to FAQs"
-        cancelText="Cancel"
-        isLoading={isAddingToFAQ}
-        type="info"
-      />
+      {/* Add to FAQ Confirmation Modal with FAQ Type Selection */}
+      {isAddToFAQModalOpen && (
+        <Modal
+          isOpen={isAddToFAQModalOpen}
+          onClose={handleCancelAddToFAQ}
+          title="Add to FAQs"
+        >
+          <div className="space-y-4">
+            <div className="bg-gray-50 rounded-lg p-4">
+              <p className="text-sm text-gray-700">
+                Are you sure you want to add this user question to the FAQ list? The FAQ will be created as inactive and you can activate it later.
+              </p>
+            </div>
+
+
+            <div>
+              <label htmlFor="faqTypeSelect" className="block text-sm font-medium text-gray-700 mb-2">
+                Select FAQ Type *
+              </label>
+              <CustomDropdown
+                placeholder="Select FAQ type"
+                value={selectedFaqType}
+                onChange={(value) => setSelectedFaqType(value as 'Business' | 'Consumer')}
+                options={[
+                  { value: 'Business', label: 'Business' },
+                  { value: 'Consumer', label: 'Consumer' },
+                ]}
+              />
+            </div>
+
+            <div className="flex items-center justify-end space-x-3 pt-4">
+              <button
+                type="button"
+                onClick={handleCancelAddToFAQ}
+                disabled={isAddingToFAQ}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors text-sm disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmAddToFAQ}
+                disabled={isAddingToFAQ}
+                className="px-6 py-2 bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isAddingToFAQ ? 'Adding...' : 'Add to FAQs'}
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
       </div>
      
     </div>

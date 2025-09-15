@@ -15,13 +15,12 @@ const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
   return (
     <div className="fixed inset-0 z-50 bg-black/20 flex items-center justify-center p-4">
       {/* Modal container */}
-      <div className="w-full max-w-2xl bg-white rounded-lg shadow-xl flex flex-col max-h-[90vh]">
+      <div className="w-full max-w-xl bg-white rounded-lg shadow-xl flex flex-col max-h-[90vh]">
         {/* Header */}
         {title && (
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
             <div>
               <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-              <p className="text-sm text-gray-600 mt-1">Create a new {title.toLowerCase().replace('add ', '')} in your system</p>
             </div>
             <button
               onClick={onClose}

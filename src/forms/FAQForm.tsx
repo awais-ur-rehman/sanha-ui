@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useToast } from '../components/CustomToast/ToastContext'
 import CustomCheckbox from '../components/CustomCheckbox'
-import type { FAQ } from '../types/entities'
+import CustomDropdown from '../components/CustomDropdown'
+import type { FAQ, FAQType } from '../types/entities'
 
 interface FAQFormProps {
   faq?: FAQ | null
-  onSubmit: (formData: { question: string; answer: string; isActive?: boolean }) => Promise<void>
+  onSubmit: (formData: { question: string; answer: string; faqType: FAQType; isActive?: boolean }) => Promise<void>
   onCancel: () => void
   isLoading?: boolean
   showActiveCheckbox?: boolean
@@ -17,6 +18,7 @@ const FAQForm = ({ faq, onSubmit, onCancel, isLoading = false, showActiveCheckbo
   const [formData, setFormData] = useState({
     question: '',
     answer: '',
+    faqType: 'Business' as FAQType,
     isActive: true,
   })
 
@@ -25,6 +27,7 @@ const FAQForm = ({ faq, onSubmit, onCancel, isLoading = false, showActiveCheckbo
       setFormData({
         question: faq.question,
         answer: faq.answer,
+        faqType: faq.faqType,
         isActive: faq.isActive,
       })
     }
@@ -40,6 +43,11 @@ const FAQForm = ({ faq, onSubmit, onCancel, isLoading = false, showActiveCheckbo
     
     if (!formData.answer.trim()) {
       showToast('error', 'Please enter an answer')
+      return
+    }
+
+    if (!formData.faqType) {
+      showToast('error', 'Please select a FAQ type')
       return
     }
 
@@ -94,6 +102,22 @@ const FAQForm = ({ faq, onSubmit, onCancel, isLoading = false, showActiveCheckbo
           className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent resize-none"
           rows={5}
           required
+        />
+      </div>
+
+      {/* FAQ Type */}
+      <div>
+        <label htmlFor="faqType" className="block text-sm font-medium text-gray-700 mb-2">
+          FAQ Type *
+        </label>
+        <CustomDropdown
+          placeholder="Select FAQ type"
+          value={formData.faqType}
+          onChange={(value) => handleInputChange('faqType', value as FAQType)}
+          options={[
+            { value: 'Business', label: 'Business' },
+            { value: 'Consumer', label: 'Consumer' },
+          ]}
         />
       </div>
 
