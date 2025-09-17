@@ -63,7 +63,7 @@ const ClientDetailSheet: React.FC<ClientDetailSheetProps> = ({
 
   return (
     <Sheet open={open} close={onClose} title={`Client Details - ${client.name}`}>
-      <div className="flex flex-col h-full p-6">
+      <div className="flex flex-col h-full p-6 text-sm">
         {/* Client Logo */}
         <div className="flex justify-center mb-6">
           <div className="relative w-32 h-32 overflow-hidden rounded-lg">
@@ -88,89 +88,95 @@ const ClientDetailSheet: React.FC<ClientDetailSheetProps> = ({
 
         {/* Client Info */}
         <div className="flex flex-col gap-4 flex-1">
-          <div className="text-left">
-            <h2 className="font-semibold text-xl text-gray-900 mb-2">
-              {client.name}
-            </h2>
-            <p className="text-base text-gray-700 mb-1">
-              Client Code: {client.clientCode && client.clientCode.length > 0 ? client.clientCode.join(', ') : '—'}
-            </p>
-            <p className="text-sm text-gray-600">
-              Standard: {client.standard}
-            </p>
+          {/* Title and Active Switch */}
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <h2 className="font-semibold text-lg text-gray-900 mb-2 truncate" title={client.name}>
+                {client.name}
+              </h2>
+              <div className="space-y-1">
+                <div className="text-gray-700">
+                  <span className="font-medium">Client Code:</span>{' '}
+                  <span className="truncate inline-block max-w-[320px] align-bottom" title={(client.clientCode && client.clientCode.length>0)?client.clientCode.join(', '):'—'}>
+                    {client.clientCode && client.clientCode.length > 0 ? client.clientCode.join(', ') : '—'}
+                  </span>
+                </div>
+                <div className="text-gray-600">
+                  <span className="font-medium">Standard:</span>{' '}
+                  <span className="truncate inline-block max-w-[420px] align-bottom" title={client.standard}>{client.standard}</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <span className="text-xs text-gray-600">{localIsActive ? 'Active' : 'Inactive'}</span>
+              <Switch checked={localIsActive} onCheckedChange={handleToggleChange} size="sm" />
+            </div>
           </div>
 
 
           {/* Categories */}
           {client.category.length > 0 && (
-            <div className="flex justify-start items-center space-x-2">
-              <h3 className="font-medium text-sm text-gray-900">Categories</h3>
-              <div className="flex flex-wrap gap-2">
-                {client.category.map((category, index) => (
-                  <span
-                    key={index}
-                    className="px-3 py-1 bg-gray-100 text-gray-800 text-sm rounded-full"
-                  >
-                    {category}
-                  </span>
+            <div>
+              <h3 className="font-medium text-sm text-gray-900 mb-1">Categories</h3>
+              <div className="flex flex-wrap gap-1">
+                {(client.category.slice(0,3)).map((category, index) => (
+                  <span key={index} className="px-2 py-0.5 bg-gray-100 text-gray-800 text-xs rounded-full">{category}</span>
                 ))}
+                {client.category.length > 3 && (
+                  <span className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs rounded-full cursor-default" title={client.category.join(', ')}>
+                    +{client.category.length - 3} more
+                  </span>
+                )}
               </div>
             </div>
           )}
 
           {/* Scopes */}
           {client.scope.length > 0 && (
-            <div className="flex justify-start items-center space-x-2">
-              <h3 className="font-medium text-sm text-gray-900">Certification Scopes</h3>
-              <div className="flex flex-wrap gap-2">
-                {client.scope.map((scope, index) => (
-                  <span
-                    key={index}
-                    className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
-                  >
-                    {scope}
-                  </span>
+            <div>
+              <h3 className="font-medium text-sm text-gray-900 mb-1">Certification Scopes</h3>
+              <div className="flex flex-wrap gap-1">
+                {(client.scope.slice(0,3)).map((scope, index) => (
+                  <span key={index} className="px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full">{scope}</span>
                 ))}
+                {client.scope.length > 3 && (
+                  <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full cursor-default" title={client.scope.join(', ')}>
+                    +{client.scope.length - 3} more
+                  </span>
+                )}
               </div>
             </div>
           )}
 
           {/* Products */}
           {client.products.length > 0 && (
-            <div className="flex justify-start items-center space-x-2">
-              <h3 className="font-medium text-sm text-gray-900">Products</h3>
-              <div className="flex flex-wrap gap-2">
-                {client.products.map((product, index) => (
-                  <span
-                    key={index}
-                    className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full"
-                  >
-                    {product}
-                  </span>
+            <div>
+              <h3 className="font-medium text-sm text-gray-900 mb-1">Products</h3>
+              <div className="flex flex-wrap gap-1">
+                {(client.products.slice(0,3)).map((product, index) => (
+                  <span key={index} className="px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full">{product}</span>
                 ))}
+                {client.products.length > 3 && (
+                  <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full cursor-default" title={client.products.join(', ')}>
+                    +{client.products.length - 3} more
+                  </span>
+                )}
               </div>
             </div>
           )}
 
-          {/* Status Toggle */}
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-700">Active Status</span>
-            <Switch
-              checked={localIsActive}
-              onCheckedChange={handleToggleChange}
-            />
-          </div>
+          {/* Status Toggle removed (shown near title) */}
 
           {/* Contact Information */}
           <div className="space-y-3">
             <h3 className="font-semibold text-gray-900">Contact Information</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-start space-x-3">
+              <div className="flex items-start space-x-3 min-w-0">
                 <FiMail className="text-gray-400 mt-1" size={16} />
                 <div>
                   <p className="text-sm font-medium text-gray-700">Email</p>
-                  <p className="text-sm text-gray-900">{client.email}</p>
+                  <p className="text-sm text-gray-900 truncate max-w-[240px]" title={client.email}>{client.email}</p>
                 </div>
               </div>
 
@@ -185,7 +191,7 @@ const ClientDetailSheet: React.FC<ClientDetailSheetProps> = ({
               )}
 
               {client.website && (
-                <div className="flex items-start space-x-3">
+                <div className="flex items-start space-x-3 min-w-0">
                   <FiGlobe className="text-gray-400 mt-1" size={16} />
                   <div>
                     <p className="text-sm font-medium text-gray-700">Website</p>
@@ -193,7 +199,8 @@ const ClientDetailSheet: React.FC<ClientDetailSheetProps> = ({
                       href={client.website} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="text-sm text-[#0c684b] hover:underline"
+                      className="text-sm text-[#0c684b] hover:underline truncate inline-block max-w-[240px]"
+                      title={client.website}
                     >
                       {client.website}
                     </a>

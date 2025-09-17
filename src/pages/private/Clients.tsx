@@ -293,16 +293,16 @@ const Clients = () => {
 
       {/* Filters */}
       <div className='py-6'>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           {/* Search */}
-          <div className="relative flex-1">
+          <div className="relative w-72">
             <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
             <input
               type="text"
               placeholder="Search clients by name, standard, client code, email, fax, or website..."
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
+              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-sm"
             />
           </div>
 
@@ -316,7 +316,7 @@ const Clients = () => {
             value={filters.isActive}
             onChange={handleIsActiveFilterChange}
             placeholder="Filter by status"
-            
+            className="w-44 text-sm"
           />
 
           {/* Date Range Picker */}
@@ -325,19 +325,27 @@ const Clients = () => {
             endDate={filters.endDate}
             onDateRangeChange={handleDateFilterApply}
             placeholder="Filter by date range"
-            className="w-64"
+            className="w-56 text-sm"
             includeTime={true}
           />
 
-{hasCreatePermission && (
+        <div className="ml-auto flex items-center gap-2">
           <button
-            onClick={handleAddClient}
-            className="flex items-center space-x-2 px-4 py-2 bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors"
+            onClick={() => { /* TODO: implement export */ }}
+            className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
           >
-            <FiPlus size={16} />
-            <span>Add Client</span>
+            Export
           </button>
-        )}
+          {hasCreatePermission && (
+            <button
+              onClick={handleAddClient}
+              className="flex items-center space-x-2 px-3 py-2 text-sm bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors"
+            >
+              <FiPlus size={16} />
+              <span>Add Client</span>
+            </button>
+          )}
+        </div>
         </div>
       </div>
 
