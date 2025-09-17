@@ -11,6 +11,7 @@ import ProductDetailSheet from '../../components/ProductDetailSheet'
 import CustomDropdown from '../../components/CustomDropdown'
 import DeleteConfirmationModal from '../../components/DeleteConfirmationModal'
 import { Pagination } from '../../components'
+import StyledTable from '../../components/StyledTable'
 
 const Products = () => {
   // Hooks
@@ -324,119 +325,100 @@ const Products = () => {
       </div>
 
       {/* Content */}
-      <div className="bg-white rounded-lg border border-gray-200">
-        {loading ? (
-          <div className="p-6">
-            <div className="animate-pulse space-y-4">
-              {Array.from({ length: 5 }).map((_, index) => (
-                <div key={index} className="h-16 bg-gray-200 rounded"></div>
-              ))}
+      {loading || products.length === 0 ? (
+        <div className="bg-white rounded-lg border border-gray-200">
+          {loading ? (
+            <div className="p-6">
+              <div className="animate-pulse space-y-4">
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <div key={index} className="h-16 bg-gray-200 rounded"></div>
+                ))}
+              </div>
             </div>
-          </div>
-        ) : products.length === 0 ? (
-          <div className="p-12 text-center">
-            <div className="text-gray-500">
-              <p className="text-lg font-medium">No products found</p>
-              <p className="text-sm">Try adjusting your search or filters</p>
+          ) : (
+            <div className="p-12 text-center">
+              <div className="text-gray-500">
+                <p className="text-lg font-medium">No products found</p>
+                <p className="text-sm">Try adjusting your search or filters</p>
+              </div>
             </div>
-          </div>
-        ) : (
-          <>
-            {/* Table */}
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-100 border-b border-gray-200">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Product
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Manufacturer
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Active Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Made In
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {products.map((product: Product) => (
-                    <tr 
-                      key={product.id} 
-                      className="hover:bg-gray-50 cursor-pointer"
-                      onClick={() => handleRowClick(product)}
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          {product.image && (
-                            <img
-                              src={product.image}
-                              alt={`${product.name} image`}
-                              className="w-10 h-10 rounded-lg object-cover mr-3"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement
-                                target.style.display = 'none'
-                              }}
-                            />
-                          )}
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">{product.name}</div>
-                            {product.contains.length > 0 && (
-                              <div className="text-sm text-gray-500">{product.contains[0]}</div>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{product.manufacturer}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className={`flex items-center space-x-1 px-2 max-w-20 py-1 rounded-full text-xs font-medium ${
-                          product.status === 'Halaal'
-                            ? 'bg-green-100 text-green-800'
-                            : product.status === 'Haraam'
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          <span>{product.status}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className={`flex items-center space-x-1 px-2 max-w-20 py-1 rounded-full text-xs font-medium ${
-                          product.isActive 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          {product.isActive ? <FiCheckCircle size={12} /> : <FiXCircle size={12} />}
-                          <span>{product.isActive ? 'Active' : 'Inactive'}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{product.madeIn}</div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+          )}
+        </div>
+      ) : (
+        <>
+          <StyledTable<Product>
+            data={products}
+            columns={[
+              {
+                key: 'product',
+                header: 'Product',
+                render: (product: Product) => (
+                  <div className="flex items-center">
+                    {product.image && (
+                      <img
+                        src={product.image}
+                        alt={`${product.name} image`}
+                        className="w-10 h-10 rounded-lg object-cover mr-3"
+                        onError={(e) => { const t = e.target as HTMLImageElement; t.style.display = 'none' }}
+                      />
+                    )}
+                    <div>
+                      <div className="text-sm font-medium text-gray-900">{product.name}</div>
+                      {product.contains.length > 0 && (
+                        <div className="text-sm text-gray-500">{product.contains[0]}</div>
+                      )}
+                    </div>
+                  </div>
+                )
+              },
+              {
+                key: 'manufacturer',
+                header: 'Manufacturer',
+                render: (product: Product) => (
+                  <div className="text-sm text-gray-900">{product.manufacturer}</div>
+                )
+              },
+              {
+                key: 'status',
+                header: 'Status',
+                render: (product: Product) => (
+                  <div className={`flex items-center space-x-1 px-2 max-w-20 py-1 rounded-full text-xs font-medium ${
+                    product.status === 'Halaal' ? 'bg-green-100 text-green-800' : product.status === 'Haraam' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
+                  }`}>
+                    <span>{product.status}</span>
+                  </div>
+                )
+              },
+              {
+                key: 'active',
+                header: 'Active Status',
+                render: (product: Product) => (
+                  <div className={`flex items-center space-x-1 px-2 max-w-20 py-1 rounded-full text-xs font-medium ${product.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                    {product.isActive ? <FiCheckCircle size={12} /> : <FiXCircle size={12} />}
+                    <span>{product.isActive ? 'Active' : 'Inactive'}</span>
+                  </div>
+                )
+              },
+              {
+                key: 'madeIn',
+                header: 'Made In',
+                render: (product: Product) => (
+                  <div className="text-sm text-gray-900">{product.madeIn}</div>
+                )
+              }
+            ]}
+            onRowClick={handleRowClick}
+          />
 
-            {/* Pagination */}
-            <Pagination
-              currentPage={pagination.currentPage}
-              totalPages={pagination.totalPages}
-              totalItems={pagination.totalItems}
-              itemsPerPage={pagination.itemsPerPage}
-              onPageChange={handlePageChange}
-            />
-         
-          </>
-        )}
-      </div>
+          <Pagination
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            totalItems={pagination.totalItems}
+            itemsPerPage={pagination.itemsPerPage}
+            onPageChange={handlePageChange}
+          />
+        </>
+      )}
 
       {/* Modals */}
       <Modal

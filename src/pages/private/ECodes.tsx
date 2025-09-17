@@ -12,6 +12,7 @@ import DeleteConfirmationModal from '../../components/DeleteConfirmationModal'
 
 import ECodeForm from '../../forms/ECodeForm'
 import { Pagination } from '../../components'
+import StyledTable from '../../components/StyledTable'
 
 const ECodes = () => {
   // Hooks
@@ -334,119 +335,54 @@ const ECodes = () => {
         </div>
       </div>
 
-            {/* E-Codes Table */}
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Code
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Name
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Function
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Active Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Source
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {loading ? (
-                // Loading rows
-                Array.from({ length: 5 }).map((_, index) => (
-                  <tr key={index} className="animate-pulse">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="h-4 bg-gray-200 rounded w-16"></div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="h-4 bg-gray-200 rounded w-32"></div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="h-4 bg-gray-200 rounded w-24"></div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="h-4 bg-gray-200 rounded w-20"></div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="h-4 bg-gray-200 rounded w-28"></div>
-                    </td>
-                  </tr>
-                ))
-              ) : ecodes.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
-                    No E-Codes found
-                  </td>
-                </tr>
-              ) : (
-                ecodes.map((ecode: ECode) => (
-                  <tr
-                    key={ecode.id}
-                    onClick={() => !isSubmitting && handleViewECode(ecode)}
-                    className={`transition-colors ${
-                      isSubmitting 
-                        ? 'cursor-not-allowed opacity-50' 
-                        : 'hover:bg-gray-50 cursor-pointer'
-                    }`}
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {ecode.code}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {ecode.name}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      {displayArrayItems(ecode.function || [])}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        ecode.status === 'halaal' 
-                          ? 'bg-green-100 text-green-800'
-                          : ecode.status === 'haraam'
-                          ? 'bg-red-100 text-red-800'
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {ecode.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        ecode.isActive 
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {ecode.isActive ? 'Active' : 'Inactive'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      {displayArrayItems(ecode.source || [])}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+      {/* E-Codes Table */}
+      {loading || ecodes.length === 0 ? (
+        <div className="bg-white rounded-lg border border-gray-200">
+          {loading ? (
+            <div className="p-6">
+              <div className="animate-pulse space-y-4">
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <div key={index} className="h-16 bg-gray-200 rounded"></div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="p-12 text-center text-gray-500">No E-Codes found</div>
+          )}
         </div>
+      ) : (
+        <>
+          <StyledTable<ECode>
+            data={ecodes}
+            columns={[
+              { key: 'code', header: 'Code', render: (e: ECode) => (<span className="text-sm font-medium text-gray-900">{e.code}</span>) },
+              { key: 'name', header: 'Name', render: (e: ECode) => (<span className="text-sm text-gray-900">{e.name}</span>) },
+              { key: 'function', header: 'Function', render: (e: ECode) => (<span className="text-sm text-gray-600">{displayArrayItems(e.function || [])}</span>) },
+              { key: 'status', header: 'Status', render: (e: ECode) => (
+                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${e.status === 'halaal' ? 'bg-green-100 text-green-800' : e.status === 'haraam' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                  {e.status}
+                </span>
+              ) },
+              { key: 'active', header: 'Active Status', render: (e: ECode) => (
+                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${e.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                  {e.isActive ? 'Active' : 'Inactive'}
+                </span>
+              ) },
+              { key: 'source', header: 'Source', render: (e: ECode) => (<span className="text-sm text-gray-600">{displayArrayItems(e.source || [])}</span>) },
+            ]}
+            onRowClick={(e) => !isSubmitting && handleViewECode(e)}
+          />
 
-        {/* Pagination */}
-        <Pagination
-          currentPage={pagination.currentPage}
-          totalPages={pagination.totalPages}
-          totalItems={pagination.totalItems}
-          itemsPerPage={pagination.itemsPerPage}
-          onPageChange={handlePageChange}
-        />
-      </div>
+          {/* Pagination */}
+          <Pagination
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            totalItems={pagination.totalItems}
+            itemsPerPage={pagination.itemsPerPage}
+            onPageChange={handlePageChange}
+          />
+        </>
+      )}
  
 
       {/* E-Code Detail Sheet */}

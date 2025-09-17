@@ -12,6 +12,7 @@ import DateRangePicker from '../../components/DateRangePicker'
 import DeleteConfirmationModal from '../../components/DeleteConfirmationModal'
 import CustomDropdown from '../../components/CustomDropdown'
 import { Pagination } from '../../components'
+import StyledTable from '../../components/StyledTable'
 
 const Clients = () => {
   // Hooks
@@ -341,120 +342,109 @@ const Clients = () => {
       </div>
 
       {/* Content */}
-      <div className="bg-white rounded-lg border border-gray-200">
-        {loading ? (
-          <div className="p-6">
-            <div className="animate-pulse space-y-4">
-              {Array.from({ length: 5 }).map((_, index) => (
-                <div key={index} className="h-16 bg-gray-200 rounded"></div>
-              ))}
+      {loading || clients.length === 0 ? (
+        <div className="bg-white rounded-lg border border-gray-200">
+          {loading ? (
+            <div className="p-6">
+              <div className="animate-pulse space-y-4">
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <div key={index} className="h-16 bg-gray-200 rounded"></div>
+                ))}
+              </div>
             </div>
-          </div>
-        ) : clients.length === 0 ? (
-          <div className="p-12 text-center">
-            <div className="text-gray-500">
-              <p className="text-lg font-medium">No clients found</p>
-              <p className="text-sm">Try adjusting your search or filters</p>
+          ) : (
+            <div className="p-12 text-center">
+              <div className="text-gray-500">
+                <p className="text-lg font-medium">No clients found</p>
+                <p className="text-sm">Try adjusting your search or filters</p>
+              </div>
             </div>
-          </div>
-        ) : (
-          <>
-            {/* Table */}
-            <div className="overflow-x-auto ">
-              <table className="w-full">
-                <thead className="bg-gray-100 border-b border-gray-200">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Client
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Contact
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Certification
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Expiry
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {clients.map((client: Client) => (
-                    <tr 
-                      key={client.id} 
-                      className="hover:bg-gray-50 cursor-pointer"
-                      onClick={() => handleRowClick(client)}
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          {client.logoUrl && (
-                            <img
-                              src={client.logoUrl}
-                              alt={`${client.name} logo`}
-                              className="w-10 h-10 rounded-lg object-cover mr-3"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement
-                                target.style.display = 'none'
-                              }}
-                            />
-                          )}
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">{client.name}</div>
-                            <div className="text-sm text-gray-500">
-                              {client.clientCode && client.clientCode.length > 0 ? client.clientCode.join(', ') : ''}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{client.email}</div>
-                        {client.phone.length > 0 && (
-                          <div className="text-sm text-gray-500">{client.phone[0]}</div>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{client.standard}</div>
-                        {client.category.length > 0 && (
-                          <div className="text-sm text-gray-500">{client.category[0]}</div>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className={`flex items-center space-x-1 px-2 max-w-20 py-1 rounded-full text-xs font-medium ${
-                          client.isActive 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          {client.isActive ? <FiCheckCircle size={12} /> : <FiXCircle size={12} />}
-                          <span>{client.isActive ? 'Active' : 'Inactive'}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{formatDate(client.expiryDate)}</div>
-                        {isExpired(client.expiryDate) && (
-                          <div className="text-xs text-red-600">Expired</div>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+          )}
+        </div>
+      ) : (
+        <>
+          <StyledTable<Client>
+            data={clients}
+            columns={[
+              {
+                key: 'client',
+                header: 'Client',
+                render: (client: Client) => (
+                  <div className="flex items-center">
+                    {client.logoUrl && (
+                      <img
+                        src={client.logoUrl}
+                        alt={`${client.name} logo`}
+                        className="w-10 h-10 rounded-lg object-cover mr-3"
+                        onError={(e) => { const t = e.target as HTMLImageElement; t.style.display = 'none' }}
+                      />
+                    )}
+                    <div>
+                      <div className="text-sm font-medium text-gray-900">{client.name}</div>
+                      <div className="text-sm text-gray-500">{client.clientCode && client.clientCode.length > 0 ? client.clientCode.join(', ') : ''}</div>
+                    </div>
+                  </div>
+                )
+              },
+              {
+                key: 'contact',
+                header: 'Contact',
+                render: (client: Client) => (
+                  <div>
+                    <div className="text-sm text-gray-900">{client.email}</div>
+                    {client.phone.length > 0 && (
+                      <div className="text-sm text-gray-500">{client.phone[0]}</div>
+                    )}
+                  </div>
+                )
+              },
+              {
+                key: 'certification',
+                header: 'Certification',
+                render: (client: Client) => (
+                  <div>
+                    <div className="text-sm text-gray-900">{client.standard}</div>
+                    {client.category.length > 0 && (
+                      <div className="text-sm text-gray-500">{client.category[0]}</div>
+                    )}
+                  </div>
+                )
+              },
+              {
+                key: 'status',
+                header: 'Status',
+                render: (client: Client) => (
+                  <div className={`flex items-center space-x-1 px-2 max-w-20 py-1 rounded-full text-xs font-medium ${client.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                    {client.isActive ? <FiCheckCircle size={12} /> : <FiXCircle size={12} />}
+                    <span>{client.isActive ? 'Active' : 'Inactive'}</span>
+                  </div>
+                )
+              },
+              {
+                key: 'expiry',
+                header: 'Expiry',
+                render: (client: Client) => (
+                  <div>
+                    <div className="text-sm text-gray-900">{formatDate(client.expiryDate)}</div>
+                    {isExpired(client.expiryDate) && (
+                      <div className="text-xs text-red-600">Expired</div>
+                    )}
+                  </div>
+                )
+              }
+            ]}
+            onRowClick={handleRowClick}
+          />
 
-            {/* Pagination */}
-            <Pagination
-              currentPage={pagination.currentPage}
-              totalPages={pagination.totalPages}
-              totalItems={pagination.totalItems}
-              itemsPerPage={pagination.itemsPerPage}
-              onPageChange={handlePageChange}
-            />
-         
-          </>
-        )}
-      </div>
+          <Pagination
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            totalItems={pagination.totalItems}
+            itemsPerPage={pagination.itemsPerPage}
+            onPageChange={handlePageChange}
+          />
+        </>
+      )}
 
       {/* Modals */}
       <Modal
