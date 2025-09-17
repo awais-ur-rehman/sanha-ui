@@ -273,7 +273,7 @@ const Products = () => {
       <div className='py-6'>
         <div className="flex items-center gap-4">
           {/* Search */}
-          <div className="relative flex-1">
+          <div className="relative w-80">
             <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
             <input
               type="text"

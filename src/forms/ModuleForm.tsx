@@ -71,7 +71,7 @@ const ModuleForm = ({ module, onSubmit, onCancel, loading = false }: ModuleFormP
           {...register('description')}
           error={errors.description?.message}
           placeholder="Enter module description"
-          rows={2}
+          rows={1}
         />
       </div>
 
@@ -79,8 +79,8 @@ const ModuleForm = ({ module, onSubmit, onCancel, loading = false }: ModuleFormP
         <label className="block text-sm font-medium text-gray-700 mb-3">
           Permissions
         </label>
-        <div className="grid grid-cols-4 gap-3">
-          {AVAILABLE_PERMISSIONS.map((permission) => (
+        <div className="grid grid-cols-5 gap-3">
+          {['create','read','update','delete','export'].map((permission) => (
             <CustomCheckbox
               key={permission}
               checked={selectedPermissions.includes(permission)}
@@ -91,10 +91,7 @@ const ModuleForm = ({ module, onSubmit, onCancel, loading = false }: ModuleFormP
         </div>
       </div>
 
-      <CustomCheckbox
-        {...register('isActive')}
-        label="Active"
-      />
+      {/* Removed Active option as requested */}
 
       <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
         <Button

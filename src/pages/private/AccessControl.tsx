@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { FiPlus, FiUsers, FiShield, FiPackage, FiEdit, FiTrash2 } from 'react-icons/fi'
-import TabNavigation from '../../components/TabNavigation'
 import DataTable from '../../components/DataTable'
 import Modal from '../../components/Modal'
 import DeleteConfirmationModal from '../../components/DeleteConfirmationModal'
@@ -166,7 +165,7 @@ const AccessControl = () => {
             key: 'isActive',
             header: 'Status',
             render: (admin: Admin) => (
-              <span className={`px-2 py-1 text-xs rounded-full ${
+              <span className={`px-1.5 py-0.5 text-xs rounded-full ${
                 admin.isActive 
                   ? 'bg-green-100 text-green-800' 
                   : 'bg-red-100 text-red-800'
@@ -195,12 +194,12 @@ const AccessControl = () => {
             render: (module: Module) => (
               <div className="flex flex-wrap gap-1">
                 {module.permissions?.slice(0, 3).map(permission => (
-                  <span key={permission} className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded">
+                  <span key={permission} className="px-1.5 py-0.5 text-xs bg-gray-100 text-gray-700 rounded">
                     {permission}
                   </span>
                 ))}
                 {module.permissions && module.permissions.length > 3 && (
-                  <span className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded">
+                  <span className="px-1.5 py-0.5 text-xs bg-gray-100 text-gray-700 rounded">
                     +{module.permissions.length - 3}
                   </span>
                 )}
@@ -211,7 +210,7 @@ const AccessControl = () => {
             key: 'isActive',
             header: 'Status',
             render: (module: Module) => (
-              <span className={`px-2 py-1 text-xs rounded-full ${
+              <span className={`px-1.5 py-0.5 text-xs rounded-full ${
                 module.isActive 
                   ? 'bg-green-100 text-green-800' 
                   : 'bg-red-100 text-red-800'
@@ -240,12 +239,12 @@ const AccessControl = () => {
             render: (role: Role) => (
               <div className="flex flex-wrap gap-1">
                 {role.modulePermissions?.slice(0, 2).map(mp => (
-                  <span key={mp.moduleId} className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded">
+                  <span key={mp.moduleId} className="px-1.5 py-0.5 text-xs bg-blue-100 text-blue-700 rounded">
                     {mp.moduleName}
                   </span>
                 ))}
                 {role.modulePermissions && role.modulePermissions.length > 2 && (
-                  <span className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded">
+                  <span className="px-1.5 py-0.5 text-xs bg-gray-100 text-gray-700 rounded">
                     +{role.modulePermissions.length - 2}
                   </span>
                 )}
@@ -411,22 +410,55 @@ const AccessControl = () => {
   })
 
   return (
-    <div className="py-3 lg:py-4">
-      <div className='bg-white rounded-lg shadow-lg overflow-hidden min-h-[calc(100vh-35px)] p-4 lg:p-6 space-y-4 lg:space-y-6'>
+    <div className="py-2 lg:py-3">
+      <div className='bg-white rounded-lg shadow-lg overflow-hidden min-h-[calc(100vh-35px)] p-3 lg:p-4 space-y-3 lg:space-y-4'>
        {/* Page Header */}
  <div>
-        <h1 className="text-xl lg:text-2xl font-semibold text-gray-900">Roles and Permissions</h1>
-        <p className="text-sm lg:text-base text-gray-600">View & manage permissions and roles.</p>
+        <h1 className="text-lg lg:text-xl font-semibold text-gray-900">Roles and Permissions</h1>
+        <p className="text-xs lg:text-sm text-gray-600">View & manage permissions and roles.</p>
       </div>
 
       {/* Tab Navigation */}
-      <TabNavigation 
-        activeTab={activeTab} 
-        onTabChange={setActiveTab}
-        showAdmins={hasPermission('Access Control', 'read')}
-        showModules={hasPermission('Access Control', 'read')}
-        showRoles={hasPermission('Access Control', 'read')}
-      />
+      <div className="mb-6">
+        <div className="inline-flex bg-gray-100 rounded-lg p-1">
+          {hasPermission('Access Control', 'read') && (
+            <button
+              onClick={() => setActiveTab('admins')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                activeTab === 'admins'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Admins
+            </button>
+          )}
+          {hasPermission('Access Control', 'read') && (
+            <button
+              onClick={() => setActiveTab('modules')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                activeTab === 'modules'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Modules
+            </button>
+          )}
+          {hasPermission('Access Control', 'read') && (
+            <button
+              onClick={() => setActiveTab('roles')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                activeTab === 'roles'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Roles & Permissions
+            </button>
+          )}
+        </div>
+      </div>
 
       {/* Data Table */}
       <DataTable<any>
@@ -469,7 +501,7 @@ const AccessControl = () => {
         isOpen={isModalOpen}
         onClose={handleFormCancel}
         title={`${editingItem ? 'Edit' : 'Add'} ${activeTab.slice(0, -1)}`}
-        size="lg"
+        size="xl"
       >
         {activeTab === 'modules' && (
           <ModuleForm

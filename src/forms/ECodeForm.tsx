@@ -26,17 +26,16 @@ const schema = yup.object({
 
 const ECodeForm: React.FC<ECodeFormProps> = ({ ecode, onSubmit, onCancel, isLoading = false }) => {
   const [alternateNames, setAlternateNames] = useState<string[]>(ecode?.alternateName || []);
-  const [functions, setFunctions] = useState<string[]>(ecode?.function || []);
   const [sources, setSources] = useState<string[]>(ecode?.source || []);
-  const [healthInfos, setHealthInfos] = useState<string[]>(ecode?.healthInfo || []);
-  const [uses, setUses] = useState<string[]>(ecode?.uses || []);
+  const [functions, setFunctions] = useState<Array<{ value: string }>>([]);
+  const [healthInfos, setHealthInfos] = useState<Array<{ value: string }>>([]);
+  const [uses, setUses] = useState<Array<{ value: string }>>([]);
 
   const {
     control,
     handleSubmit,
     formState: { errors },
     setValue,
-
   } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
@@ -53,48 +52,74 @@ const ECodeForm: React.FC<ECodeFormProps> = ({ ecode, onSubmit, onCancel, isLoad
       setValue('name', ecode.name || '');
       setValue('status', ecode.status || 'doubtful');
       setAlternateNames(ecode.alternateName || []);
-      setFunctions(ecode.function || []);
       setSources(ecode.source || []);
-      setHealthInfos(ecode.healthInfo || []);
-      setUses(ecode.uses || []);
+      
+      // Initialize dynamic arrays
+      setFunctions(ecode.function?.map(item => ({ value: item })) || [{ value: '' }]);
+      setHealthInfos(ecode.healthInfo?.map(item => ({ value: item })) || [{ value: '' }]);
+      setUses(ecode.uses?.map(item => ({ value: item })) || [{ value: '' }]);
+    } else {
+      // Initialize with one empty field for new ecode
+      setFunctions([{ value: '' }]);
+      setHealthInfos([{ value: '' }]);
+      setUses([{ value: '' }]);
     }
   }, [ecode, setValue]);
 
   // Update form values when arrays change
   useEffect(() => {
     setValue('alternateName', alternateNames);
-    setValue('function', functions);
     setValue('source', sources);
-    setValue('healthInfo', healthInfos);
-    setValue('uses', uses);
-  }, [alternateNames, functions, sources, healthInfos, uses, setValue]);
+    setValue('function', functions.map(f => f.value).filter(v => v.trim()));
+    setValue('healthInfo', healthInfos.map(h => h.value).filter(v => v.trim()));
+    setValue('uses', uses.map(u => u.value).filter(v => v.trim()));
+  }, [alternateNames, sources, functions, healthInfos, uses, setValue]);
 
   const handleFormSubmit = (data: any) => {
     const formData = {
       ...data,
       alternateName: alternateNames,
-      function: functions,
       source: sources,
-      healthInfo: healthInfos,
-      uses: uses,
+      function: functions.map(f => f.value).filter(v => v.trim()),
+      healthInfo: healthInfos.map(h => h.value).filter(v => v.trim()),
+      uses: uses.map(u => u.value).filter(v => v.trim()),
     };
     onSubmit(formData);
   };
 
-  // Helper function to add item to array
-  const addItemToArray = (array: string[], setArray: React.Dispatch<React.SetStateAction<string[]>>, newItem: string) => {
+  // Helper function to add item to pills array
+  const addItemToPillsArray = (array: string[], setArray: React.Dispatch<React.SetStateAction<string[]>>, newItem: string) => {
     if (newItem.trim() && !array.includes(newItem.trim())) {
       setArray([...array, newItem.trim()]);
     }
   };
 
-  // Helper function to remove item from array
-  const removeItemFromArray = (array: string[], setArray: React.Dispatch<React.SetStateAction<string[]>>, index: number) => {
+  // Helper function to remove item from pills array
+  const removeItemFromPillsArray = (array: string[], setArray: React.Dispatch<React.SetStateAction<string[]>>, index: number) => {
     setArray(array.filter((_, i) => i !== index));
   };
 
-  // Array input component
-  const ArrayInput = ({ 
+  // Helper function to update dynamic array field
+  const updateDynamicField = (array: Array<{ value: string }>, setArray: React.Dispatch<React.SetStateAction<Array<{ value: string }>>>, index: number, value: string) => {
+    const updated = [...array];
+    updated[index] = { value };
+    setArray(updated);
+  };
+
+  // Helper function to add new dynamic field
+  const addDynamicField = (array: Array<{ value: string }>, setArray: React.Dispatch<React.SetStateAction<Array<{ value: string }>>>) => {
+    setArray([...array, { value: '' }]);
+  };
+
+  // Helper function to remove dynamic field
+  const removeDynamicField = (array: Array<{ value: string }>, setArray: React.Dispatch<React.SetStateAction<Array<{ value: string }>>>, index: number) => {
+    if (array.length > 1) {
+      setArray(array.filter((_, i) => i !== index));
+    }
+  };
+
+  // Pills input component for Alternate Names and Sources
+  const PillsInput = ({ 
     label, 
     items, 
     setItems, 
@@ -108,7 +133,7 @@ const ECodeForm: React.FC<ECodeFormProps> = ({ ecode, onSubmit, onCancel, isLoad
     const [inputValue, setInputValue] = useState('');
 
     const handleAdd = () => {
-      addItemToArray(items, setItems, inputValue);
+      addItemToPillsArray(items, setItems, inputValue);
       setInputValue('');
     };
 
@@ -120,8 +145,8 @@ const ECodeForm: React.FC<ECodeFormProps> = ({ ecode, onSubmit, onCancel, isLoad
     };
 
     return (
-      <div className="space-y-1">
-        <label className="block text-sm font-medium text-gray-700">{label}</label>
+      <div className="space-y-2">
+        <label className="block text-sm font-normal text-gray-700">{label}</label>
         <div className="flex gap-2">
           <input
             type="text"
@@ -129,18 +154,18 @@ const ECodeForm: React.FC<ECodeFormProps> = ({ ecode, onSubmit, onCancel, isLoad
             onChange={(e) => setInputValue(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder={placeholder}
-            className="flex-1 px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-sm"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-sm"
           />
           <button
             type="button"
             onClick={handleAdd}
-            className="px-2 py-1.5 bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors"
+            className="px-3 py-2 bg-[#0c684b] text-white rounded-md hover:bg-green-700 transition-colors"
           >
             <FiPlus size={14} />
           </button>
         </div>
         {items.length > 0 && (
-          <div className="flex flex-wrap gap-1 max-h-16 overflow-y-auto">
+          <div className="flex flex-wrap gap-1">
             {items.map((item, index) => (
               <span
                 key={index}
@@ -149,7 +174,7 @@ const ECodeForm: React.FC<ECodeFormProps> = ({ ecode, onSubmit, onCancel, isLoad
                 {item}
                 <button
                   type="button"
-                  onClick={() => removeItemFromArray(items, setItems, index)}
+                  onClick={() => removeItemFromPillsArray(items, setItems, index)}
                   className="text-gray-500 hover:text-red-500"
                 >
                   <FiX size={10} />
@@ -162,143 +187,199 @@ const ECodeForm: React.FC<ECodeFormProps> = ({ ecode, onSubmit, onCancel, isLoad
     );
   };
 
+  // Dynamic input component for other fields
+  const DynamicInput = ({ 
+    label, 
+    items, 
+    setItems, 
+    placeholder 
+  }: { 
+    label: string; 
+    items: Array<{ value: string }>; 
+    setItems: React.Dispatch<React.SetStateAction<Array<{ value: string }>>>; 
+    placeholder: string; 
+  }) => {
+    return (
+      <div className="space-y-2">
+        <label className="block text-sm font-normal text-gray-700">{label}</label>
+        <div className="space-y-2 max-h-32 overflow-y-auto pr-2">
+          {items.map((item, index) => (
+            <div key={index} className="flex items-center gap-2">
+              <input
+                type="text"
+                value={item.value}
+                onChange={(e) => updateDynamicField(items, setItems, index, e.target.value)}
+                placeholder={placeholder}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-sm"
+              />
+              {items.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removeDynamicField(items, setItems, index)}
+                  className="p-2 text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                >
+                  <FiX size={14} />
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={() => addDynamicField(items, setItems)}
+            className="inline-flex items-center justify-center w-8 h-8 border border-[#0c684b] rounded-full text-[#0c684b] bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#0c684b] transition-colors"
+          >
+            <FiPlus size={16} />
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div className="max-h-[70vh] overflow-y-auto">
-      <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4 px-2">
-        {/* Code and Name */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Controller
-              name="code"
-              control={control}
-              render={({ field }) => (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Code *
-                  </label>
-                  <input
-                    {...field}
-                    type="text"
-                    placeholder="e.g., E100"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
-                  />
-                  {errors.code && (
-                    <p className="mt-1 text-sm text-red-600">{errors.code.message}</p>
-                  )}
-                </div>
-              )}
-            />
-          </div>
-
-          <div>
-            <Controller
-              name="name"
-              control={control}
-              render={({ field }) => (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Name *
-                  </label>
-                  <input
-                    {...field}
-                    type="text"
-                    placeholder="e.g., Curcumin"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
-                  />
-                  {errors.name && (
-                    <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
-                  )}
-                </div>
-              )}
-            />
-          </div>
-        </div>
-
-        {/* Status */}
-        <div>
-          <Controller
-            name="status"
-            control={control}
-            render={({ field }) => (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Status *
-                </label>
-                <CustomDropdown
-                  placeholder="Select Status"
-                  value={field.value}
-                  onChange={(value) => field.onChange(value)}
-                  options={[
-                    { value: 'halaal', label: 'Halaal' },
-                    { value: 'haraam', label: 'Haraam' },
-                    { value: 'doubtful', label: 'Doubtful' },
-                  ]}
-                />
-                {errors.status && (
-                  <p className="mt-1 text-sm text-red-600">{errors.status.message}</p>
+    <div className="flex flex-col h-full max-h-[80vh]">
+      <form onSubmit={handleSubmit(handleFormSubmit)} className="flex flex-col h-full">
+        {/* Form content - scrollable */}
+        <div className="flex-1 overflow-y-auto space-y-4 pr-2">
+          {/* Code and Name */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Controller
+                name="code"
+                control={control}
+                render={({ field }) => (
+                  <div>
+                    <label className="block text-sm font-normal text-gray-700 mb-1">
+                      Code *
+                    </label>
+                    <input
+                      {...field}
+                      type="text"
+                      placeholder="e.g., E100"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
+                    />
+                    {errors.code && (
+                      <p className="mt-1 text-sm text-red-600">{errors.code.message}</p>
+                    )}
+                  </div>
                 )}
-              </div>
-            )}
-          />
+              />
+            </div>
+
+            <div>
+              <Controller
+                name="name"
+                control={control}
+                render={({ field }) => (
+                  <div>
+                    <label className="block text-sm font-normal text-gray-700 mb-1">
+                      Name *
+                    </label>
+                    <input
+                      {...field}
+                      type="text"
+                      placeholder="e.g., Curcumin"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
+                    />
+                    {errors.name && (
+                      <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+                    )}
+                  </div>
+                )}
+              />
+            </div>
+          </div>
+
+          {/* Status */}
+          <div>
+            <Controller
+              name="status"
+              control={control}
+              render={({ field }) => (
+                <div>
+                  <label className="block text-sm font-normal text-gray-700 mb-1">
+                    Status *
+                  </label>
+                  <CustomDropdown
+                    placeholder="Select Status"
+                    value={field.value}
+                    onChange={(value) => field.onChange(value)}
+                    options={[
+                      { value: 'halaal', label: 'Halaal' },
+                      { value: 'haraam', label: 'Haraam' },
+                      { value: 'doubtful', label: 'Doubtful' },
+                    ]}
+                  />
+                  {errors.status && (
+                    <p className="mt-1 text-sm text-red-600">{errors.status.message}</p>
+                  )}
+                </div>
+              )}
+            />
+          </div>
+
+          {/* Alternate Names and Sources - Side by Side */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <PillsInput
+              label="Alternate Names"
+              items={alternateNames}
+              setItems={setAlternateNames}
+              placeholder="Add alternate name"
+            />
+
+            <PillsInput
+              label="Sources"
+              items={sources}
+              setItems={setSources}
+              placeholder="Add source"
+            />
+          </div>
+
+          {/* Other Fields - Dynamic Inputs */}
+          <div className="space-y-4">
+            <DynamicInput
+              label="Functions"
+              items={functions}
+              setItems={setFunctions}
+              placeholder="Add function"
+            />
+
+            <DynamicInput
+              label="Health Information"
+              items={healthInfos}
+              setItems={setHealthInfos}
+              placeholder="Add health info"
+            />
+
+            <DynamicInput
+              label="Uses"
+              items={uses}
+              setItems={setUses}
+              placeholder="Add use"
+            />
+          </div>
         </div>
 
-        {/* Array Inputs in Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <ArrayInput
-            label="Alternate Names"
-            items={alternateNames}
-            setItems={setAlternateNames}
-            placeholder="Add alternate name"
-          />
-
-          <ArrayInput
-            label="Functions"
-            items={functions}
-            setItems={setFunctions}
-            placeholder="Add function"
-          />
-
-          <ArrayInput
-            label="Sources"
-            items={sources}
-            setItems={setSources}
-            placeholder="Add source"
-          />
-
-          <ArrayInput
-            label="Health Information"
-            items={healthInfos}
-            setItems={setHealthInfos}
-            placeholder="Add health info"
-          />
-
-          <ArrayInput
-            label="Uses"
-            items={uses}
-            setItems={setUses}
-            placeholder="Add use"
-          />
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex gap-3 pt-2">
+        {/* Fixed footer with buttons */}
+        <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 mt-4 flex-shrink-0">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={isLoading}
+            className="px-4 py-2 text-sm border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Cancel
+          </button>
           <button
             type="submit"
             disabled={isLoading}
-            className="flex-1 px-4 py-2 bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 text-sm bg-[#0c684b] text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading 
               ? (ecode ? 'Updating...' : 'Creating...') 
               : (ecode ? 'Update E-Code' : 'Create E-Code')
             }
-          </button>
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={isLoading}
-            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Cancel
           </button>
         </div>
       </form>

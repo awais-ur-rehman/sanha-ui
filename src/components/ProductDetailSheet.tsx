@@ -78,22 +78,28 @@ const ProductDetailSheet: React.FC<ProductDetailSheetProps> = ({
 
         {/* Product Info */}
         <div className="flex flex-col gap-4 flex-1">
-          <div className="text-left">
-            <h2 className="font-semibold text-xl text-gray-900 mb-2">
-              {product.name}
-            </h2>
-            <p className="text-base text-gray-700 mb-1">
-              Manufacturer: {product.manufacturer}
-            </p>
-            <p className="text-sm text-gray-600">
-              Made in: {product.madeIn}
-            </p>
-          </div>
-
-          {/* Status */}
-          <div className="space-y-2">
-            <h3 className="font-medium text-sm text-gray-900">Status</h3>
-            <div className="flex flex-wrap gap-2">
+          <div className="text-left flex justify-between items-start">
+            <div>
+              <h2 className="font-semibold text-xl text-gray-900 mb-2">
+                {product.name}
+              </h2>
+              <p className="text-base text-gray-700 mb-1">
+                Manufacturer: {product.manufacturer}
+              </p>
+              <p className="text-sm text-gray-600">
+                Made in: {product.madeIn}
+              </p>
+            </div>
+            <div className="flex flex-col items-end gap-2">
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={localIsActive}
+                  onCheckedChange={handleToggleChange}
+                />
+                <span className="text-sm text-gray-700">
+                  {localIsActive ? 'Active' : 'Inactive'}
+                </span>
+              </div>
               <span
                 className={`px-3 py-1 text-sm rounded-full ${
                   product.status === 'Halaal' 
@@ -125,53 +131,36 @@ const ProductDetailSheet: React.FC<ProductDetailSheetProps> = ({
             </div>
           )}
 
-          {/* Status Toggle */}
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-700">Active Status</span>
-            <Switch
-              checked={localIsActive}
-              onCheckedChange={handleToggleChange}
-            />
-          </div>
 
-          {/* Product Information */}
-          <div className="space-y-3">
-            <h3 className="font-semibold text-gray-900">Product Information</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-start space-x-3">
-                <FiMapPin className="text-gray-400 mt-1" size={16} />
-                <div>
-                  <p className="text-sm font-medium text-gray-700">Manufacturer</p>
-                  <p className="text-sm text-gray-900">{product.manufacturer}</p>
+          {/* Scrollable Content */}
+          <div className="flex-1 overflow-y-auto space-y-4 pr-2">
+            {/* Product Information */}
+            <div className="space-y-3">
+              <h3 className="font-semibold text-gray-900">Product Information</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex items-start space-x-3">
+                  <FiMapPin className="text-gray-400 mt-1" size={16} />
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Manufacturer</p>
+                    <p className="text-sm text-gray-900">{product.manufacturer}</p>
+                  </div>
                 </div>
-              </div>
 
-              <div className="flex items-start space-x-3">
-                <FiMapPin className="text-gray-400 mt-1" size={16} />
-                <div>
-                  <p className="text-sm font-medium text-gray-700">Country of Origin</p>
-                  <p className="text-sm text-gray-900">{product.madeIn}</p>
+                <div className="flex items-start space-x-3">
+                  <FiMapPin className="text-gray-400 mt-1" size={16} />
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Country of Origin</p>
+                    <p className="text-sm text-gray-900">{product.madeIn}</p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-
-          
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-3 mt-6">
-          {hasUpdatePermission && (
-            <button
-              onClick={() => onEdit(product)}
-              className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors"
-            >
-              <FiEdit size={16} />
-              <span>Edit</span>
-            </button>
-          )}
-          
+        {/* Fixed Action Buttons */}
+        <div className="flex gap-3 mt-4 flex-shrink-0">
           {hasDeletePermission && (
             <button
               onClick={() => onDelete(product)}
@@ -179,6 +168,16 @@ const ProductDetailSheet: React.FC<ProductDetailSheetProps> = ({
             >
               <FiTrash2 size={16} />
               <span>Delete</span>
+            </button>
+          )}
+          
+          {hasUpdatePermission && (
+            <button
+              onClick={() => onEdit(product)}
+              className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors"
+            >
+              <FiEdit size={16} />
+              <span>Edit</span>
             </button>
           )}
         </div>

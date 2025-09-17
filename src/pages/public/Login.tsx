@@ -19,13 +19,8 @@ const Login: React.FC = () => {
 
   const handleLoginSuccess = (data: LoginResponse) => {
     if (data.success && data.data) {
-      // Store token in localStorage
       localStorage.setItem('token', data.data.token)
-      
-      // Update auth context with admin data (which includes permissions)
       login(data.data.admin)
-      
-      // Navigate to dashboard
       navigate(ROUTES.DASHBOARD)
     }
   }

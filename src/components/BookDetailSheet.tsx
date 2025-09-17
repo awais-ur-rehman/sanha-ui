@@ -122,18 +122,8 @@ const BookDetailSheet: React.FC<BookDetailSheetProps> = ({
           )}
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-3 mt-6">
-          {hasUpdatePermission && (
-            <button
-              onClick={() => onEdit(book)}
-              className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors"
-            >
-              <FiEdit size={16} />
-              <span>Edit</span>
-            </button>
-          )}
-          
+        {/* Fixed Action Buttons */}
+        <div className="flex gap-3 mt-4 flex-shrink-0">
           {hasDeletePermission && (
             <button
               onClick={() => onDelete(book)}
@@ -141,6 +131,16 @@ const BookDetailSheet: React.FC<BookDetailSheetProps> = ({
             >
               <FiTrash2 size={16} />
               <span>Delete</span>
+            </button>
+          )}
+          
+          {hasUpdatePermission && (
+            <button
+              onClick={() => onEdit(book)}
+              className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors"
+            >
+              <FiEdit size={16} />
+              <span>Edit</span>
             </button>
           )}
         </div>

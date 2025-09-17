@@ -70,26 +70,26 @@ const ECodeDetailSheet: React.FC<ECodeDetailSheetProps> = ({
       <div className="flex flex-col h-full p-6">
         {/* E-Code Info */}
         <div className="flex flex-col gap-4 flex-1 pt-10">
-          <div className="text-left flex justify-between ">
+          <div className="text-left flex justify-between items-start">
             <h2 className="font-semibold text-xl text-gray-900 mb-2">
               {ecode.name || 'Untitled'}
               <span>  ({ecode.code || 'No Code'})</span>
             </h2>
-            <span className={`px-3 py-1 flex justify-center items-center rounded-full text-xs font-medium ${getStatusBadgeColor(ecode.status)}`}>
+            <div className="flex flex-col items-end gap-2">
+              <div className="flex items-center gap-2">
+                <Switch checked={localIsActive} onCheckedChange={handleToggleChange} />
+                <span className="text-sm text-gray-700">
+                  {localIsActive ? 'Active' : 'Inactive'}
+                </span>
+              </div>
+              <span className={`px-3 py-1 flex justify-center items-center rounded-full text-xs font-medium ${getStatusBadgeColor(ecode.status)}`}>
                 {ecode.status}
               </span>
+            </div>
           </div>
 
-          {/* Status Toggle */}
-          <div className="flex items-center gap-3">
-            <Switch checked={localIsActive} onCheckedChange={handleToggleChange} />
-            <span className="text-sm text-gray-700">
-              {localIsActive ? 'Active' : 'Inactive'}
-            </span>
-          </div>
-
-          {/* Details */}
-          <div className="space-y-4 flex-1">
+          {/* Scrollable Content */}
+          <div className="flex-1 overflow-y-auto space-y-4 pr-2">
             <div>
               <h3 className="font-semibold text-gray-900 mb-2">Alternative Names</h3>
               <ChipList items={ecode.alternateName} />
@@ -114,22 +114,11 @@ const ECodeDetailSheet: React.FC<ECodeDetailSheetProps> = ({
               <h3 className="font-semibold text-gray-900 mb-2">Uses</h3>
               <ChipList items={ecode.uses} />
             </div>
-
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-3 mt-6">
-          {hasUpdatePermission && (
-            <button
-              onClick={() => onEdit(ecode)}
-              className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors"
-            >
-              <FiEdit size={16} />
-              <span>Edit</span>
-            </button>
-          )}
-          
+        {/* Fixed Action Buttons */}
+        <div className="flex gap-3 mt-4 flex-shrink-0">
           {hasDeletePermission && (
             <button
               onClick={() => onDelete(ecode)}
@@ -137,6 +126,16 @@ const ECodeDetailSheet: React.FC<ECodeDetailSheetProps> = ({
             >
               <FiTrash2 size={16} />
               <span>Delete</span>
+            </button>
+          )}
+          
+          {hasUpdatePermission && (
+            <button
+              onClick={() => onEdit(ecode)}
+              className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors"
+            >
+              <FiEdit size={16} />
+              <span>Edit</span>
             </button>
           )}
         </div>

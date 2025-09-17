@@ -24,10 +24,10 @@ const TabNavigation = ({ activeTab, onTabChange, showAdmins = true, showModules 
           <button
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
-            className={`py-2 px-1 border-b-2 font-medium text-sm cursor-pointer ${
+            className={`py-3 px-4 border-b-2 font-medium text-sm cursor-pointer transition-all duration-200 ${
               activeTab === tab.id
-                ? 'border-[#0c684b] text-[#0c684b]'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                ? 'border-[#0c684b] text-[#0c684b] bg-green-50 px-6'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 hover:bg-gray-50'
             }`}
           >
             {tab.label}

@@ -22,8 +22,8 @@ const CustomCheckbox = forwardRef<HTMLInputElement, CustomCheckboxProps>(
               w-5 h-5 border-2 rounded-md flex items-center justify-center
               transition-colors duration-200
               ${props.checked 
-                ? 'bg-green-500 border-green-500' 
-                : 'border-gray-300 hover:border-green-400'
+                ? 'bg-[#0c684b] border-[#0c684b]' 
+                : 'border-gray-300 hover:border-[#0c684b]'
               }
               ${error ? 'border-red-500' : ''}
               ${props.disabled ? 'opacity-50 cursor-not-allowed' : ''}
