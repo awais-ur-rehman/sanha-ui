@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { FiPlus, FiUpload, FiX } from 'react-icons/fi'
 import { useToast } from '../components/CustomToast/ToastContext'
@@ -41,6 +41,16 @@ const ClientForm: React.FC<ClientFormProps> = ({
 
   const watchedLogoUrl = watch('logoUrl')
 
+  // Track initial arrays for edit mode to detect changes outside react-hook-form
+  const initialArraysRef = useRef({
+    addresses: [] as string[],
+    phones: [] as string[],
+    products: [] as string[],
+    categories: [] as string[],
+    scopes: [] as string[],
+    clientCodes: [] as string[],
+  })
+
   useEffect(() => {
     if (client) {
       setValue('name', client.name)
@@ -54,12 +64,28 @@ const ClientForm: React.FC<ClientFormProps> = ({
       setValue('expiryDate', client.expiryDate)
       setValue('isActive', client.isActive)
 
-      setAddresses(client.address.length > 0 ? client.address : [''])
-      setPhones(client.phone.length > 0 ? client.phone : [''])
-      setProducts(client.products.length > 0 ? client.products : [''])
-      setCategories(client.category.length > 0 ? client.category : [''])
-      setScopes(client.scope.length > 0 ? client.scope : [''])
-      setClientCodes(client.clientCode.length > 0 ? client.clientCode : [''])
+      const initAddresses = client.address.length > 0 ? client.address : []
+      const initPhones = client.phone.length > 0 ? client.phone : []
+      const initProducts = client.products.length > 0 ? client.products : []
+      const initCategories = client.category.length > 0 ? client.category : []
+      const initScopes = client.scope.length > 0 ? client.scope : []
+      const initCodes = client.clientCode.length > 0 ? client.clientCode : []
+
+      setAddresses(initAddresses)
+      setPhones(initPhones)
+      setProducts(initProducts)
+      setCategories(initCategories)
+      setScopes(initScopes)
+      setClientCodes(initCodes)
+
+      initialArraysRef.current = {
+        addresses: initAddresses,
+        phones: initPhones,
+        products: initProducts,
+        categories: initCategories,
+        scopes: initScopes,
+        clientCodes: initCodes,
+      }
     } else {
       // Set default values for new client
       setValue('isActive', true)
@@ -143,32 +169,53 @@ const ClientForm: React.FC<ClientFormProps> = ({
     onSubmit(formData)
   }
 
-  const requiredReady = (
+  const requiredReadyBase = (
     (watch('name') ?? '').toString().trim() !== '' &&
     (watch('email') ?? '').toString().trim() !== '' &&
     (watch('standard') ?? '').toString().trim() !== '' &&
     (watch('certifiedSince') ?? '').toString().trim() !== '' &&
-    (watch('expiryDate') ?? '').toString().trim() !== '' &&
-    clientCodes.some(c => c.trim() !== '')
+    (watch('expiryDate') ?? '').toString().trim() !== ''
   )
+  const requiredReady = client
+    ? requiredReadyBase // relax client code requirement in edit mode
+    : (requiredReadyBase && clientCodes.some(c => c.trim() !== ''))
+
+  // const arraysEqual = (a: string[], b: string[]) => {
+  //   if (a.length !== b.length) return false
+  //   for (let i = 0; i < a.length; i++) {
+  //     if (a[i] !== b[i]) return false
+  //   }
+  //   return true
+  // }
+
 
   // Pills input (chip adder) with circular plus button
   const PillsInput = ({
     label,
     items,
     setItems,
-    placeholder
+    placeholder,
+    validate,
+    invalidMessage,
   }: {
     label: string
     items: string[]
     setItems: React.Dispatch<React.SetStateAction<string[]>>
     placeholder: string
+    validate?: (value: string) => boolean
+    invalidMessage?: string
   }) => {
     const [inputValue, setInputValue] = useState('')
+    const [errorText, setErrorText] = useState<string>('')
 
     const handleAdd = () => {
       const value = inputValue.trim()
       if (!value) return
+      if (validate && !validate(value)) {
+        setErrorText(invalidMessage || 'Invalid value')
+        return
+      }
+      setErrorText('')
       if (!items.includes(value)) setItems(prev => [...prev, value])
       setInputValue('')
     }
@@ -204,6 +251,9 @@ const ClientForm: React.FC<ClientFormProps> = ({
             <FiPlus size={16} />
           </button>
         </div>
+        {errorText && (
+          <p className="text-xs text-red-600">{errorText}</p>
+        )}
         {items.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {items.map((val, idx) => (
@@ -349,7 +399,9 @@ const ClientForm: React.FC<ClientFormProps> = ({
         label="Phone Numbers"
         items={phones}
         setItems={setPhones}
-        placeholder="Enter phone and press Enter"
+        placeholder="Enter phone number"
+        validate={(v) => /^\d{11,}$/.test(v)}
+        invalidMessage="Phone must be at least 11 digits"
       />
 
       {/* Addresses - initial input editable; plus adds more rows */}
@@ -519,8 +571,8 @@ const ClientForm: React.FC<ClientFormProps> = ({
         </button>
         <button
           type="submit"
-          disabled={isLoading || !requiredReady || !isValid}
-          className="px-4 py-2 bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={isLoading || !requiredReady || !(client ? true : isValid)}
+          className="px-4 py-2 bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-w-[140px] text-center"
         >
           {isLoading ? 'Saving...' : client ? 'Update Client' : 'Add Client'}
         </button>

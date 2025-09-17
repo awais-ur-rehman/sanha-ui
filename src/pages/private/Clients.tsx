@@ -476,12 +476,14 @@ const Clients = () => {
         title="Edit Client"
         size="xl"
       >
-        <ClientForm
-          client={selectedClient || undefined}
-          onSubmit={handleSubmitUpdate}
-          onCancel={() => setIsEditModalOpen(false)}
-          isLoading={isSubmitting}
-        />
+        <div className="h-[70vh] overflow-hidden">
+          <ClientForm
+            client={selectedClient || undefined}
+            onSubmit={handleSubmitUpdate}
+            onCancel={() => setIsEditModalOpen(false)}
+            isLoading={isSubmitting}
+          />
+        </div>
       </Modal>
 
       {hasDeletePermission && (
