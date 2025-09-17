@@ -325,21 +325,21 @@ const Clients = () => {
             endDate={filters.endDate}
             onDateRangeChange={handleDateFilterApply}
             placeholder="Filter by date range"
-            className="w-56 text-sm"
+            className="w-72 text-sm"
             includeTime={true}
           />
 
         <div className="ml-auto flex items-center gap-2">
           <button
             onClick={() => { /* TODO: implement export */ }}
-            className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            className="px-6 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
           >
             Export
           </button>
           {hasCreatePermission && (
             <button
               onClick={handleAddClient}
-              className="flex items-center space-x-2 px-3 py-2 text-sm bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors"
+              className="flex items-center space-x-2 px-4 py-2 text-sm bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors"
             >
               <FiPlus size={16} />
               <span>Add Client</span>
@@ -459,18 +459,22 @@ const Clients = () => {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         title="Add New Client"
+        size="xl"
       >
-        <ClientForm
-          onSubmit={(data: ClientCreateRequest | ClientUpdateRequest) => handleSubmitCreate(data as ClientCreateRequest)}
-          onCancel={() => setIsAddModalOpen(false)}
-          isLoading={isSubmitting}
-        />
+        <div className="h-[70vh] overflow-hidden">
+          <ClientForm
+            onSubmit={(data: ClientCreateRequest | ClientUpdateRequest) => handleSubmitCreate(data as ClientCreateRequest)}
+            onCancel={() => setIsAddModalOpen(false)}
+            isLoading={isSubmitting}
+          />
+        </div>
       </Modal>
 
       <Modal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         title="Edit Client"
+        size="xl"
       >
         <ClientForm
           client={selectedClient || undefined}

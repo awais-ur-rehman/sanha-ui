@@ -6,6 +6,7 @@ import { AVAILABLE_PERMISSIONS } from '../config/api/rbac'
 import CustomInput from '../components/CustomInput'
 import CustomTextarea from '../components/CustomTextarea'
 import CustomCheckbox from '../components/CustomCheckbox'
+import { Switch } from '../components/ui/switch'
 import Button from '../components/Button'
 
 interface ModuleFormProps {
@@ -79,15 +80,20 @@ const ModuleForm = ({ module, onSubmit, onCancel, loading = false }: ModuleFormP
         <label className="block text-sm font-medium text-gray-700 mb-3">
           Permissions
         </label>
-        <div className="grid grid-cols-5 gap-3">
-          {['create','read','update','delete','export'].map((permission) => (
-            <CustomCheckbox
-              key={permission}
-              checked={selectedPermissions.includes(permission)}
-              onChange={() => handlePermissionToggle(permission)}
-              label={permission.charAt(0).toUpperCase() + permission.slice(1)}
-            />
-          ))}
+        <div className="grid grid-cols-5 gap-4">
+          {['create','read','update','delete','export'].map((permission) => {
+            const checked = selectedPermissions.includes(permission)
+            return (
+              <div key={permission} className="flex items-center gap-2">
+                <Switch
+                  size="sm"
+                  checked={checked}
+                  onCheckedChange={() => handlePermissionToggle(permission)}
+                />
+                <span className="text-xs capitalize text-gray-700">{permission}</span>
+              </div>
+            )
+          })}
         </div>
       </div>
 

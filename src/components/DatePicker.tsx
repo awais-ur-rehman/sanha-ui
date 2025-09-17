@@ -6,7 +6,8 @@ interface DatePickerProps {
   onChange: (date: string) => void;
   placeholder?: string;
   className?: string;
-  maxDate?: Date; // Maximum allowed date (defaults to today)
+  maxDate?: Date; // Maximum allowed date
+  minDate?: Date; // Minimum allowed date
 }
 
 const DatePicker: React.FC<DatePickerProps> = ({
@@ -14,7 +15,8 @@ const DatePicker: React.FC<DatePickerProps> = ({
   onChange,
   placeholder = 'Select date',
   className = '',
-  maxDate = new Date()
+  maxDate,
+  minDate
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -143,9 +145,8 @@ const DatePicker: React.FC<DatePickerProps> = ({
   };
 
   const isDateDisabled = (date: Date) => {
-    // Disable dates after maxDate
-    if (date > maxDate) return true;
-    
+    if (minDate && date < new Date(minDate.getFullYear(), minDate.getMonth(), minDate.getDate())) return true;
+    if (maxDate && date > maxDate) return true;
     return false;
   };
 

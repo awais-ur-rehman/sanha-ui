@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
-import { FiPlus, FiTrash2, FiUpload } from 'react-icons/fi'
+import { FiPlus, FiUpload, FiX } from 'react-icons/fi'
 import { useToast } from '../components/CustomToast/ToastContext'
 import { API_CONFIG, FILE_ENDPOINTS } from '../config/api'
 import type { Client, ClientCreateRequest, ClientUpdateRequest } from '../types/entities'
@@ -19,12 +19,14 @@ const ClientForm: React.FC<ClientFormProps> = ({
   onCancel,
   isLoading = false
 }) => {
-  const [addresses, setAddresses] = useState<string[]>([''])
-  const [phones, setPhones] = useState<string[]>([''])
-  const [products, setProducts] = useState<string[]>([''])
-  const [categories, setCategories] = useState<string[]>([''])
-  const [scopes, setScopes] = useState<string[]>([''])
-  const [clientCodes, setClientCodes] = useState<string[]>([''])
+  const [addresses, setAddresses] = useState<string[]>([])
+  const [phones, setPhones] = useState<string[]>([])
+  const [products, setProducts] = useState<string[]>([])
+  const [categories, setCategories] = useState<string[]>([])
+  const [scopes, setScopes] = useState<string[]>([])
+  const [clientCodes, setClientCodes] = useState<string[]>([])
+  const [addressInput, setAddressInput] = useState('')
+  const [scopeInput, setScopeInput] = useState('')
 
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const { showToast } = useToast()
@@ -32,11 +34,10 @@ const ClientForm: React.FC<ClientFormProps> = ({
   const {
     register,
     handleSubmit,
-    // control,
     setValue,
     watch,
-    formState: { errors }
-  } = useForm<ClientCreateRequest | ClientUpdateRequest>()
+    formState: { errors, isValid }
+  } = useForm<ClientCreateRequest | ClientUpdateRequest>({ mode: 'onChange' })
 
   const watchedLogoUrl = watch('logoUrl')
 
@@ -62,7 +63,7 @@ const ClientForm: React.FC<ClientFormProps> = ({
     } else {
       // Set default values for new client
       setValue('isActive', true)
-      setClientCodes([''])
+      setClientCodes([])
     }
   }, [client, setValue])
 
@@ -117,9 +118,7 @@ const ClientForm: React.FC<ClientFormProps> = ({
     }
   }
 
-  const addField = (_field: string, setter: React.Dispatch<React.SetStateAction<string[]>>) => {
-    setter(prev => [...prev, ''])
-  }
+  // helper retained for future symmetry; currently unused
 
   const removeField = (_field: string, setter: React.Dispatch<React.SetStateAction<string[]>>, index: number) => {
     setter(prev => prev.filter((_, i) => i !== index))
@@ -144,8 +143,86 @@ const ClientForm: React.FC<ClientFormProps> = ({
     onSubmit(formData)
   }
 
+  const requiredReady = (
+    (watch('name') ?? '').toString().trim() !== '' &&
+    (watch('email') ?? '').toString().trim() !== '' &&
+    (watch('standard') ?? '').toString().trim() !== '' &&
+    (watch('certifiedSince') ?? '').toString().trim() !== '' &&
+    (watch('expiryDate') ?? '').toString().trim() !== '' &&
+    clientCodes.some(c => c.trim() !== '')
+  )
+
+  // Pills input (chip adder) with circular plus button
+  const PillsInput = ({
+    label,
+    items,
+    setItems,
+    placeholder
+  }: {
+    label: string
+    items: string[]
+    setItems: React.Dispatch<React.SetStateAction<string[]>>
+    placeholder: string
+  }) => {
+    const [inputValue, setInputValue] = useState('')
+
+    const handleAdd = () => {
+      const value = inputValue.trim()
+      if (!value) return
+      if (!items.includes(value)) setItems(prev => [...prev, value])
+      setInputValue('')
+    }
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter') {
+        e.preventDefault()
+        handleAdd()
+      }
+    }
+
+    const handleRemove = (idx: number) => {
+      setItems(prev => prev.filter((_, i) => i !== idx))
+    }
+
+    return (
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder}
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
+          />
+          <button
+            type="button"
+            onClick={handleAdd}
+            className="inline-flex items-center justify-center w-8 h-8 border border-[#0c684b] rounded-full text-[#0c684b] bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#0c684b] transition-colors"
+          >
+            <FiPlus size={16} />
+          </button>
+        </div>
+        {items.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {items.map((val, idx) => (
+              <span key={`${val}-${idx}`} className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full text-xs">
+                {val}
+                <button type="button" onClick={() => handleRemove(idx)} className="text-gray-500 hover:text-red-600">
+                  <FiX size={12} />
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  }
+
   return (
-    <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-4 max-h-[70vh] overflow-y-auto px-2">
+    <form onSubmit={handleSubmit(onSubmitForm)} className="flex flex-col h-full px-3 py-2">
+      <div className="flex-1 overflow-y-auto space-y-4 p-2">
       {/* Basic Information */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
@@ -163,39 +240,12 @@ const ClientForm: React.FC<ClientFormProps> = ({
           )}
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Client Codes *
-          </label>
-          {clientCodes.map((code, index) => (
-            <div key={index} className="flex gap-2 mb-2">
-              <input
-                type="text"
-                value={code}
-                onChange={(e) => setClientCodes(prev => prev.map((c, i) => i === index ? e.target.value : c))}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
-                placeholder="Enter client code (e.g., K-0026)"
-              />
-              {clientCodes.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => setClientCodes(prev => prev.filter((_, i) => i !== index))}
-                  className="px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                >
-                  <FiTrash2 size={16} />
-                </button>
-              )}
-            </div>
-          ))}
-          <button
-            type="button"
-            onClick={() => setClientCodes(prev => [...prev, ''])}
-            className="flex items-center gap-2 text-[#0c684b] hover:text-green-700 transition-colors text-sm"
-          >
-            <FiPlus size={14} />
-            Add Client Code
-          </button>
-        </div>
+        <PillsInput
+          label="Client Codes *"
+          items={clientCodes}
+          setItems={setClientCodes}
+          placeholder="Enter client code (e.g., K-0026) and press Enter"
+        />
       </div>
 
       {/* Logo Upload */}
@@ -295,77 +345,65 @@ const ClientForm: React.FC<ClientFormProps> = ({
       </div>
 
       {/* Phone Numbers */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Phone Numbers
-        </label>
-        {phones.map((phone, index) => (
-          <div key={index} className="flex gap-2 mb-2">
-            <input
-              type="text"
-              value={phone}
-              onChange={(e) => updateField('phones', setPhones, index, e.target.value)}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
-              placeholder="+1-234-567-8900"
-            />
-            {phones.length > 1 && (
-              <button
-                type="button"
-                onClick={() => removeField('phones', setPhones, index)}
-                className="px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-              >
-                <FiTrash2 size={16} />
-              </button>
-            )}
-          </div>
-        ))}
-        <button
-          type="button"
-          onClick={() => addField('phones', setPhones)}
-          className="flex items-center gap-2 text-[#0c684b] hover:text-green-700 transition-colors text-sm"
-        >
-          <FiPlus size={14} />
-          Add Phone Number
-        </button>
-      </div>
+      <PillsInput
+        label="Phone Numbers"
+        items={phones}
+        setItems={setPhones}
+        placeholder="Enter phone and press Enter"
+      />
 
-      {/* Addresses */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Addresses
-        </label>
-        {addresses.map((address, index) => (
-          <div key={index} className="flex gap-2 mb-2">
-            <input
-              type="text"
-              value={address}
-              onChange={(e) => updateField('addresses', setAddresses, index, e.target.value)}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
-              placeholder="Enter address"
-            />
-            {addresses.length > 1 && (
-              <button
-                type="button"
-                onClick={() => removeField('addresses', setAddresses, index)}
-                className="px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-              >
-                <FiTrash2 size={16} />
-              </button>
-            )}
+      {/* Addresses - initial input editable; plus adds more rows */}
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-gray-700 mb-1">Addresses</label>
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            value={addressInput}
+            onChange={(e) => setAddressInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                const val = addressInput.trim();
+                if (val) {
+                  setAddresses(prev => [...prev, val]);
+                  setAddressInput('');
+                }
+              }
+            }}
+            placeholder="Enter address and press Enter or + to add"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
+          />
+          <button
+            type="button"
+            onClick={() => { const val = addressInput.trim(); if (val) { setAddresses(prev => [...prev, val]); setAddressInput(''); } }}
+            className="inline-flex items-center justify-center w-8 h-8 border border-[#0c684b] rounded-full text-[#0c684b] bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#0c684b] transition-colors"
+          >
+            <FiPlus size={16} />
+          </button>
+        </div>
+        {addresses.length > 0 && (
+          <div className="space-y-2 p-1">
+            {addresses.map((address, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={address}
+                  onChange={(e) => updateField('addresses', setAddresses, index, e.target.value)}
+                  placeholder="Enter address"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
+                />
+                <button type="button" onClick={() => removeField('addresses', setAddresses, index)} className="p-2 text-gray-500 hover:text-red-600 rounded-md transition-colors">
+                  <FiX size={14} />
+                </button>
+              </div>
+            ))}
           </div>
-        ))}
-        <button
-          type="button"
-          onClick={() => addField('addresses', setAddresses)}
-          className="flex items-center gap-2 text-[#0c684b] hover:text-green-700 transition-colors text-sm"
-        >
-          <FiPlus size={14} />
-          Add Address
-        </button>
+        )}
       </div>
 
       {/* Certification Information */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="space-y-4">
+        {/* Certification Standard single line */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Certification Standard *
@@ -381,146 +419,97 @@ const ClientForm: React.FC<ClientFormProps> = ({
           )}
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Certified Since *
-          </label>
-          <DatePicker
-            value={watch('certifiedSince') || ''}
-            onChange={(date) => setValue('certifiedSince', date)}
-            placeholder="Select certification date"
-            maxDate={new Date()}
-          />
-          {errors.certifiedSince && (
-            <p className="text-red-500 text-xs mt-1">{errors.certifiedSince.message}</p>
-          )}
+        {/* Certified Since and Expiry in same line */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Certified Since *
+            </label>
+            <DatePicker
+              value={watch('certifiedSince') || ''}
+              onChange={(date) => setValue('certifiedSince', date)}
+              placeholder="Select certification date"
+              maxDate={undefined}
+            />
+            {errors.certifiedSince && (
+              <p className="text-red-500 text-xs mt-1">{errors.certifiedSince.message}</p>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Expiry Date *
+            </label>
+            <DatePicker
+              value={watch('expiryDate') || ''}
+              onChange={(date) => setValue('expiryDate', date)}
+              placeholder="Select expiry date"
+              minDate={new Date()}
+              maxDate={undefined}
+            />
+            {errors.expiryDate && (
+              <p className="text-red-500 text-xs mt-1">{errors.expiryDate.message}</p>
+            )}
+          </div>
         </div>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Expiry Date *
-        </label>
-        <DatePicker
-          value={watch('expiryDate') || ''}
-          onChange={(date) => setValue('expiryDate', date)}
-          placeholder="Select expiry date"
-          maxDate={new Date()}
-        />
-        {errors.expiryDate && (
-          <p className="text-red-500 text-xs mt-1">{errors.expiryDate.message}</p>
+      {/* Categories as pills */}
+      <PillsInput
+        label="Categories"
+        items={categories}
+        setItems={setCategories}
+        placeholder="Enter category and press Enter"
+      />
+
+      {/* Products as pills */}
+      <PillsInput
+        label="Products"
+        items={products}
+        setItems={setProducts}
+        placeholder="Enter product and press Enter"
+      />
+
+      {/* Scopes - initial input editable; plus adds more rows */}
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-gray-700 mb-1">Certification Scopes</label>
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            value={scopeInput}
+            onChange={(e) => setScopeInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); const v = scopeInput.trim(); if (v) { setScopes(prev => [...prev, v]); setScopeInput('') } } }}
+            placeholder="Enter scope and press Enter or + to add"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
+          />
+          <button type="button" onClick={() => { const v = scopeInput.trim(); if (v) { setScopes(prev => [...prev, v]); setScopeInput('') } }} className="inline-flex items-center justify-center w-8 h-8 border border-[#0c684b] rounded-full text-[#0c684b] bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#0c684b] transition-colors">
+            <FiPlus size={16} />
+          </button>
+        </div>
+        {scopes.length > 0 && (
+          <div className="space-y-2 p-1">
+            {scopes.map((scope, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={scope}
+                  onChange={(e) => updateField('scopes', setScopes, index, e.target.value)}
+                  placeholder="Enter scope"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
+                />
+                <button type="button" onClick={() => removeField('scopes', setScopes, index)} className="p-2 text-gray-500 hover:text-red-600 rounded-md transition-colors">
+                  <FiX size={14} />
+                </button>
+              </div>
+            ))}
+          </div>
         )}
       </div>
 
-      {/* Categories */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Categories
-        </label>
-        {categories.map((category, index) => (
-          <div key={index} className="flex gap-2 mb-2">
-            <input
-              type="text"
-              value={category}
-              onChange={(e) => updateField('categories', setCategories, index, e.target.value)}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
-              placeholder="Enter category"
-            />
-            {categories.length > 1 && (
-              <button
-                type="button"
-                onClick={() => removeField('categories', setCategories, index)}
-                className="px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-              >
-                <FiTrash2 size={16} />
-              </button>
-            )}
-          </div>
-        ))}
-        <button
-          type="button"
-          onClick={() => addField('categories', setCategories)}
-          className="flex items-center gap-2 text-[#0c684b] hover:text-green-700 transition-colors text-sm"
-        >
-          <FiPlus size={14} />
-          Add Category
-        </button>
+
+
+      {/* Form Actions - fixed bottom within modal content */}
       </div>
-
-      {/* Scopes */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Certification Scopes
-        </label>
-        {scopes.map((scope, index) => (
-          <div key={index} className="flex gap-2 mb-2">
-            <input
-              type="text"
-              value={scope}
-              onChange={(e) => updateField('scopes', setScopes, index, e.target.value)}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
-              placeholder="Enter scope"
-            />
-            {scopes.length > 1 && (
-              <button
-                type="button"
-                onClick={() => removeField('scopes', setScopes, index)}
-                className="px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-              >
-                <FiTrash2 size={16} />
-              </button>
-            )}
-          </div>
-        ))}
-        <button
-          type="button"
-          onClick={() => addField('scopes', setScopes)}
-          className="flex items-center gap-2 text-[#0c684b] hover:text-green-700 transition-colors text-sm"
-        >
-          <FiPlus size={14} />
-          Add Scope
-        </button>
-      </div>
-
-      {/* Products */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Products
-        </label>
-        {products.map((product, index) => (
-          <div key={index} className="flex gap-2 mb-2">
-            <input
-              type="text"
-              value={product}
-              onChange={(e) => updateField('products', setProducts, index, e.target.value)}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
-              placeholder="Enter product"
-            />
-            {products.length > 1 && (
-              <button
-                type="button"
-                onClick={() => removeField('products', setProducts, index)}
-                className="px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-              >
-                <FiTrash2 size={16} />
-              </button>
-            )}
-          </div>
-        ))}
-        <button
-          type="button"
-          onClick={() => addField('products', setProducts)}
-          className="flex items-center gap-2 text-[#0c684b] hover:text-green-700 transition-colors text-sm"
-        >
-          <FiPlus size={14} />
-          Add Product
-        </button>
-      </div>
-
-
-
-      {/* Form Actions */}
-      <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
+      <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200 mt-4 flex-shrink-0 bg-white">
         <button
           type="button"
           onClick={onCancel}
@@ -530,7 +519,7 @@ const ClientForm: React.FC<ClientFormProps> = ({
         </button>
         <button
           type="submit"
-          disabled={isLoading}
+          disabled={isLoading || !requiredReady || !isValid}
           className="px-4 py-2 bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? 'Saving...' : client ? 'Update Client' : 'Add Client'}
