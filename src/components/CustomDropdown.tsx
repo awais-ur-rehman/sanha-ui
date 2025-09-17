@@ -50,15 +50,15 @@ const CustomDropdown = forwardRef<HTMLDivElement, CustomDropdownProps>(
             onClick={() => !disabled && setIsOpen(!isOpen)}
             disabled={disabled}
             className={`
-              w-full px-4 py-2 border border-gray-300 rounded-md 
-              focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-[#0c684b]
-              transition-colors duration-200 bg-white text-left
+               px-3 py-[10px] border border-gray-300 rounded-md 
+              focus:outline-none focus:ring-1 focus:ring-[#0c684b] focus:border-[#0c684b]
+              transition-colors duration-200 bg-white text-left 
               ${error ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : ''}
               ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-gray-400'}
               ${className}
             `}
           >
-            <span className={`${selectedOption ? 'text-gray-900' : 'text-gray-500'} pr-8`}>
+            <span className={`${selectedOption ? 'text-gray-500' : 'text-gray-900'} pr-8`}>
               {selectedOption ? selectedOption.label : placeholder || 'Select an option'}
             </span>
             <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
@@ -66,25 +66,30 @@ const CustomDropdown = forwardRef<HTMLDivElement, CustomDropdownProps>(
             </div>
           </button>
 
-          {isOpen && (
-            <div className="absolute z-[9999] mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto w-full">
-              {options.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => handleSelect(option.value)}
-                  className={`
-                    w-full px-4 py-2.5 text-left border-b border-black/10 last:border-b-0 text-sm
-                    hover:bg-gray-100 hover:text-black focus:bg-gray-50 focus:outline-none
-                    ${option.value === value ? 'bg-[#0c684b] text-white hover:bg-[#0c684b]' : 'text-black'}
-                    transition-colors duration-150
-                  `}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          )}
+            {isOpen && (
+              <div className="absolute z-[9999] mt-1 bg-white -right-[10px] border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto w-32 p-2">
+                {options.map((option) => {
+                  const isActive = option.value === value
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => handleSelect(option.value)}
+                      className={`
+                        w-full px-3 py-2.5 text-left text-xs rounded-md
+                        hover:bg-gray-100 hover:text-black focus:bg-gray-50 focus:outline-none
+                        transition-colors duration-150
+                      `}
+                    >
+                      <span className="inline-flex items-center gap-2">
+                        <span className={`inline-block w-2 h-2 rounded-full ${isActive ? 'bg-[#0c684b]' : 'bg-gray-300'}`}></span>
+                        <span>{option.label}</span>
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
         </div>
         {error && (
           <p className="text-sm text-red-600">{error}</p>

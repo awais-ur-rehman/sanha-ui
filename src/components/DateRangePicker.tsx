@@ -231,7 +231,7 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
           placeholder={placeholder}
           readOnly
           onClick={() => setIsOpen(!isOpen)}
-          className="w-full px-3 py-2 border border-gray-300 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent cursor-pointer"
+          className="w-full px-3 py-[10px] border border-gray-300 text-xs text-gray-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent cursor-pointer"
         />
         <div className="absolute inset-y-0 right-0 flex items-center pr-3">
           {(tempStartDate || tempEndDate) && (

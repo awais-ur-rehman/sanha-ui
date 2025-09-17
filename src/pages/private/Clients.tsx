@@ -283,10 +283,10 @@ const Clients = () => {
       <div className='bg-white rounded-lg shadow-lg overflow-hidden min-h-[calc(100vh-35px)] p-6'>
 
         {/* Header */}
-      <div className="flex items-center justify-between my-4">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-2xl font-semibold text-gray-900">Clients</h1>
-          <p className="text-gray-600">Manage client information and certifications</p>
+          <p className="text-gray-600 text-sm">Manage client information and certifications</p>
         </div>
         
       </div>
@@ -302,7 +302,7 @@ const Clients = () => {
               placeholder="Search clients by name, standard, client code, email, fax, or website..."
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
-              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-sm"
+              className="w-full pl-10 pr-3 py-[10px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-xs"
             />
           </div>
 
@@ -316,7 +316,7 @@ const Clients = () => {
             value={filters.isActive}
             onChange={handleIsActiveFilterChange}
             placeholder="Filter by status"
-            className="w-44 text-sm"
+            className="w-[120px] text-xs"
           />
 
           {/* Date Range Picker */}
@@ -325,23 +325,23 @@ const Clients = () => {
             endDate={filters.endDate}
             onDateRangeChange={handleDateFilterApply}
             placeholder="Filter by date range"
-            className="w-72 text-sm"
+            className="w-72 text-xs"
             includeTime={true}
           />
 
         <div className="ml-auto flex items-center gap-2">
           <button
             onClick={() => { /* TODO: implement export */ }}
-            className="px-6 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            className="px-10 py-[10px] text-xs border border-[#0c684b] text-[#0c684b] rounded-sm hover:bg-gray-50 transition-colors"
           >
             Export
           </button>
           {hasCreatePermission && (
             <button
               onClick={handleAddClient}
-              className="flex items-center space-x-2 px-4 py-2 text-sm bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors"
+              className="flex items-center space-x-2 px-10 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors"
             >
-              <FiPlus size={16} />
+     
               <span>Add Client</span>
             </button>
           )}
@@ -387,9 +387,8 @@ const Clients = () => {
                         onError={(e) => { const t = e.target as HTMLImageElement; t.style.display = 'none' }}
                       />
                     )}
-                    <div>
+                    <div className='mr-2'>
                       <div className="text-sm font-medium text-gray-900">{client.name}</div>
-                      <div className="text-sm text-gray-500">{client.clientCode && client.clientCode.length > 0 ? client.clientCode.join(', ') : ''}</div>
                     </div>
                   </div>
                 )
@@ -400,9 +399,7 @@ const Clients = () => {
                 render: (client: Client) => (
                   <div>
                     <div className="text-sm text-gray-900">{client.email}</div>
-                    {client.phone.length > 0 && (
-                      <div className="text-sm text-gray-500">{client.phone[0]}</div>
-                    )}
+                
                   </div>
                 )
               },
@@ -412,9 +409,7 @@ const Clients = () => {
                 render: (client: Client) => (
                   <div>
                     <div className="text-sm text-gray-900">{client.standard}</div>
-                    {client.category.length > 0 && (
-                      <div className="text-sm text-gray-500">{client.category[0]}</div>
-                    )}
+                  
                   </div>
                 )
               },

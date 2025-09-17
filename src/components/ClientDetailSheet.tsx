@@ -122,7 +122,7 @@ const ClientDetailSheet: React.FC<ClientDetailSheetProps> = ({
           {/* Categories */}
           {client.category.length > 0 && (
             <div>
-              <h3 className="font-medium text-sm text-gray-900 mb-1">Categories</h3>
+              <h3 className="font-medium text-sm text-gray-900 my-1">Categories</h3>
               <div className="flex flex-wrap gap-1">
                 {(client.category.slice(0,3)).map((category, index) => (
                   <span key={index} className="px-2 py-0.5 bg-gray-100 text-gray-800 text-xs rounded-full">{category}</span>
