@@ -10,6 +10,8 @@ import DeleteConfirmationModal from '../../components/DeleteConfirmationModal'
 import { Pagination } from '../../components'
 import { API_CONFIG, ENQUIRY_ENDPOINTS, getAuthHeaders } from '../../config/api'
 
+type EnquiryTabType = 'pending' | 'accepted' | 'rejected'
+
 const Enquiries = () => {
   const { hasPermission } = usePermissions()
   const { showToast } = useToast()
@@ -18,6 +20,7 @@ const Enquiries = () => {
   const hasUpdatePermission = hasPermission('Enquiry', 'update')
   const hasDeletePermission = hasPermission('Enquiry', 'delete')
 
+  const [activeTab, setActiveTab] = useState<EnquiryTabType>('pending')
   const [searchTerm, setSearchTerm] = useState('')
   const [filters, setFilters] = useState({
     state: '',
@@ -42,8 +45,8 @@ const Enquiries = () => {
   const queryParams = new URLSearchParams({
     page: pagination.currentPage.toString(),
     limit: pagination.itemsPerPage.toString(),
+    state: activeTab,
     ...(searchTerm && { search: searchTerm }),
-    ...(filters.state && { state: filters.state }),
     ...(filters.email && { email: filters.email }),
     ...(filters.firstName && { firstName: filters.firstName }),
     ...(filters.lastName && { lastName: filters.lastName }),
@@ -67,6 +70,12 @@ const Enquiries = () => {
       }))
     }
   }, [data])
+
+  // Refetch data when active tab changes
+  useEffect(() => {
+    setPagination(prev => ({ ...prev, currentPage: 1 })) // Reset to first page
+    refetch()
+  }, [activeTab, refetch])
 
   const handleSearch = (term: string) => {
     setSearchTerm(term)
@@ -157,6 +166,42 @@ const Enquiries = () => {
           <p className="text-gray-600">View and manage customer enquiries.</p>
         </div>
 
+        {/* Tabs */}
+        <div className="mb-6">
+          <div className="inline-flex bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => setActiveTab('pending')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                activeTab === 'pending'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Pending
+            </button>
+            <button
+              onClick={() => setActiveTab('accepted')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                activeTab === 'accepted'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Accepted
+            </button>
+            <button
+              onClick={() => setActiveTab('rejected')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                activeTab === 'rejected'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Rejected
+            </button>
+          </div>
+        </div>
+
         {/* Filters */}
         <div className='py-6'>
           <div className="flex items-center gap-3">
@@ -172,19 +217,6 @@ const Enquiries = () => {
               />
             </div>
 
-            {/* State Filter */}
-            <CustomDropdown
-              placeholder="All States"
-              value={filters.state}
-              onChange={(value) => handleFilterChange('state', value as string)}
-              options={[
-                { value: '', label: 'All States' },
-                { value: 'Pending', label: 'Pending' },
-                { value: 'Accepted', label: 'Accepted' },
-                { value: 'Rejected', label: 'Rejected' },
-              ]}
-              className="w-[120px] text-xs"
-            />
 
             {/* Date Range Picker */}
             <DateRangePicker
