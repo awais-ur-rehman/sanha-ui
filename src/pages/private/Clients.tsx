@@ -280,7 +280,7 @@ const Clients = () => {
 
   return (
     <div className="py-4">
-      <div className='bg-white rounded-lg shadow-lg overflow-hidden min-h-[calc(100vh-35px)] p-6'>
+      <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] p-6'>
 
         {/* Header */}
       <div className="flex items-center justify-between mb-4">

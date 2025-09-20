@@ -238,10 +238,10 @@ const Sidebar = () => {
   }
 
   const SidebarContent = () => (
-    <div className="flex flex-col h-full bg-white rounded-xl">
+    <div className="flex flex-col h-full rounded-xl" style={{ backgroundColor: '#1f222a' }}>
       <div className='px-2'> 
         {/* Logo/Brand */}
-      <div className="p-3 sm:p-4 border-b border-gray-200">
+      <div className="p-3 sm:p-4 border-b border-gray-600">
         <div className="flex items-center justify-center">
           <img 
             src={logo} 
@@ -257,12 +257,13 @@ const Sidebar = () => {
       {/* Toggle Button - Positioned absolutely */}
       <button
         onClick={toggleSidebar}
-        className={`absolute -right-2 sm:-right-3 w-6 h-6 sm:w-8 sm:h-8 bg-white rounded-full shadow-lg border border-gray-200 flex items-center justify-center transition-all duration-300 hover:shadow-xl hover:scale-110 z-10 ${isSidebarCollapsed ? 'top-10 sm:top-12' : 'top-14 sm:top-16'}`}
+        className={`absolute -right-2 sm:-right-3 w-6 h-6 sm:w-8 sm:h-8 rounded-full border border-gray-600 flex items-center justify-center transition-all duration-300 hover:scale-110 z-10 ${isSidebarCollapsed ? 'top-10 sm:top-12' : 'top-14 sm:top-16'}`}
+        style={{ backgroundColor: '#1f222a' }}
       >
         {isSidebarCollapsed ? (
-          <HiChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
+          <HiChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-gray-300" />
         ) : (
-          <HiChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
+          <HiChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-gray-300" />
         )}
       </button>
 
@@ -278,10 +279,10 @@ const Sidebar = () => {
                   isSidebarCollapsed 
                     ? isActive(item.path)
                       ? 'justify-center px-1 text-[#0c684b] bg-transparent'
-                      : 'justify-center px-1 text-gray-900 bg-transparent hover:bg-gray-100'
+                      : 'justify-center px-1 text-gray-300 bg-transparent hover:bg-gray-700'
                     : isActive(item.path)
                       ? 'justify-start gap-2 sm:gap-3 lg:gap-2.5 px-2 sm:px-4 lg:px-3 bg-[#0c684b] text-white shadow-lg'
-                      : 'justify-start gap-2 sm:gap-3 lg:gap-2.5 px-2 sm:px-4 lg:px-3 text-black/70 font-extralight hover:bg-gray-100 hover:text-gray-900 bg-white'
+                      : 'justify-start gap-2 sm:gap-3 lg:gap-2.5 px-2 sm:px-4 lg:px-3 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
                 }`}
               >
                 {item.icon}
@@ -301,7 +302,7 @@ const Sidebar = () => {
         {/* Management Section */}
         <div className="mt-2">
           {!isSidebarCollapsed && (
-            <h1 className='text-[10px] sm:text-[12px] lg:text-[11px] xl:text-[12px] font-semibold text-black/40 ms-2 sm:ms-4 lg:ms-3 mb-2 sm:mb-3 lg:mb-2.5'>Management</h1>
+            <h1 className='text-[10px] sm:text-[12px] lg:text-[11px] xl:text-[12px] font-semibold text-gray-400 ms-2 sm:ms-4 lg:ms-3 mb-2 sm:mb-3 lg:mb-2.5'>Management</h1>
           )}
           <ul className="space-y-1">
             {managementSidebarItems.map((item) => (
@@ -310,12 +311,12 @@ const Sidebar = () => {
                   onClick={() => handleItemClick(item)}
                   className={`w-full flex items-center text-xs py-[9px] rounded-md transition-all duration-300 ease-in-out transform relative group ${
                     isSidebarCollapsed 
-                      ? isActive(item.path)
-                        ? 'justify-center px-1 text-[#0c684b] bg-transparent'
-                        : 'justify-center px-1 text-gray-900 bg-transparent hover:bg-gray-100'
-                      : isActive(item.path)
-                        ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
-                        : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-black/70 font-extralight hover:bg-gray-100 hover:text-gray-900 bg-white'
+                    ? isActive(item.path)
+                      ? 'justify-center px-1 text-[#0c684b] bg-transparent'
+                      : 'justify-center px-1 text-gray-300 bg-transparent hover:bg-gray-700'
+                    : isActive(item.path)
+                      ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
+                      : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
                   }`}
                 >
                   {item.icon}
@@ -337,7 +338,7 @@ const Sidebar = () => {
       {/* Bottom Items */}
       <div className="pt-3 sm:pt-4 px-2 sm:py-4">
       {!isSidebarCollapsed && (
-            <h1 className='text-[10px] sm:text-[12px] font-semibold text-black/40 ms-2 sm:ms-4 mb-2'>System Settings</h1>
+            <h1 className='text-[10px] sm:text-[12px] font-semibold text-gray-400 ms-2 sm:ms-4 mb-2'>System Settings</h1>
           )}
         <ul className="space-y-1">
           {bottomItems.map((item) => (
@@ -348,10 +349,10 @@ const Sidebar = () => {
                   isSidebarCollapsed 
                     ? isActive(item.path)
                       ? 'justify-center px-2 text-[#0c684b] bg-transparent'
-                      : 'justify-center px-2 text-gray-900 bg-transparent hover:bg-gray-100'
+                      : 'justify-center px-2 text-gray-300 bg-transparent hover:bg-gray-700'
                     : isActive(item.path)
                       ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
-                      : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-700 hover:bg-gray-100 hover:text-green-700 bg-white'
+                      : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 hover:bg-gray-700 hover:text-green-400 bg-transparent'
                 }`}
               >
                 {item.icon}
@@ -391,8 +392,8 @@ const Sidebar = () => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-3 left-3 sm:top-4 sm:left-4 h-[calc(100vh-1.5rem)] sm:h-[calc(100vh-2rem)] bg-white shadow-lg z-50 transition-all duration-300 rounded-xl ${
-          isSidebarCollapsed ? 'w-12 sm:w-14' : 'w-48 sm:w-52'
+        className={`fixed top-3 left-3 sm:top-4 sm:left-4 h-[calc(100vh-1.5rem)] sm:h-[calc(100vh-2rem)] z-50 transition-all duration-300 rounded-xl ${
+          isSidebarCollapsed ? 'w-12 sm:w-16' : 'w-48 sm:w-52'
         } ${
           isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}

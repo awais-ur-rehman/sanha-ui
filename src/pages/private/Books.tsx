@@ -244,7 +244,7 @@ const Books = () => {
 
   return (
     <div className="py-3 lg:py-4">
-      <div className='bg-white rounded-lg shadow-lg overflow-hidden min-h-[calc(100vh-35px)] max-h-[calc(100vh-35px)] overflow-y-auto px-4 lg:px-6 py-6 lg:py-10'>
+      <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] max-h-[calc(100vh-35px)] overflow-y-auto px-4 lg:px-6 py-6 lg:py-10'>
       {/* Header */}
 <div className="mb-4 lg:mb-6">
         <h1 className="text-xl lg:text-2xl font-semibold text-gray-900">Books</h1>

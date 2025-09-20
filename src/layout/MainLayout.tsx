@@ -10,7 +10,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   const { isSidebarCollapsed, isMobileMenuOpen } = useUIStore()
   
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-black/5">
       <Sidebar />
       
       {/* Main Content Area */}
