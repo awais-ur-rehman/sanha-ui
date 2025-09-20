@@ -565,16 +565,16 @@ const ClientForm: React.FC<ClientFormProps> = ({
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          className="px-10 py-[10px] text-xs border border-[#0c684b] text-[#0c684b] rounded-sm hover:bg-gray-50 transition-colors"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={isLoading || !requiredReady || !(client ? true : isValid)}
-          className="px-4 py-2 bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-w-[140px] text-center"
+          className="flex items-center space-x-2 px-10 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isLoading ? 'Saving...' : client ? 'Update Client' : 'Add Client'}
+          <span>{isLoading ? 'Saving...' : client ? 'Update Client' : 'Add Client'}</span>
         </button>
       </div>
     </form>

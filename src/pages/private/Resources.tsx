@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
-import { FiPlus, FiSearch } from 'react-icons/fi'
+import { FiSearch } from 'react-icons/fi'
 import { usePermissions } from '../../hooks/usePermissions'
 import { useGetApi, useDeleteApi } from '../../hooks'
 import CustomDropdown from '../../components/CustomDropdown'
 import { useToast } from '../../components/CustomToast/ToastContext'
 import { RESOURCE_ENDPOINTS, API_CONFIG, getAuthHeaders } from '../../config/api'
 import type { Resource } from '../../types/entities'
-import ResourceDetailSheet from '../../components/ResourceDetailSheet'
+import EntityDetailSheet from '../../components/EntityDetailSheet'
 import Modal from '../../components/Modal'
 import DeleteConfirmationModal from '../../components/DeleteConfirmationModal'
 import ResourceForm from '../../forms/ResourceForm'
@@ -147,6 +147,9 @@ const Resources = () => {
 
   const handleToggleStatus = async (resource: Resource) => {
     try {
+      // Toggle the isActive status
+      const newStatus = !resource.isActive
+      
       const response = await fetch(`${API_CONFIG.baseURL}${RESOURCE_ENDPOINTS.update}/${resource.id}`, {
         method: 'PUT',
         headers: getAuthHeaders(),
@@ -158,7 +161,7 @@ const Resources = () => {
           imageUrl: resource.imageUrl,
           listUrl: resource.listUrl,
           publishedDate: resource.publishedDate,
-          isActive: resource.isActive,
+          isActive: newStatus,
         }),
       })
 
@@ -169,10 +172,10 @@ const Resources = () => {
 
       // Update selected resource if it's the same
       if (selectedResource?.id === resource.id) {
-        setSelectedResource(prev => prev ? { ...prev, isActive: resource.isActive } : null)
+        setSelectedResource(prev => prev ? { ...prev, isActive: newStatus } : null)
       }
       
-      showToast('success', `Resource ${resource.isActive ? 'activated' : 'deactivated'} successfully!`)
+      showToast('success', `Resource ${newStatus ? 'activated' : 'deactivated'} successfully!`)
       
       // Refetch resources to update the list
       refetch()
@@ -338,17 +341,17 @@ const Resources = () => {
       </div>
 
       {/* Filters */}
-      <div className="mb-6">
-        <div className="flex items-center gap-4">
+      <div className='py-6'>
+        <div className="flex items-center gap-3">
           {/* Search */}
-          <div className="relative flex-1">
+          <div className="relative w-72">
             <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
             <input
               type="text"
               placeholder={`Search ${activeTab.toLowerCase()} by title, author, or description...`}
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
+              className="w-full pl-10 pr-3 py-[10px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-xs"
             />
           </div>
 
@@ -365,35 +368,40 @@ const Resources = () => {
               setPagination(prev => ({ ...prev, currentPage: 1 }));
             }}
             placeholder="Select date range"
-            className="w-64 text-sm"
+            className="w-[250px] text-xs"
             includeTime={true}
           />
 
           {/* Status Filter */}
-          <div className="w-48">
-            <CustomDropdown
-              placeholder="All Status"
-              value={filters.isActive}
-              onChange={(value) => handleFilterChange('isActive', value as string)}
-              options={[
-                { value: '', label: 'All Status' },
-                { value: 'true', label: 'Active' },
-                { value: 'false', label: 'Inactive' },
-              ]}
-            />
-          </div>
+          <CustomDropdown
+            placeholder="All Status"
+            value={filters.isActive}
+            onChange={(value) => handleFilterChange('isActive', value as string)}
+            options={[
+              { value: '', label: 'All Status' },
+              { value: 'true', label: 'Active' },
+              { value: 'false', label: 'Inactive' },
+            ]}
+            className="w-[150px] text-xs"
+          />
 
-          {/* Add Resource Button */}
-          {hasPermission('Resources', 'create') && (
+          <div className="ml-auto flex items-center gap-2">
             <button
-              onClick={handleAddResource}
-                              disabled={isSubmitting}
-              className="flex items-center space-x-2 cursor-pointer px-4 py-2 bg-[#0c684b] text-white rounded-lg hover:bg-green-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={() => { /* TODO: implement export */ }}
+              className="px-10 py-[10px] text-xs border border-[#0c684b] text-[#0c684b] rounded-sm hover:bg-gray-50 transition-colors"
             >
-              <FiPlus size={16} />
-              <span>Add Resource</span>
+              Export
             </button>
-          )}
+            {hasPermission('Resources', 'create') && (
+              <button
+                onClick={handleAddResource}
+                disabled={isSubmitting}
+                className="flex items-center space-x-2 px-10 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span>Add Resource</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -433,23 +441,52 @@ const Resources = () => {
       )}
 
       {/* Resource Detail Sheet */}
-      <ResourceDetailSheet
-        resource={selectedResource}
+      <EntityDetailSheet
+        entity={selectedResource}
         open={isOverlayOpen}
         onClose={closeOverlay}
         onEdit={(resource) => {
           setIsOverlayOpen(false)
-          handleEditResource(resource)
+          handleEditResource(resource as Resource)
         }}
         onDelete={(resource) => {
-          setResourceToDelete(resource)
+          setResourceToDelete(resource as Resource)
           setIsOverlayOpen(false)
           setIsDeleteModalOpen(true)
         }}
         onToggleStatus={handleToggleStatus}
         hasUpdatePermission={hasPermission('Resources', 'update')}
         hasDeletePermission={hasPermission('Resources', 'delete')}
-        onRefetch={refetch}
+        titleAccessor={(resource: Resource) => resource.title}
+        imageAccessor={(resource: Resource) => resource.imageUrl}
+        statusAccessor={(resource: Resource) => ({
+          isActive: resource.isActive,
+          badge: {
+            text: resource.isActive ? 'Active' : 'Inactive',
+            colorClass: resource.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+          }
+        })}
+        sections={[
+          {
+            title: 'Resource Information',
+            items: [
+              { label: 'Author', value: selectedResource?.authorName || 'N/A' },
+              { label: 'Category', value: selectedResource?.category || 'N/A' },
+              { label: 'Published Date', value: selectedResource?.publishedDate ? new Date(selectedResource.publishedDate).toLocaleDateString() : 'N/A' },
+            ]
+          },
+          {
+            title: 'Description',
+            items: [
+              { label: 'Description', value: selectedResource?.description || 'N/A' },
+            ]
+          },
+          {
+            title: 'Links',
+            type: 'chips',
+            items: selectedResource?.listUrl?.map(link => link.url) || [],
+          },
+        ]}
       />
 
       {/* Add/Edit Resource Modal */}
@@ -458,14 +495,17 @@ const Resources = () => {
           isOpen={isAddModalOpen}
           onClose={handleResourceFormCancel}
           title={selectedResource ? 'Edit Resource' : 'Add New Resource'}
+          size="xl"
         >
-          <ResourceForm
-            resource={selectedResource}
-            category={activeTab}
-            onSubmit={handleResourceFormSubmit}
-            onCancel={handleResourceFormCancel}
-            isLoading={isSubmitting}
-          />
+          <div className="h-[70vh] overflow-hidden">
+            <ResourceForm
+              resource={selectedResource}
+              category={activeTab}
+              onSubmit={handleResourceFormSubmit}
+              onCancel={handleResourceFormCancel}
+              isLoading={isSubmitting}
+            />
+          </div>
         </Modal>
       )}
 

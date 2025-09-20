@@ -753,17 +753,17 @@ const FAQs = () => {
       </div>
 
       {/* Filters */}
-      <div className="mb-6">
-        <div className="flex items-center gap-4">
+      <div className='py-6'>
+        <div className="flex items-center gap-3">
           {/* Search */}
-          <div className="relative flex-1">
+          <div className="relative w-72">
             <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
             <input
               type="text"
               placeholder={activeTab === 'FAQs' ? 'Search FAQs...' : 'Search in name, email, or question'}
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
+              className="w-full pl-10 pr-3 py-[10px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-xs"
             />
           </div>
 
@@ -774,66 +774,70 @@ const FAQs = () => {
             onDateRangeChange={handleDateFilterApply}
             placeholder="Select date range"
             includeTime={true}
-            className="w-64"
+            className="w-[250px] text-xs"
           />
 
           {/* Status Filter (only for FAQs) */}
           {activeTab === 'FAQs' && (
-            <div className="w-48">
-              <CustomDropdown
-                placeholder="All Status"
-                value={filters.isActive}
-                onChange={(value) => handleFilterChange('isActive', value as string)}
-                options={[
-                  { value: '', label: 'All Status' },
-                  { value: 'true', label: 'Active' },
-                  { value: 'false', label: 'Inactive' },
-                ]}
-              />
-            </div>
+            <CustomDropdown
+              placeholder="All Status"
+              value={filters.isActive}
+              onChange={(value) => handleFilterChange('isActive', value as string)}
+              options={[
+                { value: '', label: 'All Status' },
+                { value: 'true', label: 'Active' },
+                { value: 'false', label: 'Inactive' },
+              ]}
+              className="w-[120px] text-xs"
+            />
           )}
 
           {/* FAQ Type Filter (only for FAQs) */}
           {activeTab === 'FAQs' && (
-            <div className="w-48">
-              <CustomDropdown
-                placeholder="All Types"
-                value={filters.faqType}
-                onChange={(value) => handleFilterChange('faqType', value as string)}
-                options={[
-                  { value: '', label: 'All Types' },
-                  { value: 'Business', label: 'Business' },
-                  { value: 'Consumer', label: 'Consumer' },
-                ]}
-              />
-            </div>
+            <CustomDropdown
+              placeholder="All Types"
+              value={filters.faqType}
+              onChange={(value) => handleFilterChange('faqType', value as string)}
+              options={[
+                { value: '', label: 'All Types' },
+                { value: 'Business', label: 'Business' },
+                { value: 'Consumer', label: 'Consumer' },
+              ]}
+              className="w-[120px] text-xs"
+            />
           )}
 
           {/* User FAQ specific filters */}
           {activeTab === 'User FAQs' && (
-            <div className="w-48">
-              <SearchableDropdown
-                placeholder="Filter by country"
-                value={filters.country}
-                onChange={(value) => handleFilterChange('country', value)}
-                options={[
-                  { value: '', label: 'All Countries' },
-                  ...COUNTRIES.map(country => ({ value: country, label: country }))
-                ]}
-              />
-            </div>
+            <SearchableDropdown
+              placeholder="Filter by country"
+              value={filters.country}
+              onChange={(value) => handleFilterChange('country', value)}
+              options={[
+                { value: '', label: 'All Countries' },
+                ...COUNTRIES.map(country => ({ value: country, label: country }))
+              ]}
+              className="w-[150px] text-xs"
+            />
           )}
 
-          {/* Add FAQ Button (only for FAQs tab) */}
-          {activeTab === 'FAQs' && hasPermission('FAQs', 'create') && (
+          <div className="ml-auto flex items-center gap-2">
             <button
-              onClick={handleAddFAQ}
-              className="flex items-center space-x-2 px-4 py-2 bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors"
+              onClick={() => { /* TODO: implement export */ }}
+              className="px-10 py-[10px] text-xs border border-[#0c684b] text-[#0c684b] rounded-sm hover:bg-gray-50 transition-colors"
             >
-              <FiPlus size={16} />
-              <span>Add FAQ</span>
+              Export
             </button>
-          )}
+            {/* Add FAQ Button (only for FAQs tab) */}
+            {activeTab === 'FAQs' && hasPermission('FAQs', 'create') && (
+              <button
+                onClick={handleAddFAQ}
+                className="flex items-center space-x-2 px-10 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors"
+              >
+                <span>Add FAQ</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -884,15 +888,18 @@ const FAQs = () => {
           isOpen={isFAQModalOpen}
           onClose={handleFAQFormCancel}
           title={selectedFAQ ? 'Edit FAQ' : 'Add New FAQ'}
+          size="xl"
         >
-                  <FAQForm
-          faq={selectedFAQ}
-          onSubmit={handleFAQFormSubmit}
-          onCancel={handleFAQFormCancel}
-          isLoading={isSubmittingFAQ}
-          showActiveCheckbox={false} // Never show checkbox when editing
-          willBeInactive={!selectedFAQ && !shouldNewFAQBeActive()} // Show inactive message when creating and max active reached
-        />
+          <div className="h-[70vh] overflow-hidden">
+            <FAQForm
+              faq={selectedFAQ}
+              onSubmit={handleFAQFormSubmit}
+              onCancel={handleFAQFormCancel}
+              isLoading={isSubmittingFAQ}
+              showActiveCheckbox={false} // Never show checkbox when editing
+              willBeInactive={!selectedFAQ && !shouldNewFAQBeActive()} // Show inactive message when creating and max active reached
+            />
+          </div>
         </Modal>
       )}
 

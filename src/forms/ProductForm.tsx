@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
-import { FiPlus, FiTrash2, FiUpload } from 'react-icons/fi'
+import { FiPlus, FiUpload, FiX } from 'react-icons/fi'
 import { useToast } from '../components/CustomToast/ToastContext'
 import { API_CONFIG, FILE_ENDPOINTS } from '../config/api'
 import { useClientNamesApi } from '../hooks/useClientNamesApi'
 import type { Product, ProductCreateRequest, ProductUpdateRequest } from '../types/entities'
 import SearchableDropdown from '../components/SearchableDropdown'
-import CustomDropdown from '../components/CustomDropdown'
+import StatusSelect from '../components/StatusSelect'
 
 interface ProductFormProps {
   product?: Product
@@ -21,7 +21,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
   onCancel,
   isLoading = false
 }) => {
-  const [contains, setContains] = useState<string[]>([''])
+  const [contains, setContains] = useState<string[]>([])
 
   const [uploadingImage, setUploadingImage] = useState(false)
   const { showToast } = useToast()
@@ -47,7 +47,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       setValue('status', product.status)
       setValue('image', product.image)
       setValue('madeIn', product.madeIn)
-      setContains(product.contains.length > 0 ? product.contains : [''])
+      setContains(product.contains.length > 0 ? product.contains : [])
     }
   }, [product, setValue])
 
@@ -103,16 +103,72 @@ const ProductForm: React.FC<ProductFormProps> = ({
     }
   }
 
-  const addField = (setter: React.Dispatch<React.SetStateAction<string[]>>) => {
-    setter(prev => [...prev, ''])
-  }
+  // Pills input (chip adder) like Client form
+  const PillsInput = ({
+    label,
+    items,
+    setItems,
+    placeholder,
+  }: {
+    label: string
+    items: string[]
+    setItems: React.Dispatch<React.SetStateAction<string[]>>
+    placeholder: string
+  }) => {
+    const [inputValue, setInputValue] = useState('')
 
-  const removeField = (setter: React.Dispatch<React.SetStateAction<string[]>>, index: number) => {
-    setter(prev => prev.filter((_, i) => i !== index))
-  }
+    const handleAdd = () => {
+      const value = inputValue.trim()
+      if (!value) return
+      if (!items.includes(value)) setItems(prev => [...prev, value])
+      setInputValue('')
+    }
 
-  const updateField = (setter: React.Dispatch<React.SetStateAction<string[]>>, index: number, value: string) => {
-    setter(prev => prev.map((item, i) => i === index ? value : item))
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter') {
+        e.preventDefault()
+        handleAdd()
+      }
+    }
+
+    const handleRemove = (idx: number) => {
+      setItems(prev => prev.filter((_, i) => i !== idx))
+    }
+
+    return (
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder}
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
+          />
+          <button
+            type="button"
+            onClick={handleAdd}
+            className="inline-flex items-center justify-center w-8 h-8 border border-[#0c684b] rounded-full text-[#0c684b] bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#0c684b] transition-colors"
+          >
+            <FiPlus size={16} />
+          </button>
+        </div>
+        {items.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {items.map((val, idx) => (
+              <span key={`${val}-${idx}`} className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full text-xs">
+                {val}
+                <button type="button" onClick={() => handleRemove(idx)} className="text-gray-500 hover:text-red-600">
+                  <FiX size={12} />
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+    )
   }
 
   const onSubmitForm = (data: ProductCreateRequest | ProductUpdateRequest) => {
@@ -130,7 +186,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
   })) || []
 
   return (
-    <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-4 max-h-[70vh] overflow-y-auto px-2">
+    <form onSubmit={handleSubmit(onSubmitForm)} className="flex flex-col h-full px-3 py-2">
+      <div className="flex-1 overflow-y-auto space-y-4 p-2">
       {/* Basic Information */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
@@ -155,7 +212,16 @@ const ProductForm: React.FC<ProductFormProps> = ({
           <SearchableDropdown
             options={clientOptions}
             value={watch('manufacturer')}
-            onChange={(value) => setValue('manufacturer', value)}
+            onChange={(value) => {
+              // If value is a number (ID), find the corresponding label
+              const match = clientOptions.find(opt => opt.value.toString() === value.toString())
+              if (match) {
+                setValue('manufacturer', match.label)
+              } else {
+                // If it's a custom typed value, use it directly
+                setValue('manufacturer', value)
+              }
+            }}
             placeholder="Search or type manufacturer name"
             allowCustomValue={true}
             maxDisplayed={5}
@@ -171,15 +237,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Status *
           </label>
-          <CustomDropdown
-            options={[
-              { value: '', label: 'Select status' },
-              { value: 'Halaal', label: 'Halaal' },
-              { value: 'Haraam', label: 'Haraam' },
-              { value: 'Doubtful', label: 'Doubtful' }
-            ]}
-            value={watch('status')}
-            onChange={(value) => setValue('status', value as string)}
+          <StatusSelect
+            value={watch('status') || ''}
+            onChange={(value) => setValue('status', value)}
             placeholder="Select status"
           />
           {errors.status && (
@@ -238,69 +298,59 @@ const ProductForm: React.FC<ProductFormProps> = ({
         </div>
         {watchedImageUrl && (
           <div className="mt-2">
-            <img
-              src={watchedImageUrl}
-              alt="Product preview"
-              className="w-20 h-20 object-cover rounded-lg border"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement
-                target.style.display = 'none'
-              }}
-            />
+            <div className="relative w-20 h-20">
+              <img
+                src={watchedImageUrl}
+                alt="Product preview"
+                className="w-full h-full object-cover rounded-lg border"
+                crossOrigin="anonymous"
+                referrerPolicy="no-referrer"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement
+                  target.style.display = 'none'
+                  // Show fallback placeholder
+                  const fallback = target.nextElementSibling as HTMLElement
+                  if (fallback) {
+                    fallback.style.display = 'flex'
+                  }
+                }}
+              />
+              <div 
+                className="w-full h-full bg-gray-200 flex items-center justify-center absolute inset-0 rounded-lg border"
+                style={{ display: 'none' }}
+              >
+                <span className="text-gray-400 text-xs">Image Error</span>
+              </div>
+            </div>
           </div>
         )}
       </div>
 
-      {/* Contains/Ingredients */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Contains/Ingredients
-        </label>
-        {contains.map((item, index) => (
-          <div key={index} className="flex gap-2 mb-2">
-            <input
-              type="text"
-              value={item}
-              onChange={(e) => updateField(setContains, index, e.target.value)}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
-              placeholder="Enter ingredient or content"
-            />
-            {contains.length > 1 && (
-              <button
-                type="button"
-                onClick={() => removeField(setContains, index)}
-                className="px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-              >
-                <FiTrash2 size={16} />
-              </button>
-            )}
-          </div>
-        ))}
-        <button
-          type="button"
-          onClick={() => addField(setContains)}
-          className="flex items-center gap-2 text-[#0c684b] hover:text-green-700 transition-colors text-sm"
-        >
-          <FiPlus size={14} />
-          Add Ingredient
-        </button>
-      </div>
+      {/* Contains/Ingredients as chips */}
+      <PillsInput
+        label="Ingredients"
+        items={contains}
+        setItems={setContains}
+        placeholder="Enter ingredient and press Enter"
+      />
 
-      {/* Form Actions */}
-      <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
+      {/* Spacer end scrollable */}
+      </div>
+      {/* Form Actions - fixed bottom within modal content */}
+      <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200 mt-4 flex-shrink-0 bg-white">
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          className="px-10 py-[10px] text-xs border border-[#0c684b] text-[#0c684b] rounded-sm hover:bg-gray-50 transition-colors"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={isLoading}
-          className="px-4 py-2 bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center space-x-2 px-10 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isLoading ? 'Saving...' : product ? 'Update Product' : 'Add Product'}
+          <span>{isLoading ? 'Saving...' : product ? 'Update Product' : 'Add Product'}</span>
         </button>
       </div>
     </form>

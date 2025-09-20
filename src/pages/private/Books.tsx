@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
-import { FiPlus, FiSearch } from 'react-icons/fi'
+import { FiSearch } from 'react-icons/fi'
 import Modal from '../../components/Modal'
 import BookForm from '../../forms/BookForm'
-import BookDetailSheet from '../../components/BookDetailSheet'
+import EntityDetailSheet from '../../components/EntityDetailSheet'
 import DeleteConfirmationModal from '../../components/DeleteConfirmationModal'
 import type { Book } from '../../types/entities'
 import { BOOK_ENDPOINTS, API_CONFIG, getAuthHeaders } from '../../config/api'
@@ -132,8 +132,8 @@ const Books = () => {
   }
 
   const handleToggleStatus = async (book: Book) => {
-    // Use the isActive value that was passed from the detail sheet
-    const newStatus = book.isActive
+    // Toggle the isActive status
+    const newStatus = !book.isActive
     
     const response = await fetch(`${API_CONFIG.baseURL}${BOOK_ENDPOINTS.update}/${book.id}`, {
       method: 'PUT',
@@ -252,57 +252,63 @@ const Books = () => {
       </div>
 
       {/* Clean Filters */}
-      <div className="mb-4 lg:mb-6">
-        <div className="flex flex-col lg:flex-row lg:items-center gap-3 lg:gap-4">
+      <div className='py-6'>
+        <div className="flex items-center gap-3">
           {/* Search */}
-          <div className="relative flex-1">
+          <div className="relative w-72">
             <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
             <input
               type="text"
               placeholder="Search books by title, author, or published by..."
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 text-sm lg:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
+              className="w-full pl-10 pr-3 py-[10px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-xs"
             />
           </div>
 
           {/* Language Filter */}
-          <div className="w-full lg:w-48">
-            <CustomDropdown
-              placeholder="All Languages"
-              value={filters.contentLanguage}
-              onChange={(value) => handleFilterChange('contentLanguage', value as string)}
-              options={[
-                { value: '', label: 'All Languages' },
-                { value: 'English', label: 'English' },
-                { value: 'Urdu', label: 'Urdu' },
-                { value: 'Arabic', label: 'Arabic' },
-              ]}
-            />
-          </div>
+          <CustomDropdown
+            placeholder="All Languages"
+            value={filters.contentLanguage}
+            onChange={(value) => handleFilterChange('contentLanguage', value as string)}
+            options={[
+              { value: '', label: 'All Languages' },
+              { value: 'English', label: 'English' },
+              { value: 'Urdu', label: 'Urdu' },
+              { value: 'Arabic', label: 'Arabic' },
+            ]}
+            className="w-[150px] text-xs"
+          />
 
           {/* Status Filter */}
-          <div className="w-full lg:w-48">
-            <CustomDropdown
-              placeholder="All Status"
-              value={filters.isActive}
-              onChange={(value) => handleFilterChange('isActive', value as string)}
-              options={[
-                { value: '', label: 'All Status' },
-                { value: 'true', label: 'Active' },
-                { value: 'false', label: 'Inactive' },
-              ]}
-            />
-          </div>
+          <CustomDropdown
+            placeholder="All Status"
+            value={filters.isActive}
+            onChange={(value) => handleFilterChange('isActive', value as string)}
+            options={[
+              { value: '', label: 'All Status' },
+              { value: 'true', label: 'Active' },
+              { value: 'false', label: 'Inactive' },
+            ]}
+            className="w-[150px] text-xs"
+          />
 
-          {/* Add Book Button */}
-          <button
-            onClick={handleAddBook}
-            className="flex items-center space-x-1 lg:space-x-2 cursor-pointer px-3 lg:px-4 py-2 text-sm lg:text-base bg-[#0c684b] text-white rounded-lg hover:bg-green-900 transition-colors"
-          >
-            <FiPlus size={16} />
-            <span>Add Book</span>
-          </button>
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              onClick={() => { /* TODO: implement export */ }}
+              className="px-10 py-[10px] text-xs border border-[#0c684b] text-[#0c684b] rounded-sm hover:bg-gray-50 transition-colors"
+            >
+              Export
+            </button>
+            {hasPermission('Books', 'create') && (
+              <button
+                onClick={handleAddBook}
+                className="flex items-center space-x-2 px-10 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors"
+              >
+                <span>Add Book</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -374,21 +380,52 @@ const Books = () => {
       )}
 
       {/* Book Detail Sheet */}
-      <BookDetailSheet
-        book={selectedBook}
+      <EntityDetailSheet
+        entity={selectedBook}
         open={isOverlayOpen}
         onClose={closeOverlay}
         onEdit={(book) => {
           setIsOverlayOpen(false)
-          handleEditBook(book)
+          handleEditBook(book as Book)
         }}
         onDelete={(book) => {
           setIsOverlayOpen(false)
-          handleDeleteBook(book)
+          handleDeleteBook(book as Book)
         }}
         onToggleStatus={handleToggleStatus}
-        hasUpdatePermission={hasPermission('books', 'update')}
-        hasDeletePermission={hasPermission('books', 'delete')}
+        hasUpdatePermission={hasPermission('Books', 'update')}
+        hasDeletePermission={hasPermission('Books', 'delete')}
+        titleAccessor={(book: Book) => book.title}
+        imageAccessor={(book: Book) => book.imageUrl}
+        statusAccessor={(book: Book) => ({
+          isActive: book.isActive,
+          badge: {
+            text: book.isActive ? 'Active' : 'Inactive',
+            colorClass: book.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+          }
+        })}
+        sections={[
+          {
+            title: 'Book Information',
+            items: [
+              { label: 'Author', value: selectedBook?.author || 'N/A' },
+              { label: 'Published By', value: selectedBook?.publishedBy || 'N/A' },
+              { label: 'Content Language', value: selectedBook?.contentLanguage || 'N/A' },
+            ]
+          },
+          {
+            title: 'Description',
+            items: [
+              { label: 'Description', value: selectedBook?.description || 'N/A' },
+            ]
+          },
+          {
+            title: 'URL',
+            items: [
+              { label: 'URL', value: selectedBook?.url || 'N/A' },
+            ]
+          },
+        ]}
       />
 
       {/* Add/Edit Book Modal */}
@@ -397,13 +434,16 @@ const Books = () => {
           isOpen={isAddModalOpen}
           onClose={handleBookFormCancel}
           title={selectedBook ? 'Edit Book' : 'Add New Book'}
+          size="xl"
         >
-                  <BookForm
-          book={selectedBook}
-          onSubmit={handleBookFormSubmit}
-          onCancel={handleBookFormCancel}
-          loading={isSubmitting}
-        />
+          <div className="h-[70vh] overflow-hidden">
+            <BookForm
+              book={selectedBook}
+              onSubmit={handleBookFormSubmit}
+              onCancel={handleBookFormCancel}
+              loading={isSubmitting}
+            />
+          </div>
         </Modal>
       )}
 

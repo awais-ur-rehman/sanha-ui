@@ -56,9 +56,10 @@ const CustomDropdown = forwardRef<HTMLDivElement, CustomDropdownProps>(
               ${error ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : ''}
               ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-gray-400'}
               ${className}
+              relative
             `}
           >
-            <span className={`${selectedOption ? 'text-gray-500' : 'text-gray-900'} pr-8`}>
+            <span className={`${selectedOption ? 'text-gray-500' : 'text-gray-900'} pr-8 block`}>
               {selectedOption ? selectedOption.label : placeholder || 'Select an option'}
             </span>
             <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
@@ -67,7 +68,7 @@ const CustomDropdown = forwardRef<HTMLDivElement, CustomDropdownProps>(
           </button>
 
             {isOpen && (
-              <div className="absolute z-[9999] mt-1 bg-white -right-[10px] border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto w-32 p-2">
+              <div className="absolute z-[9999] mt-1 bg-white -right-[10px] border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto w-40 p-2">
                 {options.map((option) => {
                   const isActive = option.value === value
                   return (
@@ -101,4 +102,4 @@ const CustomDropdown = forwardRef<HTMLDivElement, CustomDropdownProps>(
 
 CustomDropdown.displayName = 'CustomDropdown'
 
-export default CustomDropdown 
+export default CustomDropdown

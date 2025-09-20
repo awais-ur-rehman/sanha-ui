@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { FiPlus, FiSearch, FiCheckCircle, FiXCircle } from 'react-icons/fi'
+import { FiPlus, FiSearch, FiCheckCircle, FiXCircle, FiMail, FiPhone, FiGlobe, FiMapPin } from 'react-icons/fi'
 import { usePermissions } from '../../hooks/usePermissions'
 import { useGetApi, usePostApi, usePutApi, useDeleteApi } from '../../hooks'
 import { useToast } from '../../components/CustomToast/ToastContext'
@@ -7,7 +7,7 @@ import { CLIENT_ENDPOINTS, API_CONFIG, getAuthHeaders } from '../../config/api'
 import type { Client, ClientCreateRequest, ClientUpdateRequest } from '../../types/entities'
 import Modal from '../../components/Modal'
 import ClientForm from '../../forms/ClientForm'
-import ClientDetailSheet from '../../components/ClientDetailSheet'
+import EntityDetailSheet from '../../components/EntityDetailSheet'
 import DateRangePicker from '../../components/DateRangePicker'
 import DeleteConfirmationModal from '../../components/DeleteConfirmationModal'
 import CustomDropdown from '../../components/CustomDropdown'
@@ -492,22 +492,66 @@ const Clients = () => {
         />
       )}
 
-      {/* Client Detail Sheet */}
-      <ClientDetailSheet
-        client={selectedClient}
+      {/* Client Detail Sheet (Unified) */}
+      <EntityDetailSheet<Client>
+        entity={selectedClient}
         open={isOverlayOpen}
         onClose={closeOverlay}
-        onEdit={(client) => {
-          setIsOverlayOpen(false)
-          handleEditClient(client)
+        title={`Client Details - ${selectedClient?.name || ''}`}
+        headerTitle={selectedClient?.name || ''}
+        image={{ src: selectedClient?.logoUrl, alt: `${selectedClient?.name || ''} logo` }}
+        statusToggle={{
+          checked: Boolean(selectedClient?.isActive),
+          onChange: async (checked: boolean) => {
+            if (!selectedClient) return
+            await handleToggleStatus({ ...selectedClient, isActive: checked })
+          },
+          enabled: hasUpdatePermission,
+          labelActive: 'Active',
+          labelInactive: 'Inactive',
         }}
-        onDelete={(client) => {
-          setIsOverlayOpen(false)
-          handleDeleteClient(client)
+        headerRows={selectedClient ? [
+          {
+            label: 'Client Code',
+            value: selectedClient.clientCode && selectedClient.clientCode.length > 0 ? selectedClient.clientCode.join(', ') : '—',
+            tooltip: selectedClient.clientCode && selectedClient.clientCode.length > 0 ? selectedClient.clientCode.join(', ') : '—',
+            truncateWidth: 'max-w-[320px]'
+          },
+          {
+            label: 'Standard',
+            value: selectedClient.standard || '—',
+            tooltip: selectedClient.standard || '—',
+            truncateWidth: 'max-w-[420px]'
+          },
+        ] : []}
+        chipSections={selectedClient ? [
+          { title: 'Categories', items: selectedClient.category || [], limit: 3 },
+          { title: 'Certification Scopes', items: selectedClient.scope || [], limit: 3 },
+          { title: 'Products', items: selectedClient.products || [], limit: 3 },
+        ] : []}
+        infoGrid={selectedClient ? [
+          { label: 'Email', value: selectedClient.email || '—', icon: (<FiMail className="text-gray-400 mt-1" size={16} />), tooltip: selectedClient.email, truncateWidth: 'max-w-[200px]' },
+          ...(selectedClient.fax ? [{ label: 'Fax', value: selectedClient.fax }] : []),
+          ...(selectedClient.website ? [{ label: 'Website', value: selectedClient.website, link: true, icon: (<FiGlobe className="text-gray-400 mt-1" size={16} />), tooltip: selectedClient.website, truncateWidth: 'max-w-[140px]' }] : []),
+          ...(selectedClient.phone && selectedClient.phone.length > 0 ? [{ label: 'Phone Numbers', value: selectedClient.phone[0], icon: (<FiPhone className="text-gray-400 mt-1" size={16} />), tooltip: selectedClient.phone.join(', '), truncateWidth: 'max-w-[200px]' }] : []),
+          ...(selectedClient.address && selectedClient.address.length > 0 ? [{ label: 'Addresses', value: selectedClient.address[0], icon: (<FiMapPin className="text-gray-400 mt-1" size={16} />), tooltip: selectedClient.address.join(', '), truncateWidth: 'max-w-[200px]' }] : []),
+        ] : []}
+        dateGrid={selectedClient ? [
+          { label: 'Certified Since', date: selectedClient.certifiedSince },
+          { label: 'Expiry Date', date: selectedClient.expiryDate, isExpired: isExpired(selectedClient.expiryDate), showExpiredBadge: true },
+        ] : []}
+        footerActions={{
+          onEdit: (client) => {
+            setIsOverlayOpen(false)
+            handleEditClient(client)
+          },
+          onDelete: (client) => {
+            setIsOverlayOpen(false)
+            handleDeleteClient(client)
+          },
+          hasUpdatePermission,
+          hasDeletePermission,
         }}
-        onToggleStatus={handleToggleStatus}
-        hasUpdatePermission={hasUpdatePermission}
-        hasDeletePermission={hasDeletePermission}
       />
       </div>
       

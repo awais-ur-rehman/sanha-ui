@@ -379,36 +379,35 @@ const ContactUs = () => {
         </div>
 
         {/* Filters */}
-        <div className="mb-6">
-          <div className="flex items-center gap-4">
+        <div className='py-6'>
+          <div className="flex items-center gap-3">
             {/* Search */}
-            <div className="relative w-7/12">
+            <div className="relative w-72">
               <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
               <input
                 type="text"
                 placeholder="Search by name, email, organization, or message..."
                 value={searchTerm}
                 onChange={(e) => handleSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
+                className="w-full pl-10 pr-3 py-[10px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-xs"
               />
             </div>
 
             {/* Type Filter */}
-            <div className="w-64">
-              <CustomDropdown
-                options={[
-                  { value: '', label: 'All Types' },
-                  { value: 'General Inquiry', label: 'General Inquiry' },
-                  { value: 'Certification Inquiry (Businesses)', label: 'Certification Inquiry (Businesses)' },
-                  { value: 'Verification and Consumer Complaints', label: 'Verification and Consumer Complaints' },
-                  { value: 'Media and Press Inquiries', label: 'Media and Press Inquiries' },
-                  { value: 'Partnerships and Collaborations', label: 'Partnerships and Collaborations' },
-                ]}
-                value={filters.type}
-                onChange={handleTypeFilterChange}
-                placeholder="Filter by type"
-              />
-            </div>
+            <CustomDropdown
+              options={[
+                { value: '', label: 'All Types' },
+                { value: 'General Inquiry', label: 'General Inquiry' },
+                { value: 'Certification Inquiry (Businesses)', label: 'Certification Inquiry (Businesses)' },
+                { value: 'Verification and Consumer Complaints', label: 'Verification and Consumer Complaints' },
+                { value: 'Media and Press Inquiries', label: 'Media and Press Inquiries' },
+                { value: 'Partnerships and Collaborations', label: 'Partnerships and Collaborations' },
+              ]}
+              value={filters.type}
+              onChange={handleTypeFilterChange}
+              placeholder="Filter by type"
+              className="w-[200px] text-xs"
+            />
 
             {/* Date Range Picker */}
             <DateRangePicker
@@ -416,9 +415,18 @@ const ContactUs = () => {
               endDate={filters.endDate}
               onDateRangeChange={handleDateFilterApply}
               placeholder="Filter by date range"
-              className="w-64"
+              className="w-[250px] text-xs"
               includeTime={true}
             />
+
+            <div className="ml-auto flex items-center gap-2">
+              <button
+                onClick={() => { /* TODO: implement export */ }}
+                className="px-10 py-[10px] text-xs border border-[#0c684b] text-[#0c684b] rounded-sm hover:bg-gray-50 transition-colors"
+              >
+                Export
+              </button>
+            </div>
           </div>
         </div>
 

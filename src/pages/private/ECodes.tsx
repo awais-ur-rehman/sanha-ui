@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
-import { FiSearch, FiPlus } from 'react-icons/fi'
+import { FiSearch } from 'react-icons/fi'
 import { usePermissions } from '../../hooks/usePermissions'
 import { useGetApi, useDeleteApi } from '../../hooks'
 import CustomDropdown from '../../components/CustomDropdown'
 import { useToast } from '../../components/CustomToast/ToastContext'
 import { ECODE_ENDPOINTS, API_CONFIG, getAuthHeaders } from '../../config/api'
 import type { ECode } from '../../types/entities'
-import ECodeDetailSheet from '../../components/ECodeDetailSheet'
+import EntityDetailSheet from '../../components/EntityDetailSheet'
 import Modal from '../../components/Modal'
 import DeleteConfirmationModal from '../../components/DeleteConfirmationModal'
 
@@ -190,6 +190,9 @@ const ECodes = () => {
 
   const handleToggleStatus = async (ecode: ECode) => {
     try {
+      // Toggle the isActive status
+      const newStatus = !ecode.isActive
+      
       // Prepare the complete E-Code data for update
       const updateData = {
         code: ecode.code,
@@ -200,7 +203,7 @@ const ECodes = () => {
         source: ecode.source || [],
         healthInfo: ecode.healthInfo || [],
         uses: ecode.uses || [],
-        isActive: ecode.isActive,
+        isActive: newStatus,
       }
 
       const response = await fetch(`${API_CONFIG.baseURL}${ECODE_ENDPOINTS.update}/${ecode.id}`, {
@@ -211,14 +214,14 @@ const ECodes = () => {
 
       if (!response.ok) {
         // Special handling for 404 error when deactivating
-        if (response.status === 404 && !ecode.isActive) {
+        if (response.status === 404 && !newStatus) {
           // The E-Code was successfully deactivated but the API can't find it to return
           // This is likely a backend issue where inactive records are filtered out
           console.log('E-Code deactivated successfully but API returned 404 (backend filtering issue)')
           
           // Update selected ecode if it's the same
           if (selectedECode?.id === ecode.id) {
-            setSelectedECode(prev => prev ? { ...prev, isActive: ecode.isActive } : null)
+            setSelectedECode(prev => prev ? { ...prev, isActive: newStatus } : null)
           }
           
           showToast('success', 'E-Code deactivated successfully!')
@@ -234,10 +237,10 @@ const ECodes = () => {
 
       // Update selected ecode if it's the same
       if (selectedECode?.id === ecode.id) {
-        setSelectedECode(prev => prev ? { ...prev, isActive: ecode.isActive } : null)
+        setSelectedECode(prev => prev ? { ...prev, isActive: newStatus } : null)
       }
       
-      showToast('success', `E-Code ${ecode.isActive ? 'activated' : 'deactivated'} successfully!`)
+      showToast('success', `E-Code ${newStatus ? 'activated' : 'deactivated'} successfully!`)
       
       // Refetch ecodes to update the list
       refetch()
@@ -280,58 +283,64 @@ const ECodes = () => {
       </div>
 
       {/* Filters */}
-      <div className="mb-6">
-        <div className="flex items-center gap-4">
+      <div className='py-6'>
+        <div className="flex items-center gap-3">
           {/* Search */}
-          <div className="relative flex-1">
+          <div className="relative w-72">
             <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
             <input
               type="text"
               placeholder="Search E-Codes by code, name, or status..."
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
+              className="w-full pl-10 pr-3 py-[10px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-xs"
             />
           </div>
 
           {/* Status Filter */}
-          <div className="w-48">
-            <CustomDropdown
-              placeholder="All Status"
-              value={filters.status}
-              onChange={(value) => handleFilterChange('status', value as string)}
-              options={[
-                { value: '', label: 'All Status' },
-                { value: 'halaal', label: 'Halaal' },
-                { value: 'haraam', label: 'Haraam' },
-                { value: 'doubtful', label: 'Doubtful' },
-              ]}
-            />
-          </div>
+          <CustomDropdown
+            placeholder="All Status"
+            value={filters.status}
+            onChange={(value) => handleFilterChange('status', value as string)}
+            options={[
+              { value: '', label: 'All Status' },
+              { value: 'halaal', label: 'Halaal' },
+              { value: 'haraam', label: 'Haraam' },
+              { value: 'doubtful', label: 'Doubtful' },
+            ]}
+            className="w-[120px] text-xs"
+          />
 
           {/* Active Status Filter */}
-          <div className="w-48">
-            <CustomDropdown
-              placeholder="All Records"
-              value={filters.isActive}
-              onChange={handleIsActiveFilterChange}
-              options={[
-                { value: '', label: 'All Records' },
-                { value: 'true', label: 'Active' },
-                { value: 'false', label: 'Inactive' },
-              ]}
-            />
-          </div>
+          <CustomDropdown
+            placeholder="All Records"
+            value={filters.isActive}
+            onChange={handleIsActiveFilterChange}
+            options={[
+              { value: '', label: 'All Records' },
+              { value: 'true', label: 'Active' },
+              { value: 'false', label: 'Inactive' },
+            ]}
+            className="w-[150px] text-xs"
+          />
 
-          {/* Add E-Code Button */}
-          <button
-            onClick={handleAddECode}
-                            disabled={isSubmitting}
-            className="flex items-center space-x-2 cursor-pointer px-4 py-2 bg-[#0c684b] text-white rounded-lg hover:bg-green-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <FiPlus size={16} />
-            <span>Add E-Code</span>
-          </button>
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              onClick={() => { /* TODO: implement export */ }}
+              className="px-10 py-[10px] text-xs border border-[#0c684b] text-[#0c684b] rounded-sm hover:bg-gray-50 transition-colors"
+            >
+              Export
+            </button>
+            {hasPermission('E-Codes', 'create') && (
+              <button
+                onClick={handleAddECode}
+                disabled={isSubmitting}
+                className="flex items-center space-x-2 px-10 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span>Add E-Code</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -386,19 +395,58 @@ const ECodes = () => {
  
 
       {/* E-Code Detail Sheet */}
-      <ECodeDetailSheet
-        ecode={selectedECode}
+      <EntityDetailSheet
+        entity={selectedECode}
         open={isOverlayOpen}
         onClose={closeOverlay}
         onEdit={(ecode) => {
           setIsOverlayOpen(false)
-          handleEditECode(ecode)
+          handleEditECode(ecode as ECode)
         }}
-        onDelete={handleDeleteECode}
+        onDelete={(ecode) => {
+          setIsOverlayOpen(false)
+          handleDeleteECode(ecode as ECode)
+        }}
         onToggleStatus={handleToggleStatus}
         hasUpdatePermission={hasPermission('E-Codes', 'update')}
         hasDeletePermission={hasPermission('E-Codes', 'delete')}
-        onRefetch={refetch}
+        titleAccessor={(ecode: ECode) => ecode.name}
+        statusAccessor={(ecode: ECode) => ({
+          isActive: ecode.isActive,
+          badge: {
+            text: ecode.status,
+            colorClass: ecode.status === 'halaal' ? 'bg-green-100 text-green-800' : ecode.status === 'haraam' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
+          }
+        })}
+        sections={[
+          {
+            title: 'E-Code Information',
+            items: [
+              { label: 'Code', value: selectedECode?.code || 'N/A' },
+              { label: 'Alternate Names', value: selectedECode?.alternateName?.join(', ') || 'N/A' },
+            ]
+          },
+          {
+            title: 'Function',
+            type: 'chips',
+            items: selectedECode?.function || [],
+          },
+          {
+            title: 'Source',
+            type: 'chips',
+            items: selectedECode?.source || [],
+          },
+          {
+            title: 'Health Information',
+            type: 'chips',
+            items: selectedECode?.healthInfo || [],
+          },
+          {
+            title: 'Uses',
+            type: 'chips',
+            items: selectedECode?.uses || [],
+          },
+        ]}
       />
 
       {/* Delete Confirmation Modal */}
@@ -417,13 +465,16 @@ const ECodes = () => {
           isOpen={isAddModalOpen}
           onClose={handleECodeFormCancel}
           title={selectedECode ? 'Edit E-Code' : 'Add New E-Code'}
+          size="xl"
         >
-          <ECodeForm
-            ecode={selectedECode}
-            onSubmit={handleECodeFormSubmit}
-            onCancel={handleECodeFormCancel}
-            isLoading={isSubmitting}
-          />
+          <div className="h-[70vh] overflow-hidden">
+            <ECodeForm
+              ecode={selectedECode}
+              onSubmit={handleECodeFormSubmit}
+              onCancel={handleECodeFormCancel}
+              isLoading={isSubmitting}
+            />
+          </div>
         </Modal>
       )}
       </div>

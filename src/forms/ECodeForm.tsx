@@ -3,7 +3,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { FiPlus, FiX } from 'react-icons/fi';
-import CustomDropdown from '../components/CustomDropdown';
+import StatusSelect from '../components/StatusSelect';
 import type { ECode } from '../types/entities';
 
 interface ECodeFormProps {
@@ -301,15 +301,11 @@ const ECodeForm: React.FC<ECodeFormProps> = ({ ecode, onSubmit, onCancel, isLoad
                   <label className="block text-sm font-normal text-gray-700 mb-1">
                     Status *
                   </label>
-                  <CustomDropdown
+                  <StatusSelect
                     placeholder="Select Status"
                     value={field.value}
                     onChange={(value) => field.onChange(value)}
-                    options={[
-                      { value: 'halaal', label: 'Halaal' },
-                      { value: 'haraam', label: 'Haraam' },
-                      { value: 'doubtful', label: 'Doubtful' },
-                    ]}
+                    caseType="lowercase"
                   />
                   {errors.status && (
                     <p className="mt-1 text-sm text-red-600">{errors.status.message}</p>

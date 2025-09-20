@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { FiPlus, FiSearch, FiCheckCircle, FiXCircle } from 'react-icons/fi'
+import { FiSearch, FiCheckCircle, FiXCircle, FiMapPin } from 'react-icons/fi'
 import { usePermissions } from '../../hooks/usePermissions'
 import { useGetApi, usePostApi, usePutApi, useDeleteApi } from '../../hooks'
 import { useToast } from '../../components/CustomToast/ToastContext'
@@ -7,7 +7,7 @@ import { PRODUCT_ENDPOINTS, API_CONFIG, getAuthHeaders } from '../../config/api'
 import type { Product, ProductCreateRequest, ProductUpdateRequest } from '../../types/entities'
 import Modal from '../../components/Modal'
 import ProductForm from '../../forms/ProductForm'
-import ProductDetailSheet from '../../components/ProductDetailSheet'
+import EntityDetailSheet from '../../components/EntityDetailSheet'
 import CustomDropdown from '../../components/CustomDropdown'
 import DeleteConfirmationModal from '../../components/DeleteConfirmationModal'
 import { Pagination } from '../../components'
@@ -272,16 +272,16 @@ const Products = () => {
 
       {/* Filters */}
       <div className='py-6'>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           {/* Search */}
-          <div className="relative w-80">
+          <div className="relative w-72">
             <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
             <input
               type="text"
               placeholder="Search products by name, manufacturer, status, or madeIn..."
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
+              className="w-full pl-10 pr-3 py-[10px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-xs"
             />
           </div>
 
@@ -296,7 +296,7 @@ const Products = () => {
             value={filters.status}
             onChange={handleStatusFilterChange}
             placeholder="Filter by status"
-            className="w-48"
+            className="w-[120px] text-xs"
           />
 
           {/* Active Status Filter */}
@@ -309,18 +309,26 @@ const Products = () => {
             value={filters.isActive}
             onChange={handleIsActiveFilterChange}
             placeholder="Filter by active status"
-            className="w-48"
+            className="w-[150px] text-xs"
           />
 
-{hasCreatePermission && (
-          <button
-            onClick={handleAddProduct}
-            className="flex items-center space-x-2 px-4 py-2 bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors"
-          >
-            <FiPlus size={16} />
-            <span>Add Product</span>
-          </button>
-        )}
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              onClick={() => { /* TODO: implement export */ }}
+              className="px-10 py-[10px] text-xs border border-[#0c684b] text-[#0c684b] rounded-sm hover:bg-gray-50 transition-colors"
+            >
+              Export
+            </button>
+            {hasCreatePermission && (
+              <button
+                onClick={handleAddProduct}
+                className="flex items-center space-x-2 px-10 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors"
+              >
+               
+                <span>Add Product</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -382,7 +390,7 @@ const Products = () => {
                 key: 'status',
                 header: 'Status',
                 render: (product: Product) => (
-                  <div className={`flex items-center space-x-1 px-2 max-w-20 py-1 rounded-full text-xs font-medium ${
+                  <div className={`flex items-center justify-center px-2 max-w-20 py-1 rounded-full text-xs font-medium ${
                     product.status === 'Halaal' ? 'bg-green-100 text-green-800' : product.status === 'Haraam' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
                   }`}>
                     <span>{product.status}</span>
@@ -425,25 +433,31 @@ const Products = () => {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         title="Add New Product"
+        size="xl"
       >
-        <ProductForm
-          onSubmit={(data: ProductCreateRequest | ProductUpdateRequest) => handleSubmitCreate(data as ProductCreateRequest)}
-          onCancel={() => setIsAddModalOpen(false)}
-          isLoading={isSubmitting}
-        />
+        <div className="h-[70vh] overflow-hidden">
+          <ProductForm
+            onSubmit={(data: ProductCreateRequest | ProductUpdateRequest) => handleSubmitCreate(data as ProductCreateRequest)}
+            onCancel={() => setIsAddModalOpen(false)}
+            isLoading={isSubmitting}
+          />
+        </div>
       </Modal>
 
       <Modal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         title="Edit Product"
+        size="xl"
       >
-        <ProductForm
-          product={selectedProduct || undefined}
-          onSubmit={handleSubmitUpdate}
-          onCancel={() => setIsEditModalOpen(false)}
-          isLoading={isSubmitting}
-        />
+        <div className="h-[70vh] overflow-hidden">
+          <ProductForm
+            product={selectedProduct || undefined}
+            onSubmit={handleSubmitUpdate}
+            onCancel={() => setIsEditModalOpen(false)}
+            isLoading={isSubmitting}
+          />
+        </div>
       </Modal>
 
       {hasDeletePermission && (
@@ -457,22 +471,48 @@ const Products = () => {
         />
       )}
 
-      {/* Product Detail Sheet */}
-      <ProductDetailSheet
-        product={selectedProduct}
+      {/* Product Detail Sheet (Unified) */}
+      <EntityDetailSheet<Product>
+        entity={selectedProduct}
         open={isOverlayOpen}
         onClose={closeOverlay}
-        onEdit={(product) => {
-          setIsOverlayOpen(false)
-          handleEditProduct(product)
+        title={`Product Details - ${selectedProduct?.name || ''}`}
+        headerTitle={selectedProduct?.name || ''}
+        image={{ src: selectedProduct?.image, alt: `${selectedProduct?.name || ''} image` }}
+        statusToggle={{
+          checked: Boolean(selectedProduct?.isActive),
+          onChange: async (checked: boolean) => {
+            if (!selectedProduct) return
+            await handleToggleStatus({ ...selectedProduct, isActive: checked })
+          },
+          enabled: hasUpdatePermission,
+          labelActive: 'Active',
+          labelInactive: 'Inactive',
         }}
-        onDelete={(product) => {
-          setIsOverlayOpen(false)
-          handleDeleteProduct(product)
+        statusBadge={selectedProduct ? {
+          text: selectedProduct.status,
+          color: selectedProduct.status === 'Halaal' ? 'green' : selectedProduct.status === 'Haraam' ? 'red' : 'yellow'
+        } : undefined}
+        chipSections={selectedProduct ? [
+          { title: 'Contains/Ingredients', items: selectedProduct.contains || [], limit: 99 },
+        ] : []}
+        infoGridTitle="Product Information"
+        infoGrid={selectedProduct ? [
+          { label: 'Manufacturer', value: selectedProduct.manufacturer || '—', icon: (<FiMapPin className="text-gray-400 mt-1" size={16} />) },
+          { label: 'Country of Origin', value: selectedProduct.madeIn || '—', icon: (<FiMapPin className="text-gray-400 mt-1" size={16} />) },
+        ] : []}
+        footerActions={{
+          onEdit: (product) => {
+            setIsOverlayOpen(false)
+            handleEditProduct(product)
+          },
+          onDelete: (product) => {
+            setIsOverlayOpen(false)
+            handleDeleteProduct(product)
+          },
+          hasUpdatePermission,
+          hasDeletePermission,
         }}
-        onToggleStatus={handleToggleStatus}
-        hasUpdatePermission={hasUpdatePermission}
-        hasDeletePermission={hasDeletePermission}
       />
       </div>
       
