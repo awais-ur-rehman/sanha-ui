@@ -83,6 +83,9 @@ const Enquiries = () => {
       setSelectedEnquiry(enquiries[0])
     } else if (enquiries.length > 0 && selectedEnquiry && !enquiries.find(e => e.id === selectedEnquiry.id)) {
       setSelectedEnquiry(enquiries[0])
+    } else if (enquiries.length === 0 && selectedEnquiry) {
+      // Clear selected enquiry if no enquiries in current tab
+      setSelectedEnquiry(null)
     }
   }, [enquiries, selectedEnquiry])
 
