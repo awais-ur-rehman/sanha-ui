@@ -18,13 +18,13 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         isMobileMenuOpen 
           ? 'ml-0' 
           : isSidebarCollapsed 
-            ? 'lg:ml-20' 
-            : 'lg:ml-72'
+            ? 'lg:ml-16' 
+            : 'lg:ml-56'
       }`}>
         <div className={`animate-fade-in max-h-screen min-h-screen overflow-y-auto px-4 sm:px-6 ${
           isSidebarCollapsed 
-            ? 'lg:px-6 xl:px-8' 
-            : 'lg:px-4 xl:px-6'
+            ? 'lg:px-4 xl:px-6' 
+            : 'lg:px-3 xl:px-4'
         }`}>
           <div className="transition-all duration-300 ease-in-out min-h-screen transform">
             {children}

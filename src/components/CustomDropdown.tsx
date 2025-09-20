@@ -68,7 +68,7 @@ const CustomDropdown = forwardRef<HTMLDivElement, CustomDropdownProps>(
           </button>
 
             {isOpen && (
-              <div className="absolute z-[9999] mt-1 bg-white -right-[10px] border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto w-40 p-2">
+              <div className="absolute z-[9999] mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto w-full p-2">
                 {options.map((option) => {
                   const isActive = option.value === value
                   return (

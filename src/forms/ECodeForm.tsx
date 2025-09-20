@@ -27,9 +27,10 @@ const schema = yup.object({
 const ECodeForm: React.FC<ECodeFormProps> = ({ ecode, onSubmit, onCancel, isLoading = false }) => {
   const [alternateNames, setAlternateNames] = useState<string[]>(ecode?.alternateName || []);
   const [sources, setSources] = useState<string[]>(ecode?.source || []);
-  const [functions, setFunctions] = useState<Array<{ value: string }>>([]);
-  const [healthInfos, setHealthInfos] = useState<Array<{ value: string }>>([]);
-  const [uses, setUses] = useState<Array<{ value: string }>>([]);
+  const [functions, setFunctions] = useState<string[]>(ecode?.function || []);
+  const [healthInfos, setHealthInfos] = useState<string[]>(ecode?.healthInfo || []);
+  const [uses, setUses] = useState<string[]>(ecode?.uses || []);
+  const [healthInfoInput, setHealthInfoInput] = useState('');
 
   const {
     control,
@@ -54,15 +55,13 @@ const ECodeForm: React.FC<ECodeFormProps> = ({ ecode, onSubmit, onCancel, isLoad
       setAlternateNames(ecode.alternateName || []);
       setSources(ecode.source || []);
       
-      // Initialize dynamic arrays
-      setFunctions(ecode.function?.map(item => ({ value: item })) || [{ value: '' }]);
-      setHealthInfos(ecode.healthInfo?.map(item => ({ value: item })) || [{ value: '' }]);
-      setUses(ecode.uses?.map(item => ({ value: item })) || [{ value: '' }]);
+      setFunctions(ecode.function || []);
+      setHealthInfos(ecode.healthInfo || []);
+      setUses(ecode.uses || []);
     } else {
-      // Initialize with one empty field for new ecode
-      setFunctions([{ value: '' }]);
-      setHealthInfos([{ value: '' }]);
-      setUses([{ value: '' }]);
+      setFunctions([]);
+      setHealthInfos([]);
+      setUses([]);
     }
   }, [ecode, setValue]);
 
@@ -70,56 +69,35 @@ const ECodeForm: React.FC<ECodeFormProps> = ({ ecode, onSubmit, onCancel, isLoad
   useEffect(() => {
     setValue('alternateName', alternateNames);
     setValue('source', sources);
-    setValue('function', functions.map(f => f.value).filter(v => v.trim()));
-    setValue('healthInfo', healthInfos.map(h => h.value).filter(v => v.trim()));
-    setValue('uses', uses.map(u => u.value).filter(v => v.trim()));
+    setValue('function', functions);
+    setValue('healthInfo', healthInfos);
+    setValue('uses', uses);
   }, [alternateNames, sources, functions, healthInfos, uses, setValue]);
 
   const handleFormSubmit = (data: any) => {
     const formData = {
       ...data,
-      alternateName: alternateNames,
-      source: sources,
-      function: functions.map(f => f.value).filter(v => v.trim()),
-      healthInfo: healthInfos.map(h => h.value).filter(v => v.trim()),
-      uses: uses.map(u => u.value).filter(v => v.trim()),
+      alternateName: alternateNames.filter(name => name.trim() !== ''),
+      source: sources.filter(source => source.trim() !== ''),
+      function: functions.filter(f => f.trim() !== ''),
+      healthInfo: healthInfos.filter(h => h.trim() !== ''),
+      uses: uses.filter(u => u.trim() !== ''),
     };
     onSubmit(formData);
   };
 
-  // Helper function to add item to pills array
-  const addItemToPillsArray = (array: string[], setArray: React.Dispatch<React.SetStateAction<string[]>>, newItem: string) => {
-    if (newItem.trim() && !array.includes(newItem.trim())) {
-      setArray([...array, newItem.trim()]);
-    }
-  };
+  // Helper functions for health information (matching ClientForm pattern)
+  const removeField = (_field: string, setter: React.Dispatch<React.SetStateAction<string[]>>, index: number) => {
+    setter(prev => prev.filter((_, i) => i !== index))
+  }
 
-  // Helper function to remove item from pills array
-  const removeItemFromPillsArray = (array: string[], setArray: React.Dispatch<React.SetStateAction<string[]>>, index: number) => {
-    setArray(array.filter((_, i) => i !== index));
-  };
+  const updateField = (_field: string, setter: React.Dispatch<React.SetStateAction<string[]>>, index: number, value: string) => {
+    setter(prev => prev.map((item, i) => i === index ? value : item))
+  }
 
-  // Helper function to update dynamic array field
-  const updateDynamicField = (array: Array<{ value: string }>, setArray: React.Dispatch<React.SetStateAction<Array<{ value: string }>>>, index: number, value: string) => {
-    const updated = [...array];
-    updated[index] = { value };
-    setArray(updated);
-  };
 
-  // Helper function to add new dynamic field
-  const addDynamicField = (array: Array<{ value: string }>, setArray: React.Dispatch<React.SetStateAction<Array<{ value: string }>>>) => {
-    setArray([...array, { value: '' }]);
-  };
-
-  // Helper function to remove dynamic field
-  const removeDynamicField = (array: Array<{ value: string }>, setArray: React.Dispatch<React.SetStateAction<Array<{ value: string }>>>, index: number) => {
-    if (array.length > 1) {
-      setArray(array.filter((_, i) => i !== index));
-    }
-  };
-
-  // Pills input component for Alternate Names and Sources
-  const PillsInput = ({ 
+  // Simple chip input component like ProductForm
+  const ChipInput = ({ 
     label, 
     items, 
     setItems, 
@@ -133,51 +111,50 @@ const ECodeForm: React.FC<ECodeFormProps> = ({ ecode, onSubmit, onCancel, isLoad
     const [inputValue, setInputValue] = useState('');
 
     const handleAdd = () => {
-      addItemToPillsArray(items, setItems, inputValue);
+      const value = inputValue.trim();
+      if (!value) return;
+      if (!items.includes(value)) setItems(prev => [...prev, value]);
       setInputValue('');
     };
 
-    const handleKeyPress = (e: React.KeyboardEvent) => {
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key === 'Enter') {
         e.preventDefault();
         handleAdd();
       }
     };
 
+    const handleRemove = (idx: number) => {
+      setItems(prev => prev.filter((_, i) => i !== idx));
+    };
+
     return (
       <div className="space-y-2">
-        <label className="block text-sm font-normal text-gray-700">{label}</label>
-        <div className="flex gap-2">
+        <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+        <div className="flex items-center gap-2">
           <input
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            onKeyPress={handleKeyPress}
+            onKeyDown={handleKeyDown}
             placeholder={placeholder}
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-sm"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
           />
           <button
             type="button"
             onClick={handleAdd}
-            className="px-3 py-2 bg-[#0c684b] text-white rounded-md hover:bg-green-700 transition-colors"
+            className="inline-flex items-center justify-center w-8 h-8 border border-[#0c684b] rounded-full text-[#0c684b] bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#0c684b] transition-colors"
           >
-            <FiPlus size={14} />
+            <FiPlus size={16} />
           </button>
         </div>
         {items.length > 0 && (
           <div className="flex flex-wrap gap-1">
-            {items.map((item, index) => (
-              <span
-                key={index}
-                className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs"
-              >
-                {item}
-                <button
-                  type="button"
-                  onClick={() => removeItemFromPillsArray(items, setItems, index)}
-                  className="text-gray-500 hover:text-red-500"
-                >
-                  <FiX size={10} />
+            {items.map((val, idx) => (
+              <span key={`${val}-${idx}`} className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full text-xs">
+                {val}
+                <button type="button" onClick={() => handleRemove(idx)} className="text-gray-500 hover:text-red-600">
+                  <FiX size={12} />
                 </button>
               </span>
             ))}
@@ -187,61 +164,12 @@ const ECodeForm: React.FC<ECodeFormProps> = ({ ecode, onSubmit, onCancel, isLoad
     );
   };
 
-  // Dynamic input component for other fields
-  const DynamicInput = ({ 
-    label, 
-    items, 
-    setItems, 
-    placeholder 
-  }: { 
-    label: string; 
-    items: Array<{ value: string }>; 
-    setItems: React.Dispatch<React.SetStateAction<Array<{ value: string }>>>; 
-    placeholder: string; 
-  }) => {
-    return (
-      <div className="space-y-2">
-        <label className="block text-sm font-normal text-gray-700">{label}</label>
-        <div className="space-y-2 max-h-32 overflow-y-auto pr-2">
-          {items.map((item, index) => (
-            <div key={index} className="flex items-center gap-2">
-              <input
-                type="text"
-                value={item.value}
-                onChange={(e) => updateDynamicField(items, setItems, index, e.target.value)}
-                placeholder={placeholder}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-sm"
-              />
-              {items.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => removeDynamicField(items, setItems, index)}
-                  className="p-2 text-red-500 hover:bg-red-50 rounded-md transition-colors"
-                >
-                  <FiX size={14} />
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
-        <div className="flex justify-end">
-          <button
-            type="button"
-            onClick={() => addDynamicField(items, setItems)}
-            className="inline-flex items-center justify-center w-8 h-8 border border-[#0c684b] rounded-full text-[#0c684b] bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#0c684b] transition-colors"
-          >
-            <FiPlus size={16} />
-          </button>
-        </div>
-      </div>
-    );
-  };
 
   return (
     <div className="flex flex-col h-full max-h-[80vh]">
       <form onSubmit={handleSubmit(handleFormSubmit)} className="flex flex-col h-full">
         {/* Form content - scrollable */}
-        <div className="flex-1 overflow-y-auto space-y-4 pr-2">
+        <div className="flex-1 overflow-y-auto space-y-4 p-2">
           {/* Code and Name */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -317,14 +245,14 @@ const ECodeForm: React.FC<ECodeFormProps> = ({ ecode, onSubmit, onCancel, isLoad
 
           {/* Alternate Names and Sources - Side by Side */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <PillsInput
+            <ChipInput
               label="Alternate Names"
               items={alternateNames}
               setItems={setAlternateNames}
               placeholder="Add alternate name"
             />
 
-            <PillsInput
+            <ChipInput
               label="Sources"
               items={sources}
               setItems={setSources}
@@ -332,50 +260,88 @@ const ECodeForm: React.FC<ECodeFormProps> = ({ ecode, onSubmit, onCancel, isLoad
             />
           </div>
 
-          {/* Other Fields - Dynamic Inputs */}
-          <div className="space-y-4">
-            <DynamicInput
+          {/* Functions and Uses - Side by Side */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <ChipInput
               label="Functions"
               items={functions}
               setItems={setFunctions}
               placeholder="Add function"
             />
 
-            <DynamicInput
-              label="Health Information"
-              items={healthInfos}
-              setItems={setHealthInfos}
-              placeholder="Add health info"
-            />
-
-            <DynamicInput
+            <ChipInput
               label="Uses"
               items={uses}
               setItems={setUses}
               placeholder="Add use"
             />
           </div>
+
+          {/* Health Information - At the bottom like addresses in ClientForm */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Health Information</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={healthInfoInput}
+                onChange={(e) => setHealthInfoInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const val = healthInfoInput.trim();
+                    if (val) {
+                      setHealthInfos(prev => [...prev, val]);
+                      setHealthInfoInput('');
+                    }
+                  }
+                }}
+                placeholder="Enter health information and press Enter or + to add"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
+              />
+              <button
+                type="button"
+                onClick={() => { const val = healthInfoInput.trim(); if (val) { setHealthInfos(prev => [...prev, val]); setHealthInfoInput(''); } }}
+                className="inline-flex items-center justify-center w-8 h-8 border border-[#0c684b] rounded-full text-[#0c684b] bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#0c684b] transition-colors"
+              >
+                <FiPlus size={16} />
+              </button>
+            </div>
+            {healthInfos.length > 0 && (
+              <div className="space-y-2 p-1">
+                {healthInfos.map((healthInfo, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={healthInfo}
+                      onChange={(e) => updateField('healthInfos', setHealthInfos, index, e.target.value)}
+                      placeholder="Enter health information"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
+                    />
+                    <button type="button" onClick={() => removeField('healthInfos', setHealthInfos, index)} className="p-2 text-gray-500 hover:text-red-600 rounded-md transition-colors">
+                      <FiX size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Fixed footer with buttons */}
-        <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 mt-4 flex-shrink-0">
+        {/* Form Actions - fixed bottom within modal content */}
+        <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200 mt-4 flex-shrink-0 bg-white">
           <button
             type="button"
             onClick={onCancel}
-            disabled={isLoading}
-            className="px-4 py-2 text-sm border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-10 py-[10px] text-xs border border-[#0c684b] text-[#0c684b] rounded-sm hover:bg-gray-50 transition-colors"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={isLoading}
-            className="px-4 py-2 text-sm bg-[#0c684b] text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center space-x-2 px-10 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading 
-              ? (ecode ? 'Updating...' : 'Creating...') 
-              : (ecode ? 'Update E-Code' : 'Create E-Code')
-            }
+            <span>{isLoading ? 'Saving...' : ecode ? 'Update E-Code' : 'Add E-Code'}</span>
           </button>
         </div>
       </form>

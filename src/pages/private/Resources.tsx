@@ -454,18 +454,20 @@ const Resources = () => {
           setIsOverlayOpen(false)
           setIsDeleteModalOpen(true)
         }}
-        onToggleStatus={handleToggleStatus}
         hasUpdatePermission={hasPermission('Resources', 'update')}
         hasDeletePermission={hasPermission('Resources', 'delete')}
         titleAccessor={(resource: Resource) => resource.title}
         imageAccessor={(resource: Resource) => resource.imageUrl}
-        statusAccessor={(resource: Resource) => ({
-          isActive: resource.isActive,
-          badge: {
-            text: resource.isActive ? 'Active' : 'Inactive',
-            colorClass: resource.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-          }
-        })}
+        statusToggle={{
+          checked: Boolean(selectedResource?.isActive),
+          onChange: async (checked: boolean) => {
+            if (!selectedResource) return
+            await handleToggleStatus({ ...selectedResource, isActive: checked })
+          },
+          enabled: hasPermission('Resources', 'update'),
+          labelActive: 'Active',
+          labelInactive: 'Inactive',
+        }}
         sections={[
           {
             title: 'Resource Information',
@@ -481,12 +483,15 @@ const Resources = () => {
               { label: 'Description', value: selectedResource?.description || 'N/A' },
             ]
           },
-          {
-            title: 'Links',
-            type: 'chips',
-            items: selectedResource?.listUrl?.map(link => link.url) || [],
-          },
         ]}
+        linkSection={{
+          title: 'Resource Links',
+          links: selectedResource?.listUrl?.map(link => ({
+            url: link.url,
+            typeTag: link.type
+          })) || [],
+          maxHeightClass: 'max-h-[120px] min-h-[60px]'
+        }}
       />
 
       {/* Add/Edit Resource Modal */}

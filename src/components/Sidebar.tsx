@@ -247,7 +247,7 @@ const Sidebar = () => {
             src={logo} 
             alt="Sanha Admin" 
             className={`transition-all duration-300 ${
-              isSidebarCollapsed ? 'w-12 h-5 sm:w-14 sm:h-6 lg:w-12 lg:h-5 xl:w-14 xl:h-6' : 'w-10 h-10 sm:w-12 sm:h-12 lg:w-10 lg:h-10 xl:w-12 xl:h-12'
+              isSidebarCollapsed ? 'w-12 h-5 sm:w-14 sm:h-6 lg:w-20 lg:h-5 xl:w-14 xl:h-6' : 'w-10 h-10 sm:w-12 sm:h-12 lg:w-10 lg:h-10 xl:w-12 xl:h-12'
             }`} 
           />
         </div>
@@ -267,14 +267,14 @@ const Sidebar = () => {
       </button>
 
       {/* Navigation Items */}
-      <nav className="flex-1 py-2 px-2 sm:px-4">
+      <nav className="flex-1 mt-1 px-2 sm:px-4">
         {/* Top Items */}
-        <ul className="space-y-2">
+        <ul className="space-y-1">
           {topSidebarItems.map((item) => (
             <li key={item.id}>
               <button
                 onClick={() => handleItemClick(item)}
-                className={`w-full flex items-center text-xs lg:text-sm py-2 sm:py-3 lg:py-2.5 rounded-lg transition-all duration-300 ease-in-out transform relative group ${
+                className={`w-full flex items-center text-xs py-[9px] lg:py-2.5 rounded-md transition-all duration-300 ease-in-out transform relative group ${
                   isSidebarCollapsed 
                     ? isActive(item.path)
                       ? 'justify-center px-1 text-[#0c684b] bg-transparent'
@@ -299,16 +299,16 @@ const Sidebar = () => {
         </ul>
 
         {/* Management Section */}
-        <div className="mt-4">
+        <div className="mt-2">
           {!isSidebarCollapsed && (
             <h1 className='text-[10px] sm:text-[12px] lg:text-[11px] xl:text-[12px] font-semibold text-black/40 ms-2 sm:ms-4 lg:ms-3 mb-2 sm:mb-3 lg:mb-2.5'>Management</h1>
           )}
-          <ul className="space-y-2">
+          <ul className="space-y-1">
             {managementSidebarItems.map((item) => (
               <li key={item.id}>
                 <button
                   onClick={() => handleItemClick(item)}
-                  className={`w-full flex items-center text-xs py-2 sm:py-3 rounded-lg transition-all duration-300 ease-in-out transform relative group ${
+                  className={`w-full flex items-center text-xs py-[9px] rounded-md transition-all duration-300 ease-in-out transform relative group ${
                     isSidebarCollapsed 
                       ? isActive(item.path)
                         ? 'justify-center px-1 text-[#0c684b] bg-transparent'
@@ -335,23 +335,23 @@ const Sidebar = () => {
       </nav>
 
       {/* Bottom Items */}
-      <div className="pt-3 sm:pt-4 px-2 py-3 sm:py-4">
+      <div className="pt-3 sm:pt-4 px-2 sm:py-4">
       {!isSidebarCollapsed && (
             <h1 className='text-[10px] sm:text-[12px] font-semibold text-black/40 ms-2 sm:ms-4 mb-2'>System Settings</h1>
           )}
-        <ul className="space-y-2">
+        <ul className="space-y-1">
           {bottomItems.map((item) => (
             <li key={item.id}>
               <button
                 onClick={() => handleItemClick(item)}
-                className={`w-full flex items-center py-2 sm:py-3 rounded-lg text-xs transition-all duration-300 ease-in-out transform relative group ${
+                className={`w-full flex items-center py-[9px] rounded-md text-xs transition-all duration-300 ease-in-out transform relative group ${
                   isSidebarCollapsed 
                     ? isActive(item.path)
                       ? 'justify-center px-2 text-[#0c684b] bg-transparent'
                       : 'justify-center px-2 text-gray-900 bg-transparent hover:bg-gray-100'
                     : isActive(item.path)
                       ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
-                      : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-700 hover:bg-green-50 hover:text-green-700 bg-white'
+                      : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-700 hover:bg-gray-100 hover:text-green-700 bg-white'
                 }`}
               >
                 {item.icon}
@@ -392,7 +392,7 @@ const Sidebar = () => {
       {/* Sidebar */}
       <aside
         className={`fixed top-3 left-3 sm:top-4 sm:left-4 h-[calc(100vh-1.5rem)] sm:h-[calc(100vh-2rem)] bg-white shadow-lg z-50 transition-all duration-300 rounded-xl ${
-          isSidebarCollapsed ? 'w-14 sm:w-16' : 'w-56 sm:w-64'
+          isSidebarCollapsed ? 'w-12 sm:w-14' : 'w-48 sm:w-52'
         } ${
           isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}

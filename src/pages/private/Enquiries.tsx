@@ -242,16 +242,18 @@ const Enquiries = () => {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <select
+                    <CustomDropdown
                       disabled={!hasUpdatePermission || updatingId === enquiry.id}
                       value={enquiry.state}
-                      onChange={(e) => handleStateChange(enquiry, e.target.value as 'Pending' | 'Accepted' | 'Rejected')}
-                      className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                    >
-                      <option value="Pending">Pending</option>
-                      <option value="Accepted">Accepted</option>
-                      <option value="Rejected">Rejected</option>
-                    </select>
+                      onChange={(value) => handleStateChange(enquiry, value as 'Pending' | 'Accepted' | 'Rejected')}
+                      options={[
+                        { value: 'Pending', label: 'Pending' },
+                        { value: 'Accepted', label: 'Accepted' },
+                        { value: 'Rejected', label: 'Rejected' },
+                      ]}
+                      placeholder="Select state"
+                      className="w-[120px] text-sm"
+                    />
 
                     {hasDeletePermission && (
                       <button

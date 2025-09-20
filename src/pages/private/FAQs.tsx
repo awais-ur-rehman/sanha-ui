@@ -920,47 +920,54 @@ const FAQs = () => {
           isOpen={isAddToFAQModalOpen}
           onClose={handleCancelAddToFAQ}
           title="Add to FAQs"
+          size="lg"
         >
-          <div className="space-y-4">
-            <div className="bg-gray-50 rounded-lg p-4">
-              <p className="text-sm text-gray-700">
-                Are you sure you want to add this user question to the FAQ list? The FAQ will be created as inactive and you can activate it later.
-              </p>
-            </div>
+          <div className="flex flex-col h-[35vh]">
+            <div className="flex flex-col h-full">
+              {/* Modal content - scrollable */}
+              <div className="flex-1 overflow-y-auto space-y-4 p-2">
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <p className="text-sm text-gray-700">
+                    Are you sure you want to add this user question to the FAQ list? The FAQ will be created as inactive and you can activate it later.
+                  </p>
+                </div>
 
+                <div>
+                  <label htmlFor="faqTypeSelect" className="block text-sm font-medium text-gray-700 mb-2">
+                    Select FAQ Type *
+                  </label>
+                  <SearchableDropdown
+                    placeholder="Select FAQ type"
+                    value={selectedFaqType}
+                    onChange={(value) => setSelectedFaqType(value as 'Business' | 'Consumer')}
+                    options={[
+                      { value: 'Business', label: 'Business' },
+                      { value: 'Consumer', label: 'Consumer' },
+                    ]}
+                    allowCustomValue={false}
+                  />
+                </div>
+              </div>
 
-            <div>
-              <label htmlFor="faqTypeSelect" className="block text-sm font-medium text-gray-700 mb-2">
-                Select FAQ Type *
-              </label>
-              <CustomDropdown
-                placeholder="Select FAQ type"
-                value={selectedFaqType}
-                onChange={(value) => setSelectedFaqType(value as 'Business' | 'Consumer')}
-                options={[
-                  { value: 'Business', label: 'Business' },
-                  { value: 'Consumer', label: 'Consumer' },
-                ]}
-              />
-            </div>
-
-            <div className="flex items-center justify-end space-x-3 pt-4">
-              <button
-                type="button"
-                onClick={handleCancelAddToFAQ}
-                disabled={isAddingToFAQ}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors text-sm disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmAddToFAQ}
-                disabled={isAddingToFAQ}
-                className="px-6 py-2 bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isAddingToFAQ ? 'Adding...' : 'Add to FAQs'}
-              </button>
+              {/* Form Actions - fixed bottom within modal content */}
+              <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200 mt-4 flex-shrink-0 bg-white">
+                <button
+                  type="button"
+                  onClick={handleCancelAddToFAQ}
+                  disabled={isAddingToFAQ}
+                  className="px-10 py-[10px] text-xs border border-[#0c684b] text-[#0c684b] rounded-sm hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmAddToFAQ}
+                  disabled={isAddingToFAQ}
+                  className="flex items-center space-x-2 px-10 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span>{isAddingToFAQ ? 'Adding...' : 'Add to FAQs'}</span>
+                </button>
+              </div>
             </div>
           </div>
         </Modal>

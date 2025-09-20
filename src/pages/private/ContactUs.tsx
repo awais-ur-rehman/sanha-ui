@@ -305,7 +305,7 @@ const ContactUs = () => {
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
               placeholder={isEditing ? "Edit your reply..." : "Write your reply..."}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent resize-none"
               rows={3}
               maxLength={4000}
             />

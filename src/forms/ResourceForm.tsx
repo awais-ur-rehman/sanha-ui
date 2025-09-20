@@ -484,8 +484,10 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
   };
 
   return (
-    <div className="space-y-6">
-      <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
+    <div className="flex flex-col h-full max-h-[80vh]">
+      <form onSubmit={handleSubmit(handleFormSubmit)} className="flex flex-col h-full">
+        {/* Form content - scrollable */}
+        <div className="flex-1 overflow-y-auto space-y-4 p-2">
         {/* Title and Author - Parallel */}
         <div className="grid grid-cols-2 gap-4">
           <Controller
@@ -542,7 +544,7 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
               </label>
               <textarea
                 {...field}
-                rows={4}
+                rows={7}
                 placeholder="Enter resource description"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent resize-none"
               />
@@ -664,26 +666,27 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
             )}
           </div>
         </div>
+        </div>
 
-        {/* Action Buttons */}
-        <div className="flex justify-end gap-3 pt-4">
+        {/* Form Actions - fixed bottom within modal content */}
+        <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200 mt-4 flex-shrink-0 bg-white">
           <button
             type="button"
             onClick={onCancel}
             disabled={isLoading}
-            className="px-4 py-2 text-sm border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-10 py-[10px] text-xs border border-[#0c684b] text-[#0c684b] rounded-sm hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={isLoading || uploadingImage || uploadingDocuments}
-            className="px-4 py-2 text-sm bg-[#0c684b] text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center space-x-2 px-10 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading 
+            <span>{isLoading 
               ? (resource ? 'Updating...' : 'Creating...') 
-              : (resource ? 'Update Resource' : 'Create Resource')
-            }
+              : (resource ? 'Update Resource' : 'Add Resource')
+            }</span>
           </button>
         </div>
       </form>

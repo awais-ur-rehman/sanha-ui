@@ -392,18 +392,20 @@ const Books = () => {
           setIsOverlayOpen(false)
           handleDeleteBook(book as Book)
         }}
-        onToggleStatus={handleToggleStatus}
         hasUpdatePermission={hasPermission('Books', 'update')}
         hasDeletePermission={hasPermission('Books', 'delete')}
         titleAccessor={(book: Book) => book.title}
         imageAccessor={(book: Book) => book.imageUrl}
-        statusAccessor={(book: Book) => ({
-          isActive: book.isActive,
-          badge: {
-            text: book.isActive ? 'Active' : 'Inactive',
-            colorClass: book.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-          }
-        })}
+        statusToggle={{
+          checked: Boolean(selectedBook?.isActive),
+          onChange: async (checked: boolean) => {
+            if (!selectedBook) return
+            await handleToggleStatus({ ...selectedBook, isActive: checked })
+          },
+          enabled: hasPermission('Books', 'update'),
+          labelActive: 'Active',
+          labelInactive: 'Inactive',
+        }}
         sections={[
           {
             title: 'Book Information',
@@ -419,13 +421,15 @@ const Books = () => {
               { label: 'Description', value: selectedBook?.description || 'N/A' },
             ]
           },
-          {
-            title: 'URL',
-            items: [
-              { label: 'URL', value: selectedBook?.url || 'N/A' },
-            ]
-          },
         ]}
+        linkSection={selectedBook?.url ? {
+          title: 'PDF Link',
+          links: [{
+            url: selectedBook.url,
+            typeTag: 'PDF'
+          }],
+          maxHeightClass: 'max-h-[60px] min-h-[40px]'
+        } : undefined}
       />
 
       {/* Add/Edit Book Modal */}

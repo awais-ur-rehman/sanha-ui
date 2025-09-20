@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { FiUpload, FiX, FiFile, FiImage } from 'react-icons/fi'
 import CustomInput from '../components/CustomInput'
 import CustomTextarea from '../components/CustomTextarea'
-import CustomDropdown from '../components/CustomDropdown'
+import SearchableDropdown from '../components/SearchableDropdown'
 // import CustomCheckbox from '../components/CustomCheckbox'
 import { type Book, type BookCreateRequest, type BookUpdateRequest } from '../types/entities'
 import { API_CONFIG, FILE_ENDPOINTS } from '../config/api'
@@ -170,7 +170,10 @@ const BookForm = ({ book, onSubmit, onCancel, loading = false }: BookFormProps) 
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="flex flex-col h-full max-h-[80vh]">
+      <form onSubmit={handleSubmit} className="flex flex-col h-full">
+        {/* Form content - scrollable */}
+        <div className="flex-1 overflow-y-auto space-y-4 p-2">
       {/* Title and Author - Parallel */}
       <div className="grid grid-cols-2 gap-4">
         <CustomInput
@@ -195,7 +198,7 @@ const BookForm = ({ book, onSubmit, onCancel, loading = false }: BookFormProps) 
         value={formData.description}
         onChange={(value) => handleInputChange('description', value)}
         placeholder="Enter book description"
-        rows={3}
+        rows={6}
         required
       />
 
@@ -208,12 +211,13 @@ const BookForm = ({ book, onSubmit, onCancel, loading = false }: BookFormProps) 
           placeholder="Enter publisher name"
           required
         />
-        <CustomDropdown
+        <SearchableDropdown
           label="Content Language *"
           value={formData.contentLanguage}
-          onChange={(value) => handleInputChange('contentLanguage', value as string)}
+          onChange={(value) => handleInputChange('contentLanguage', value)}
           options={languageOptions}
-          placeholder="Select language"
+          placeholder="Search or select language"
+          allowCustomValue={true}
         />
       </div>
 
@@ -275,19 +279,19 @@ const BookForm = ({ book, onSubmit, onCancel, loading = false }: BookFormProps) 
           </label>
           <div className="space-y-2">
             {formData.url ? (
-              <div className="flex items-center space-x-2 bg-green-50 px-2 py-1 rounded text-xs">
+              <div className="flex items-center space-x-2 bg-green-50 px-2 py-1 rounded text-xs w-fit">
                 <FiFile className="text-green-600" size={12} />
                 <span className="text-green-700">PDF uploaded</span>
                 <button
                   type="button"
                   onClick={removePdf}
-                  className="text-red-500 hover:text-red-700"
+                  className="text-red-500 hover:text-red-700 bg-red-200 rounded-full p-1"
                 >
                   <FiX size={12} />
                 </button>
               </div>
             ) : (
-              <div className="flex items-center space-x-2 bg-gray-50 px-2 py-1 rounded text-xs">
+              <div className="flex items-center space-x-2 bg-gray-50 px-2 py-1 rounded text-xs w-fit">
                 <FiFile className="text-gray-400" size={12} />
                 <span className="text-gray-500">No PDF</span>
               </div>
@@ -315,25 +319,27 @@ const BookForm = ({ book, onSubmit, onCancel, loading = false }: BookFormProps) 
           </div>
         </div>
       </div>
+        </div>
 
-      {/* Form Actions */}
-      <div className="flex justify-end space-x-3 pt-4">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={loading || uploadingImage || uploadingPdf || !isFormValid()}
-          className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loading ? 'Saving...' : book ? 'Update Book' : 'Add Book'}
-        </button>
-      </div>
-    </form>
+        {/* Form Actions - fixed bottom within modal content */}
+        <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200 mt-4 flex-shrink-0 bg-white">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-10 py-[10px] text-xs border border-[#0c684b] text-[#0c684b] rounded-sm hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={loading || uploadingImage || uploadingPdf || !isFormValid()}
+            className="flex items-center space-x-2 px-10 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span>{loading ? 'Saving...' : book ? 'Update Book' : 'Add Book'}</span>
+          </button>
+        </div>
+      </form>
+    </div>
   )
 }
 

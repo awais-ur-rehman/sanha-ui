@@ -368,12 +368,12 @@ const ECodes = () => {
               { key: 'name', header: 'Name', render: (e: ECode) => (<span className="text-sm text-gray-900">{e.name}</span>) },
               { key: 'function', header: 'Function', render: (e: ECode) => (<span className="text-sm text-gray-600">{displayArrayItems(e.function || [])}</span>) },
               { key: 'status', header: 'Status', render: (e: ECode) => (
-                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${e.status === 'halaal' ? 'bg-green-100 text-green-800' : e.status === 'haraam' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${e.status === 'halaal' ? 'bg-green-100 text-green-800' : e.status === 'haraam' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>
                   {e.status}
                 </span>
               ) },
               { key: 'active', header: 'Active Status', render: (e: ECode) => (
-                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${e.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${e.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                   {e.isActive ? 'Active' : 'Inactive'}
                 </span>
               ) },
@@ -407,17 +407,23 @@ const ECodes = () => {
           setIsOverlayOpen(false)
           handleDeleteECode(ecode as ECode)
         }}
-        onToggleStatus={handleToggleStatus}
         hasUpdatePermission={hasPermission('E-Codes', 'update')}
         hasDeletePermission={hasPermission('E-Codes', 'delete')}
         titleAccessor={(ecode: ECode) => ecode.name}
-        statusAccessor={(ecode: ECode) => ({
-          isActive: ecode.isActive,
-          badge: {
-            text: ecode.status,
-            colorClass: ecode.status === 'halaal' ? 'bg-green-100 text-green-800' : ecode.status === 'haraam' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
-          }
-        })}
+        statusToggle={{
+          checked: Boolean(selectedECode?.isActive),
+          onChange: async (checked: boolean) => {
+            if (!selectedECode) return
+            await handleToggleStatus({ ...selectedECode, isActive: checked })
+          },
+          enabled: hasPermission('E-Codes', 'update'),
+          labelActive: 'Active',
+          labelInactive: 'Inactive',
+        }}
+        statusBadge={selectedECode ? {
+          text: selectedECode.status,
+          color: selectedECode.status === 'halaal' ? 'green' : selectedECode.status === 'haraam' ? 'red' : 'yellow'
+        } : undefined}
         sections={[
           {
             title: 'E-Code Information',
