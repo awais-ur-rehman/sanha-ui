@@ -8,3 +8,4 @@ export { useFaqsApi, useUserFaqsApi, useRespondToUserFaq, useCreateFaq, useUpdat
 export { useProductsApi, useCreateProduct, useUpdateProduct, useDeleteProduct, useToggleProductStatus } from './useProductsApi'
 export { useClientNamesApi } from './useClientNamesApi'
 export { useEnquiriesApi, useUpdateEnquiryState, useDeleteEnquiry } from './useEnquiriesApi'
+export { useWebSocket } from './useWebSocket'
