@@ -1,5 +1,6 @@
 import { type ReactNode } from 'react'
 import Sidebar from '../components/Sidebar'
+import FloatingNotificationButton from '../components/FloatingNotificationButton'
 import { useUIStore } from '../store'
 
 interface MainLayoutProps {
@@ -12,6 +13,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   return (
     <div className="min-h-screen bg-black/5">
       <Sidebar />
+      <FloatingNotificationButton />
       
       {/* Main Content Area */}
       <main className={`transition-all duration-300 ${
