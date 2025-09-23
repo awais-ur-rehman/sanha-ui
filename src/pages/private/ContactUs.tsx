@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { FiSearch, FiMail, FiHome, FiMessageCircle, FiEdit2 } from 'react-icons/fi'
+import { FiSearch, FiMessageCircle, FiEdit2 } from 'react-icons/fi'
 import { usePermissions } from '../../hooks/usePermissions'
 import { useGetApi, usePutApi } from '../../hooks'
 import { useToast } from '../../components/CustomToast/ToastContext'
@@ -7,7 +7,7 @@ import { CONTACT_US_ENDPOINTS } from '../../config/api'
 import type { ContactUs as ContactUsType, ContactUsReplyRequest } from '../../types/entities'
 import DateRangePicker from '../../components/DateRangePicker'
 import CustomDropdown from '../../components/CustomDropdown'
-import { Pagination } from '../../components'
+// import { Pagination } from '../../components'
 
 const ContactUs = () => {
   // Hooks
@@ -19,6 +19,7 @@ const ContactUs = () => {
   const hasUpdatePermission = hasPermission('Contact Us', 'update')
   
   // State management
+  const [activeTab, setActiveTab] = useState<'pending' | 'answered'>('pending')
   const [searchTerm, setSearchTerm] = useState('')
   const [filters, setFilters] = useState({
     startDate: '',
@@ -36,6 +37,7 @@ const ContactUs = () => {
   const queryParams = new URLSearchParams({
     page: pagination.currentPage.toString(),
     limit: pagination.itemsPerPage.toString(),
+    status: activeTab === 'pending' ? 'Pending' : 'Answered',
     ...(searchTerm && { search: searchTerm }),
     ...(filters.startDate && { startDate: filters.startDate }),
     ...(filters.endDate && { endDate: filters.endDate }),
@@ -50,6 +52,37 @@ const ContactUs = () => {
       staleTime: 0, // Always fetch fresh data
     }
   )
+
+  // Export CSV hook
+  const exportQueryParams = new URLSearchParams({
+    status: activeTab === 'pending' ? 'Pending' : 'Answered',
+    ...(searchTerm && { search: searchTerm }),
+    ...(filters.startDate && { startDate: filters.startDate }),
+    ...(filters.endDate && { endDate: filters.endDate }),
+    ...(filters.type && { type: filters.type }),
+  })
+  const exportCsvQuery = useGetApi<Blob>(
+    `${CONTACT_US_ENDPOINTS.exportCsv}?${exportQueryParams.toString()}`,
+    { requireAuth: true, enabled: false, staleTime: 0, responseType: 'blob' }
+  )
+
+  const handleExport = async () => {
+    try {
+      const result = await exportCsvQuery.refetch()
+      const blob = result.data as Blob
+      if (!blob) return
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `contact-us-${new Date().toISOString().slice(0,10)}.csv`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(url)
+    } catch (e) {
+      // no-op; hook throws in query when not ok
+    }
+  }
 
   const replyMutation = usePutApi<ContactUsReplyRequest, any>(
     CONTACT_US_ENDPOINTS.reply,
@@ -80,23 +113,103 @@ const ContactUs = () => {
   )
 
   // Process contact us data
-  const contactUsEntries = contactUsResponse?.data?.data || []
+  const pageEntries: ContactUsType[] = contactUsResponse?.data?.data || []
+  const [entriesList, setEntriesList] = useState<ContactUsType[]>([])
+  const [selectedEntry, setSelectedEntry] = useState<ContactUsType | null>(null)
+  const listRef = useRef<HTMLDivElement>(null)
+
+  // Right-panel reply/edit state
+  const [isReplyingPanel, setIsReplyingPanel] = useState(false)
+  const [isEditingPanel, setIsEditingPanel] = useState(false)
+  const [panelReplyText, setPanelReplyText] = useState('')
+  const panelReplyTextareaRef = useRef<HTMLTextAreaElement>(null)
+
+  const handleReplyClickPanel = () => {
+    setIsReplyingPanel(true)
+    setIsEditingPanel(false)
+    setPanelReplyText('')
+  }
+
+  const handleEditClickPanel = () => {
+    if (!selectedEntry) return
+    setIsEditingPanel(true)
+    setIsReplyingPanel(false)
+    setPanelReplyText(selectedEntry.replyMessage || '')
+  }
+
+  const handleCancelReplyPanel = () => {
+    setIsReplyingPanel(false)
+    setIsEditingPanel(false)
+    setPanelReplyText('')
+  }
+
+  const handleSubmitReplyPanel = async () => {
+    if (!selectedEntry) return
+    if (!panelReplyText.trim()) {
+      showToast('error', 'Please enter a reply')
+      return
+    }
+    if (isEditingPanel && panelReplyText.trim() === selectedEntry.replyMessage) {
+      showToast('error', 'No changes detected. Please modify the reply before updating.')
+      return
+    }
+    const payload = {
+      id: selectedEntry.id,
+      replyMessage: panelReplyText.trim(),
+      isUpdatedResponse: isEditingPanel,
+    }
+    try {
+      await replyMutation.mutateAsync(payload)
+      setIsReplyingPanel(false)
+      setIsEditingPanel(false)
+      setPanelReplyText('')
+      showToast('success', isEditingPanel ? 'Reply updated successfully!' : 'Reply sent successfully!')
+      refetch()
+    } catch (error) {
+      // handled in onError
+      console.error('Error sending reply:', error)
+    }
+  }
+
+  // Focus textarea when reply/edit opens
+  useEffect(() => {
+    if ((isReplyingPanel || isEditingPanel) && panelReplyTextareaRef.current) {
+      panelReplyTextareaRef.current.focus()
+    }
+  }, [isReplyingPanel, isEditingPanel])
+
+  // Reset reply/edit state when selection changes
+  useEffect(() => {
+    setIsReplyingPanel(false)
+    setIsEditingPanel(false)
+    setPanelReplyText('')
+  }, [selectedEntry])
 
   // Update pagination when data changes
   useEffect(() => {
     if (contactUsResponse?.data?.pagination) {
-      setPagination(prev => ({
-        ...prev,
-        totalPages: Number(contactUsResponse.data.pagination.totalPages) || 1,
-        totalItems: Number(contactUsResponse.data.pagination.total) || 0,
-      }))
+      const nextTotalPages = Number(contactUsResponse.data.pagination.totalPages) || 1
+      const nextTotalItems = Number(contactUsResponse.data.pagination.total) || 0
+      setPagination(prev => ({ ...prev, totalPages: nextTotalPages, totalItems: nextTotalItems }))
+      setEntriesList(prev => (pagination.currentPage === 1 ? pageEntries : [...prev, ...pageEntries]))
     }
-  }, [contactUsResponse])
+  }, [contactUsResponse, pageEntries, pagination.currentPage])
+
+  // Adjust selected entry when tab changes to ensure a visible selection
+  useEffect(() => {
+    if (entriesList.length === 0) {
+      setSelectedEntry(null)
+    } else if (!selectedEntry || !entriesList.find(e => e.id === selectedEntry.id)) {
+      setSelectedEntry(entriesList[0])
+    }
+  }, [activeTab, entriesList])
 
   // Handlers
   const handleSearch = (term: string) => {
     setSearchTerm(term)
     setPagination(prev => ({ ...prev, currentPage: 1 }))
+    setEntriesList([])
+    setSelectedEntry(null)
   }
 
   const handleDateFilterApply = (startDate: string, endDate: string) => {
@@ -106,6 +219,8 @@ const ContactUs = () => {
       endDate 
     }))
     setPagination(prev => ({ ...prev, currentPage: 1 }))
+    setEntriesList([])
+    setSelectedEntry(null)
   }
 
   const handleTypeFilterChange = (value: string | number) => {
@@ -114,10 +229,23 @@ const ContactUs = () => {
       type: value.toString() 
     }))
     setPagination(prev => ({ ...prev, currentPage: 1 }))
+    setEntriesList([])
+    setSelectedEntry(null)
   }
 
-  const handlePageChange = (page: number) => {
-    setPagination(prev => ({ ...prev, currentPage: page }))
+  // const handlePageChange = (page: number) => {
+  //   setPagination(prev => ({ ...prev, currentPage: page }))
+  // }
+
+  // Infinite scroll for left pane
+  const handleLeftScroll = () => {
+    const el = listRef.current
+    if (!el) return
+    const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 100
+    const hasMore = pagination.currentPage < pagination.totalPages
+    if (nearBottom && hasMore && !loading) {
+      setPagination(prev => ({ ...prev, currentPage: prev.currentPage + 1 }))
+    }
   }
 
   const formatDate = (dateString: string) => {
@@ -128,236 +256,26 @@ const ContactUs = () => {
     })
   }
 
-  const getTypeColor = (type: string) => {
-    const colors = {
-      'General Inquiry': 'bg-blue-100 text-blue-800',
-      'Certification Inquiry (Businesses)': 'bg-green-100 text-green-800',
-      'Verification and Consumer Complaints': 'bg-red-100 text-red-800',
-      'Media and Press Inquiries': 'bg-purple-100 text-purple-800',
-      'Partnerships and Collaborations': 'bg-yellow-100 text-yellow-800',
-    }
-    return colors[type as keyof typeof colors] || 'bg-gray-100 text-gray-800'
-  }
+  // getTypeColor no longer used in inline panel
 
-  // Contact Us Card Component
-  const ContactUsCard = ({ contact }: { contact: ContactUsType }) => {
-    const [isReplying, setIsReplying] = useState(false)
-    const [isEditing, setIsEditing] = useState(false)
-    const [replyText, setReplyText] = useState('')
-    const replyTextareaRef = useRef<HTMLTextAreaElement>(null)
-
-    const handleReplyClick = () => {
-      setIsReplying(true)
-      setIsEditing(false)
-      setReplyText('')
-    }
-
-    const handleEditClick = () => {
-      setIsEditing(true)
-      setIsReplying(false)
-      setReplyText(contact.replyMessage || '')
-    }
-
-    const handleCancelReply = () => {
-      setIsReplying(false)
-      setIsEditing(false)
-      setReplyText('')
-    }
-
-    const handleSubmitReply = async () => {
-      if (!replyText.trim()) {
-        showToast('error', 'Please enter a reply')
-        return
-      }
-
-      // Check if editing and no changes were made
-      if (isEditing && replyText.trim() === contact.replyMessage) {
-        showToast('error', 'No changes detected. Please modify the reply before updating.')
-        return
-      }
-
-      const payload = {
-        id: contact.id,
-        replyMessage: replyText.trim(),
-        isUpdatedResponse: isEditing
-      }
-
-      try {
-        await replyMutation.mutateAsync(payload)
-        setIsReplying(false)
-        setIsEditing(false)
-        setReplyText('')
-        // Show appropriate success message
-        showToast('success', isEditing ? 'Reply updated successfully!' : 'Reply sent successfully!')
-        refetch()
-      } catch (error) {
-        // Error handling is done in the mutation's onError callback
-        console.error('Error sending reply:', error)
-      }
-    }
-
-    // Focus textarea when reply section opens
-    useEffect(() => {
-      if ((isReplying || isEditing) && replyTextareaRef.current) {
-        replyTextareaRef.current.focus()
-      }
-    }, [isReplying, isEditing])
-
-    return (
-      <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-6 mb-6 border border-[#0c684b]/20">
-        {/* Top: Contact Information */}
-        <div className="flex items-center space-x-3 mb-4">
-          {/* User Avatar */}
-          <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-            <span className="text-sm font-medium text-gray-600">
-              {contact.firstName.charAt(0)}{contact.lastName.charAt(0)}
-            </span>
-          </div>
-          
-          {/* Contact Info */}
-          <div className="flex-1">
-            <div className="flex items-center space-x-2 mb-1">
-              <h4 className="font-medium text-gray-900">
-                {contact.firstName} {contact.lastName}
-              </h4>
-              <span className="text-xs text-gray-500">
-                {formatDate(contact.createdAt)}
-              </span>
-            </div>
-            
-            {/* Contact Details */}
-            <div className="flex items-center space-x-4 text-xs text-gray-500">
-              <div className="flex items-center space-x-1">
-                <FiMail className="w-3 h-3" />
-                <span>{contact.email}</span>
-              </div>
-              {contact.orgName && (
-                <div className="flex items-center space-x-1">
-                  <FiHome className="w-3 h-3" />
-                  <span>{contact.orgName}</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Type Badge */}
-          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getTypeColor(contact.type)}`}>
-            {contact.type}
-          </span>
-        </div>
-
-        {/* Message */}
-        <div className="mb-4">
-          <h3 className="text-lg font-semibold text-gray-900 leading-relaxed mb-2">
-            Message
-          </h3>
-          <p className="text-gray-700 text-sm leading-relaxed">
-            {contact.message}
-          </p>
-        </div>
-        
-        {/* Reply Section */}
-        {contact.replyMessage ? (
-          <div className="border border-[#0c684b]/20 rounded-lg p-4">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center space-x-2">
-                <FiMessageCircle className="w-4 h-4 text-[#0c684b]" />
-                <span className="text-sm font-medium text-[#0c684b]">Admin Response</span>
-              </div>
-              {hasUpdatePermission && (
-                <button
-                  onClick={handleEditClick}
-                  className="flex items-center space-x-1 px-2 py-1 text-[#0c684b] hover:bg-[#0c684b]/10 rounded transition-colors text-xs"
-                  title="Edit reply"
-                >
-                  <FiEdit2 className="w-4 h-4" />
-                 
-                </button>
-              )}
-            </div>
-            <p className="text-gray-700 text-sm leading-relaxed">
-              {contact.replyMessage}
-            </p>
-          </div>
-        ) : (
-          <div className="flex justify-start">
-            <button
-              onClick={handleReplyClick}
-              disabled={!hasUpdatePermission}
-              className="flex items-center space-x-2 px-6 py-3 bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <FiMessageCircle className="w-4 h-4" />
-              <span>Reply</span>
-            </button>
-          </div>
-        )}
-        
-        {/* Reply Input Section */}
-        {(isReplying || isEditing) && (
-          <div className="border-t border-gray-200 pt-4 mt-4">
-            <div className="mb-2">
-              <span className="text-sm font-medium text-gray-700">
-                {isEditing ? 'Edit Reply' : 'Write Reply'}
-              </span>
-            </div>
-            <textarea
-              ref={replyTextareaRef}
-              value={replyText}
-              onChange={(e) => setReplyText(e.target.value)}
-              placeholder={isEditing ? "Edit your reply..." : "Write your reply..."}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent resize-none"
-              rows={3}
-              maxLength={4000}
-            />
-            <div className="flex items-center justify-between mt-2">
-              <span className="text-xs text-gray-500">
-                {4000 - replyText.length} characters remaining
-              </span>
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={handleCancelReply}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors text-sm"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSubmitReply}
-                  disabled={
-                    !replyText.trim() || 
-                    replyMutation.isPending || 
-                    (isEditing && replyText.trim() === contact.replyMessage)
-                  }
-                  className="px-4 py-2 bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {replyMutation.isPending 
-                    ? (isEditing ? 'Updating...' : 'Sending...') 
-                    : (isEditing ? 'Update Reply' : 'Submit Reply')
-                  }
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    )
-  }
+  // ContactUsCard removed; using inline panel UI instead
 
   // Loading shimmer for cards
-  const CardShimmer = () => (
-    <div className="bg-white rounded-lg shadow-sm overflow-hidden animate-pulse p-6 mb-6">
-      <div className="flex items-center space-x-3 mb-4">
-        <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
-        <div className="flex-1">
-          <div className="h-4 bg-gray-200 rounded mb-2"></div>
-          <div className="h-3 bg-gray-200 rounded w-3/4"></div>
-        </div>
-        <div className="h-6 bg-gray-200 rounded w-20"></div>
-      </div>
-      <div className="h-6 bg-gray-200 rounded mb-2"></div>
-      <div className="h-4 bg-gray-200 rounded mb-4"></div>
-      <div className="h-8 bg-gray-200 rounded w-24"></div>
-    </div>
-  )
+  // const CardShimmer = () => (
+  //   <div className="bg-white rounded-lg shadow-sm overflow-hidden animate-pulse p-6 mb-6">
+  //     <div className="flex items-center space-x-3 mb-4">
+  //       <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
+  //       <div className="flex-1">
+  //         <div className="h-4 bg-gray-200 rounded mb-2"></div>
+  //         <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+  //       </div>
+  //       <div className="h-6 bg-gray-200 rounded w-20"></div>
+  //     </div>
+  //     <div className="h-6 bg-gray-200 rounded mb-2"></div>
+  //     <div className="h-4 bg-gray-200 rounded mb-4"></div>
+  //     <div className="h-8 bg-gray-200 rounded w-24"></div>
+  //   </div>
+  // )
 
   if (!hasReadPermission) {
     return (
@@ -371,11 +289,37 @@ const ContactUs = () => {
 
   return (
     <div className="py-4">
-      <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] max-h-[calc(100vh-35px)] overflow-y-auto px-6 py-10'>
+      <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] px-6 py-10'>
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-2xl font-semibold text-gray-900">Contact Us</h1>
           <p className="text-gray-600">View & manage contact us inquiries and replies.</p>
+        </div>
+
+        {/* Tabs */}
+        <div className="mb-6">
+          <div className="inline-flex bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => { setActiveTab('pending'); setSelectedEntry(null); setEntriesList([]); setPagination(prev => ({ ...prev, currentPage: 1 })) }}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                activeTab === 'pending'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Pending
+            </button>
+            <button
+              onClick={() => { setActiveTab('answered'); setSelectedEntry(null); setEntriesList([]); setPagination(prev => ({ ...prev, currentPage: 1 })) }}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                activeTab === 'answered'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Answered
+            </button>
+          </div>
         </div>
 
         {/* Filters */}
@@ -421,7 +365,7 @@ const ContactUs = () => {
 
             <div className="ml-auto flex items-center gap-2">
               <button
-                onClick={() => { /* TODO: implement export */ }}
+                onClick={handleExport}
                 className="px-10 py-[10px] text-xs border border-[#0c684b] text-[#0c684b] rounded-sm hover:bg-gray-50 transition-colors"
               >
                 Export
@@ -430,42 +374,186 @@ const ContactUs = () => {
           </div>
         </div>
 
-        {/* Content - Single Column Layout */}
-        <div className="w-full">
-          {loading ? (
-            // Loading shimmer
-            Array.from({ length: 3 }).map((_, index) => (
-              <CardShimmer key={index} />
-            ))
-          ) : contactUsEntries.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-gray-500">
-                <p className="text-lg font-medium">No contact us entries found</p>
-                <p className="text-sm">Try adjusting your search or filters</p>
-              </div>
+        {/* Two Panel Layout */}
+        <div className="flex gap-6 h-[calc(100vh-350px)]">
+          {/* Left Panel - List */}
+          <div className="w-1/5 h-full flex flex-col border border-gray-200 rounded-lg overflow-hidden">
+            <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+              <h3 className="text-xs text-gray-500">Total Entries: {entriesList.length}</h3>
             </div>
-          ) : (
-            contactUsEntries.map((contact: ContactUsType) => (
-              <div key={contact.id} className="mb-6">
-                <ContactUsCard contact={contact} />
-              </div>
-            ))
-          )}
-        </div>
-
-        {/* Pagination */}
-        {!loading && pagination.totalPages > 1 && (
-          <div className="mt-8">
-            <Pagination
-              currentPage={pagination.currentPage}
-              totalPages={pagination.totalPages}
-              totalItems={pagination.totalItems}
-              itemsPerPage={pagination.itemsPerPage}
-              onPageChange={handlePageChange}
-              className="justify-center"
-            />
+            <div ref={listRef} onScroll={handleLeftScroll} className="overflow-y-auto flex-1">
+              {loading && entriesList.length === 0 ? (
+                Array.from({ length: 5 }).map((_, index) => (
+                  <div key={index} className="p-4 border-b border-gray-100 animate-pulse">
+                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-3 bg-gray-200 rounded mb-1"></div>
+                    <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                  </div>
+                ))
+              ) : entriesList.length === 0 ? (
+                <div className="p-8 text-center text-gray-500">
+                  <p className="text-sm">No entries found</p>
+                </div>
+              ) : (
+                entriesList.map((entry) => (
+                  <div
+                    key={entry.id}
+                    onClick={() => setSelectedEntry(entry)}
+                    className={`p-4 border-b border-gray-100 cursor-pointer transition-colors hover:bg-gray-50 ${
+                      selectedEntry?.id === entry.id ? 'bg-[#0c684b]/5 border-l-4 border-l-[#0c684b]' : ''
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-1">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-900 text-sm">{entry.firstName} {entry.lastName}</h4>
+                        <p className="text-xs text-gray-600 mt-1">{entry.email}</p>
+                        {entry.orgName && <p className="text-xs text-gray-500 mt-1">{entry.orgName}</p>}
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[10px] text-gray-400 mt-1">{formatDate(entry.createdAt)}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
-        )}
+
+          {/* Right Panel - Details */}
+          <div className="flex-1 border border-gray-200 rounded-lg overflow-hidden">
+            {selectedEntry ? (
+              <div className="h-full flex flex-col">
+                {/* Header */}
+                <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-900">
+                        {selectedEntry.firstName} {selectedEntry.lastName}
+                      </h3>
+                      <p className="text-sm text-gray-600">Contact Us Details</p>
+                    </div>
+                    <span className={`inline-flex items-center px-4 py-2 rounded-full text-xs ${selectedEntry.replyMessage ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                      {selectedEntry.replyMessage ? 'Answered' : 'Pending'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 p-6 overflow-y-auto">
+                  <div className="space-y-6">
+                    {/* Personal Information */}
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-900 mb-3">Personal Information</h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-xs text-gray-500">Email</label>
+                          <p className="text-sm text-gray-900 mt-1">{selectedEntry.email}</p>
+                        </div>
+                        {selectedEntry.orgName && (
+                          <div>
+                            <label className="text-xs text-gray-500">Organization</label>
+                            <p className="text-sm text-gray-900 mt-1">{selectedEntry.orgName}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Message */}
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-900 mb-3">Message</h4>
+                      <div className="bg-gray-50 rounded-lg p-4 max-h-[168px] overflow-y-auto">
+                        <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{selectedEntry.message}</p>
+                      </div>
+                    </div>
+
+                    {/* Reply Section */}
+                    <div>
+                      {selectedEntry.replyMessage ? (
+                        <div className="border border-[#0c684b]/20 rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center space-x-2">
+                              <FiMessageCircle className="w-4 h-4 text-[#0c684b]" />
+                              <span className="text-sm font-medium text-[#0c684b]">Admin Response</span>
+                            </div>
+                            {hasUpdatePermission && (
+                              <button
+                                onClick={handleEditClickPanel}
+                                className="flex items-center space-x-1 px-2 py-1 text-[#0c684b] hover:bg-[#0c684b]/10 rounded transition-colors text-xs"
+                                title="Edit reply"
+                              >
+                                <FiEdit2 className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
+                          <p className="text-gray-700 text-sm leading-relaxed">
+                            {selectedEntry.replyMessage}
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="flex justify-start">
+                          <button
+                            onClick={handleReplyClickPanel}
+                            disabled={!hasUpdatePermission}
+                            className="flex items-center space-x-2 px-6 py-3 bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <FiMessageCircle className="w-4 h-4" />
+                            <span>Reply</span>
+                          </button>
+                        </div>
+                      )}
+
+                      {(isReplyingPanel || isEditingPanel) && (
+                        <div className="border-t border-gray-200 pt-4 mt-4">
+                          <div className="mb-2">
+                            <span className="text-sm font-medium text-gray-700">
+                              {isEditingPanel ? 'Edit Reply' : 'Write Reply'}
+                            </span>
+                          </div>
+                          <textarea
+                            ref={panelReplyTextareaRef}
+                            value={panelReplyText}
+                            onChange={(e) => setPanelReplyText(e.target.value)}
+                            placeholder={isEditingPanel ? 'Edit your reply...' : 'Write your reply...'}
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent resize-none"
+                            rows={3}
+                            maxLength={4000}
+                          />
+                          <div className="flex items-center justify-between mt-2">
+                            <span className="text-xs text-gray-500">
+                              {4000 - panelReplyText.length} characters remaining
+                            </span>
+                            <div className="flex items-center space-x-2">
+                              <button
+                                onClick={handleCancelReplyPanel}
+                                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors text-sm"
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                onClick={handleSubmitReplyPanel}
+                                disabled={!panelReplyText.trim() || replyMutation.isPending || (isEditingPanel && panelReplyText.trim() === (selectedEntry.replyMessage || ''))}
+                                className="px-4 py-2 bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                {replyMutation.isPending ? (isEditingPanel ? 'Updating...' : 'Sending...') : (isEditingPanel ? 'Update Reply' : 'Submit Reply')}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="h-full flex items-center justify-center text-gray-500">
+                <div className="text-center">
+                  <p className="text-lg font-medium">Select an entry</p>
+                  <p className="text-sm">Choose an entry from the list to view details</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )

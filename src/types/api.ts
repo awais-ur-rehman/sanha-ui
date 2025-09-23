@@ -49,6 +49,7 @@ export interface UseApiOptions {
     onSuccess?: (data: any) => void
     onError?: (error: Error) => void
     invalidateQueries?: string[]
+    responseType?: 'json' | 'blob'
 }
 
 // API configuration

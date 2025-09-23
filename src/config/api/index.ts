@@ -114,10 +114,19 @@ export const ENQUIRY_ENDPOINTS = {
   getById: '/enquiries',
   update: '/enquiries',
   delete: '/enquiries',
+  exportCsv: '/enquiries/export/csv',
 }
 
 // Contact Us Endpoints
 export const CONTACT_US_ENDPOINTS = {
   getAll: '/contact-us',
   reply: '/contact-us/reply',
+  exportCsv: '/contact-us/export/csv',
 }
+
+// Export Endpoints for other modules
+export const CLIENT_EXPORT_ENDPOINT = '/clients/export/csv'
+export const ECODE_EXPORT_ENDPOINT = '/ecodes/export/csv'
+export const FAQ_EXPORT_ENDPOINT = '/faqs/export/csv'
+export const USER_FAQ_EXPORT_ENDPOINT = '/user-faqs/export/csv'
+export const PRODUCT_EXPORT_ENDPOINT = '/products/export/csv'

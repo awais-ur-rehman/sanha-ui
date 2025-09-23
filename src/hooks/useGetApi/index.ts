@@ -12,12 +12,14 @@ export const useGetApi = <T>(
         staleTime = 5 * 60 * 1000, // 5 minutes
         cacheTime = 10 * 60 * 1000, // 10 minutes
         requireAuth = false,
+        responseType = 'json',
     } = options
 
     return useQuery({
         queryKey: [url],
         queryFn: async (): Promise<T> => {
-            const headers = requireAuth ? getAuthHeaders() : API_CONFIG.headers
+            const headersBase = requireAuth ? getAuthHeaders() : API_CONFIG.headers
+            const headers = responseType === 'blob' ? { ...headersBase, Accept: 'text/csv' } : headersBase
 
             const response = await fetch(`${API_CONFIG.baseURL}${url}`, {
                 method: 'GET',
@@ -28,6 +30,10 @@ export const useGetApi = <T>(
                 throw new Error(`HTTP error! status: ${response.status}`)
             }
 
+            if (responseType === 'blob') {
+                // @ts-expect-error - cast for blob
+                return (await response.blob()) as T
+            }
             return response.json()
         },
         enabled,

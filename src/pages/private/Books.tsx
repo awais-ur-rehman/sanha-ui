@@ -294,12 +294,6 @@ const Books = () => {
           />
 
           <div className="ml-auto flex items-center gap-2">
-            <button
-              onClick={() => { /* TODO: implement export */ }}
-              className="px-10 py-[10px] text-xs border border-[#0c684b] text-[#0c684b] rounded-sm hover:bg-gray-50 transition-colors"
-            >
-              Export
-            </button>
             {hasPermission('Books', 'create') && (
               <button
                 onClick={handleAddBook}

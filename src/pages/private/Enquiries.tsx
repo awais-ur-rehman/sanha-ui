@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { FiSearch } from 'react-icons/fi'
 import { usePermissions } from '../../hooks/usePermissions'
-import { useEnquiriesApi } from '../../hooks'
+import { useEnquiriesApi, useGetApi } from '../../hooks'
 import type { Enquiry } from '../../types/entities'
 import { useToast } from '../../components/CustomToast/ToastContext'
 import DateRangePicker from '../../components/DateRangePicker'
 import DeleteConfirmationModal from '../../components/DeleteConfirmationModal'
-import { Pagination } from '../../components'
+// import { Pagination } from '../../components'
 import { API_CONFIG, ENQUIRY_ENDPOINTS, getAuthHeaders } from '../../config/api'
 
 type EnquiryTabType = 'pending' | 'accepted' | 'rejected'
@@ -40,6 +40,11 @@ const Enquiries = () => {
   const [updatingId, setUpdatingId] = useState<number | null>(null)
   const [actionType, setActionType] = useState<'accept' | 'reject' | null>(null)
   const [selectedEnquiry, setSelectedEnquiry] = useState<Enquiry | null>(null)
+  const [tabCache, setTabCache] = useState<Record<EnquiryTabType, { list: Enquiry[]; pagination: { currentPage: number; totalPages: number; totalItems: number } }>>({
+    pending: { list: [], pagination: { currentPage: 1, totalPages: 1, totalItems: 0 } },
+    accepted: { list: [], pagination: { currentPage: 1, totalPages: 1, totalItems: 0 } },
+    rejected: { list: [], pagination: { currentPage: 1, totalPages: 1, totalItems: 0 } },
+  })
 
   const queryParams = new URLSearchParams({
     page: pagination.currentPage.toString(),
@@ -58,50 +63,133 @@ const Enquiries = () => {
     staleTime: 0,
   })
 
-  const enquiries: Enquiry[] = data?.data?.data || []
+  // Export CSV
+  const exportParams = new URLSearchParams({
+    state: activeTab.charAt(0).toUpperCase() + activeTab.slice(1),
+    ...(searchTerm && { search: searchTerm }),
+    ...(filters.email && { email: filters.email }),
+    ...(filters.firstName && { firstName: filters.firstName }),
+    ...(filters.lastName && { lastName: filters.lastName }),
+    ...(filters.startDate && { startDate: filters.startDate }),
+    ...(filters.endDate && { endDate: filters.endDate }),
+  })
+  const exportCsvQuery = useGetApi<Blob>(`${ENQUIRY_ENDPOINTS.exportCsv}?${exportParams.toString()}`,
+    { requireAuth: true, enabled: false, staleTime: 0, responseType: 'blob' }
+  )
+
+  const handleExport = async () => {
+    try {
+      const result = await exportCsvQuery.refetch()
+      const blob = result.data as Blob
+      if (!blob) return
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `enquiries-${activeTab}-${new Date().toISOString().slice(0,10)}.csv`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(url)
+    } catch {}
+  }
+
+  const enquiriesPage: Enquiry[] = data?.data?.data || []
+  const [enquiriesList, setEnquiriesList] = useState<Enquiry[]>([])
+  const listRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (data?.data?.pagination) {
+      const nextTotalPages = Number(data.data.pagination.totalPages) || 1
+      const nextTotalItems = Number(data.data.pagination.total) || 0
+      setPagination(prev => ({ ...prev, totalPages: nextTotalPages, totalItems: nextTotalItems }))
+      setEnquiriesList(prev => {
+        const merged = pagination.currentPage === 1 ? enquiriesPage : [...prev, ...enquiriesPage]
+        // Dedupe by id to avoid duplicates when switching tabs and returning
+        const uniqueById = Array.from(new Map(merged.map((e) => [e.id, e])).values())
+        setTabCache(cache => ({
+          ...cache,
+          [activeTab]: {
+            list: uniqueById,
+            pagination: { currentPage: pagination.currentPage, totalPages: nextTotalPages, totalItems: nextTotalItems },
+          },
+        }))
+        return uniqueById
+      })
+    }
+  }, [data, enquiriesPage, pagination.currentPage, activeTab])
+
+  // When active tab changes, hydrate from cache immediately; if empty, trigger fetch
+  useEffect(() => {
+    const cached = tabCache[activeTab]
+    // Load from cache if available
+    if (cached.list.length > 0) {
+      setEnquiriesList(cached.list)
       setPagination(prev => ({
         ...prev,
-        totalPages: Number(data.data.pagination.totalPages) || 1,
-        totalItems: Number(data.data.pagination.total) || 0,
+        currentPage: cached.pagination.currentPage || 1,
+        totalPages: cached.pagination.totalPages || 1,
+        totalItems: cached.pagination.totalItems || 0,
       }))
+      // Do not change selection if already selected
+      return
     }
-  }, [data])
-
-  // Refetch data when active tab changes
-  useEffect(() => {
-    setPagination(prev => ({ ...prev, currentPage: 1 })) // Reset to first page
-    setSelectedEnquiry(null) // Clear selected enquiry when switching tabs
+    // No cache: reset and fetch
+    setEnquiriesList([])
+    setPagination(prev => ({ ...prev, currentPage: 1 }))
     refetch()
   }, [activeTab, refetch])
 
   // Select first enquiry when data loads or tab changes
   useEffect(() => {
-    if (enquiries.length > 0 && !selectedEnquiry) {
-      setSelectedEnquiry(enquiries[0])
-    } else if (enquiries.length > 0 && selectedEnquiry && !enquiries.find(e => e.id === selectedEnquiry.id)) {
-      setSelectedEnquiry(enquiries[0])
-    } else if (enquiries.length === 0 && selectedEnquiry) {
-      // Clear selected enquiry if no enquiries in current tab
+    if (enquiriesList.length === 0) {
       setSelectedEnquiry(null)
+      return
     }
-  }, [enquiries, selectedEnquiry])
+    // If nothing selected yet for this tab, select first; otherwise keep current
+    if (!selectedEnquiry) {
+      setSelectedEnquiry(enquiriesList[0])
+      return
+    }
+    // If selected item no longer exists in list, select first
+    if (!enquiriesList.find(e => e.id === selectedEnquiry.id)) {
+      setSelectedEnquiry(enquiriesList[0])
+    }
+  }, [enquiriesList])
 
   const handleSearch = (term: string) => {
     setSearchTerm(term)
     setPagination(prev => ({ ...prev, currentPage: 1 }))
+    setEnquiriesList([])
+    // Clear cache for active tab when filters change to avoid merging with stale data
+    setTabCache(cache => ({
+      ...cache,
+      [activeTab]: { list: [], pagination: { currentPage: 1, totalPages: 1, totalItems: 0 } },
+    }))
   }
 
 
   const handleDateFilterApply = (startDate: string, endDate: string) => {
     setFilters(prev => ({ ...prev, startDate, endDate }))
     setPagination(prev => ({ ...prev, currentPage: 1 }))
+    setEnquiriesList([])
+    setTabCache(cache => ({
+      ...cache,
+      [activeTab]: { list: [], pagination: { currentPage: 1, totalPages: 1, totalItems: 0 } },
+    }))
   }
 
-  const handlePageChange = (page: number) => {
-    setPagination(prev => ({ ...prev, currentPage: page }))
+  // const handlePageChange = (page: number) => {
+  //   setPagination(prev => ({ ...prev, currentPage: page }))
+  // }
+
+  const handleLeftScroll = () => {
+    const el = listRef.current
+    if (!el) return
+    const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 100
+    const hasMore = pagination.currentPage < pagination.totalPages
+    if (nearBottom && hasMore && !isLoading) {
+      setPagination(prev => ({ ...prev, currentPage: prev.currentPage + 1 }))
+    }
   }
 
 
@@ -191,7 +279,7 @@ const Enquiries = () => {
 
   return (
     <div className="py-4">
-      <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] max-h-[calc(100vh-35px)] overflow-y-auto px-6 py-10'> 
+      <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] px-6 py-10'> 
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-2xl font-semibold text-gray-900">Enquiries</h1>
@@ -261,8 +349,8 @@ const Enquiries = () => {
             />
 
             <div className="ml-auto flex items-center gap-2">
-              <button
-                onClick={() => { /* TODO: implement export */ }}
+            <button
+              onClick={handleExport}
                 className="px-10 py-[10px] text-xs border border-[#0c684b] text-[#0c684b] rounded-sm hover:bg-gray-50 transition-colors"
               >
                 Export
@@ -274,12 +362,12 @@ const Enquiries = () => {
         {/* Two Panel Layout */}
         <div className="flex gap-6 h-[calc(100vh-350px)]">
           {/* Left Panel - User List */}
-          <div className="w-1/5 border border-gray-200 rounded-lg overflow-hidden">
+          <div className="w-1/5 h-full flex flex-col border border-gray-200 rounded-lg overflow-hidden">
             <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-              <h3 className="text-xs text-gray-500">Total Enquiries: {enquiries.length}</h3>
+              <h3 className="text-xs text-gray-500">Total Enquiries: {enquiriesList.length}</h3>
             </div>
-            <div className="overflow-y-auto h-full">
-              {isLoading ? (
+            <div ref={listRef} onScroll={handleLeftScroll} className="overflow-y-auto flex-1">
+              {isLoading && enquiriesList.length === 0 ? (
                 Array.from({ length: 5 }).map((_, index) => (
                   <div key={index} className="p-4 border-b border-gray-100 animate-pulse">
                     <div className="h-4 bg-gray-200 rounded mb-2"></div>
@@ -287,12 +375,12 @@ const Enquiries = () => {
                     <div className="h-3 bg-gray-200 rounded w-2/3"></div>
                   </div>
                 ))
-              ) : enquiries.length === 0 ? (
+              ) : enquiriesList.length === 0 ? (
                 <div className="p-8 text-center text-gray-500">
                   <p className="text-sm">No enquiries found</p>
                 </div>
               ) : (
-                enquiries.map((enquiry: Enquiry) => (
+                enquiriesList.map((enquiry: Enquiry) => (
                   <div
                     key={enquiry.id}
                     onClick={() => setSelectedEnquiry(enquiry)}
@@ -430,19 +518,6 @@ const Enquiries = () => {
           </div>
         </div>
 
-        {/* Pagination */}
-        {!isLoading && pagination.totalPages > 1 && (
-          <div className="mt-8">
-            <Pagination
-              currentPage={pagination.currentPage}
-              totalPages={pagination.totalPages}
-              totalItems={pagination.totalItems}
-              itemsPerPage={pagination.itemsPerPage}
-              onPageChange={handlePageChange}
-              className="justify-center"
-            />
-          </div>
-        )}
 
         {/* Delete Confirmation Modal */}
         <DeleteConfirmationModal

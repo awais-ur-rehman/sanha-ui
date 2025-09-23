@@ -4,7 +4,7 @@ import { usePermissions } from '../../hooks/usePermissions'
 import { useGetApi, useDeleteApi } from '../../hooks'
 import CustomDropdown from '../../components/CustomDropdown'
 import { useToast } from '../../components/CustomToast/ToastContext'
-import { ECODE_ENDPOINTS, API_CONFIG, getAuthHeaders } from '../../config/api'
+import { ECODE_ENDPOINTS, API_CONFIG, getAuthHeaders, ECODE_EXPORT_ENDPOINT } from '../../config/api'
 import type { ECode } from '../../types/entities'
 import EntityDetailSheet from '../../components/EntityDetailSheet'
 import Modal from '../../components/Modal'
@@ -59,6 +59,33 @@ const ECodes = () => {
       staleTime: 0, // Always fetch fresh data
     }
   )
+
+  // Export CSV hook
+  const exportQueryParams = new URLSearchParams({
+    ...(searchTerm && { search: searchTerm }),
+    ...(filters.status && { status: filters.status }),
+    ...(filters.isActive && { isActive: filters.isActive }),
+  })
+  const exportCsvQuery = useGetApi<Blob>(
+    `${ECODE_EXPORT_ENDPOINT}?${exportQueryParams.toString()}`,
+    { requireAuth: true, enabled: false, staleTime: 0, responseType: 'blob' }
+  )
+
+  const handleExport = async () => {
+    try {
+      const result = await exportCsvQuery.refetch()
+      const blob = result.data as Blob
+      if (!blob) return
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `ecodes-${new Date().toISOString().slice(0,10)}.csv`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(url)
+    } catch {}
+  }
 
   // Delete E-Code mutation
   const deleteECodeMutation = useDeleteApi(
@@ -326,7 +353,7 @@ const ECodes = () => {
 
           <div className="ml-auto flex items-center gap-2">
             <button
-              onClick={() => { /* TODO: implement export */ }}
+              onClick={handleExport}
               className="px-10 py-[10px] text-xs border border-[#0c684b] text-[#0c684b] rounded-sm hover:bg-gray-50 transition-colors"
             >
               Export

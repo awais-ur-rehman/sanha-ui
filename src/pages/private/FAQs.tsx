@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { FiSearch, FiMail, FiGlobe, FiMessageCircle, FiPlus, FiEdit, FiTrash2 } from 'react-icons/fi'
 import { usePermissions } from '../../hooks/usePermissions'
-import { useFaqsApi, useUserFaqsApi } from '../../hooks'
+import { useFaqsApi, useUserFaqsApi, useGetApi } from '../../hooks'
 import CustomDropdown from '../../components/CustomDropdown'
 import SearchableDropdown from '../../components/SearchableDropdown'
 import CustomCheckbox from '../../components/CustomCheckbox'
@@ -11,7 +11,7 @@ import DateRangePicker from '../../components/DateRangePicker'
 import Modal from '../../components/Modal'
 import FAQForm from '../../forms/FAQForm'
 import DeleteConfirmationModal from '../../components/DeleteConfirmationModal'
-import { USER_FAQ_ENDPOINTS, FAQ_ENDPOINTS, API_CONFIG, getAuthHeaders } from '../../config/api'
+import { USER_FAQ_ENDPOINTS, FAQ_ENDPOINTS, API_CONFIG, getAuthHeaders, FAQ_EXPORT_ENDPOINT, USER_FAQ_EXPORT_ENDPOINT } from '../../config/api'
 import { Pagination } from '../../components'
 
 // Common countries list
@@ -143,6 +143,42 @@ const FAQs = () => {
       staleTime: 0,
     }
   )
+
+  // Export CSV
+  const faqExportParams = new URLSearchParams({
+    ...(searchTerm && { search: searchTerm }),
+    ...(filters.isActive && { isActive: filters.isActive }),
+    ...(filters.faqType && { faqType: filters.faqType }),
+    ...(filters.startDate && { startDate: filters.startDate }),
+    ...(filters.endDate && { endDate: filters.endDate }),
+  })
+  const userFaqExportParams = new URLSearchParams({
+    ...(searchTerm && { search: searchTerm }),
+    ...(filters.email && { email: filters.email }),
+    ...(filters.country && filters.country.trim() && { country: filters.country }),
+    ...(filters.firstName && { firstName: filters.firstName }),
+    ...(filters.lastName && { lastName: filters.lastName }),
+    ...(filters.startDate && { startDate: filters.startDate }),
+    ...(filters.endDate && { endDate: filters.endDate }),
+  })
+  const exportFaqCsvQuery = useGetApi<Blob>(`${FAQ_EXPORT_ENDPOINT}?${faqExportParams.toString()}`, { requireAuth: true, enabled: false, responseType: 'blob', staleTime: 0 })
+  const exportUserFaqCsvQuery = useGetApi<Blob>(`${USER_FAQ_EXPORT_ENDPOINT}?${userFaqExportParams.toString()}`, { requireAuth: true, enabled: false, responseType: 'blob', staleTime: 0 })
+
+  const handleExport = async () => {
+    try {
+      const result = await (activeTab === 'FAQs' ? exportFaqCsvQuery.refetch() : exportUserFaqCsvQuery.refetch())
+      const blob = result.data as Blob
+      if (!blob) return
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${activeTab === 'FAQs' ? 'faqs' : 'user-faqs'}-${new Date().toISOString().slice(0,10)}.csv`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(url)
+    } catch {}
+  }
 
 
 
@@ -823,7 +859,7 @@ const FAQs = () => {
 
           <div className="ml-auto flex items-center gap-2">
             <button
-              onClick={() => { /* TODO: implement export */ }}
+              onClick={handleExport}
               className="px-10 py-[10px] text-xs border border-[#0c684b] text-[#0c684b] rounded-sm hover:bg-gray-50 transition-colors"
             >
               Export

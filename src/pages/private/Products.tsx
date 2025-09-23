@@ -3,7 +3,7 @@ import { FiSearch, FiCheckCircle, FiXCircle, FiMapPin } from 'react-icons/fi'
 import { usePermissions } from '../../hooks/usePermissions'
 import { useGetApi, usePostApi, usePutApi, useDeleteApi } from '../../hooks'
 import { useToast } from '../../components/CustomToast/ToastContext'
-import { PRODUCT_ENDPOINTS, API_CONFIG, getAuthHeaders } from '../../config/api'
+import { PRODUCT_ENDPOINTS, API_CONFIG, getAuthHeaders, PRODUCT_EXPORT_ENDPOINT } from '../../config/api'
 import type { Product, ProductCreateRequest, ProductUpdateRequest } from '../../types/entities'
 import Modal from '../../components/Modal'
 import ProductForm from '../../forms/ProductForm'
@@ -61,6 +61,33 @@ const Products = () => {
       staleTime: 0, // Always fetch fresh data
     }
   )
+
+  // Export CSV hook
+  const exportQueryParams = new URLSearchParams({
+    ...(searchTerm && { search: searchTerm }),
+    ...(filters.status && { status: filters.status }),
+    ...(filters.isActive && { isActive: filters.isActive }),
+  })
+  const exportCsvQuery = useGetApi<Blob>(
+    `${PRODUCT_EXPORT_ENDPOINT}?${exportQueryParams.toString()}`,
+    { requireAuth: true, enabled: false, staleTime: 0, responseType: 'blob' }
+  )
+
+  const handleExport = async () => {
+    try {
+      const result = await exportCsvQuery.refetch()
+      const blob = result.data as Blob
+      if (!blob) return
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `products-${new Date().toISOString().slice(0,10)}.csv`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(url)
+    } catch {}
+  }
 
   const createProductMutation = usePostApi<ProductCreateRequest, any>(
     PRODUCT_ENDPOINTS.create,
@@ -314,7 +341,7 @@ const Products = () => {
 
           <div className="ml-auto flex items-center gap-2">
             <button
-              onClick={() => { /* TODO: implement export */ }}
+              onClick={handleExport}
               className="px-10 py-[10px] text-xs border border-[#0c684b] text-[#0c684b] rounded-sm hover:bg-gray-50 transition-colors"
             >
               Export
