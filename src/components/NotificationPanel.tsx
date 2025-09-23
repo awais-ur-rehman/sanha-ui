@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { FiX, FiBell } from 'react-icons/fi'
-import { useWebSocket } from '../hooks'
+import { useNotificationContext } from '../context/NotificationContext'
+import { useNotificationHandler } from '../hooks'
 
 interface NotificationPanelProps {
   isOpen: boolean
@@ -8,7 +9,8 @@ interface NotificationPanelProps {
 }
 
 const NotificationPanel = ({ isOpen, onClose }: NotificationPanelProps) => {
-  const { notifications, markNotificationAsRead, clearAllNotifications } = useWebSocket()
+  const { notifications, clearAllNotifications } = useNotificationContext()
+  const { handleNotificationClick } = useNotificationHandler()
 
   // Format timestamp to a more readable format
   const formatTimestamp = (timestamp: string) => {
@@ -105,7 +107,7 @@ const NotificationPanel = ({ isOpen, onClose }: NotificationPanelProps) => {
                   <div 
                     key={notification.id} 
                     className="p-2 bg-white hover:bg-gray-50 transition-colors duration-200 cursor-pointer border-b border-gray-100 last:border-b-0"
-                    onClick={() => markNotificationAsRead(notification.id)}
+                    onClick={() => handleNotificationClick(notification)}
                   >
                     <div className="flex items-start gap-2">
                    

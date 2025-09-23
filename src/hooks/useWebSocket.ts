@@ -33,9 +33,46 @@ export const useWebSocket = (): UseWebSocketReturn => {
     const [socket, setSocket] = useState<Socket | null>(null)
     const [isConnected, setIsConnected] = useState(false)
     const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected')
-    const [notifications, setNotifications] = useState<NotificationData[]>([])
+    const [notifications, setNotifications] = useState<NotificationData[]>(() => {
+        // Initialize notifications from localStorage immediately
+        try {
+            const savedNotifications = localStorage.getItem('sanha_notifications')
+            if (savedNotifications) {
+                return JSON.parse(savedNotifications)
+            }
+        } catch (error) {
+            console.error('Failed to parse saved notifications:', error)
+            localStorage.removeItem('sanha_notifications')
+        }
+        return []
+    })
     const { user } = useAuthStore()
     const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+    // Save notifications to localStorage whenever notifications change
+    useEffect(() => {
+        localStorage.setItem('sanha_notifications', JSON.stringify(notifications))
+    }, [notifications])
+
+    // Listen for localStorage changes from other tabs
+    useEffect(() => {
+        const handleStorageChange = (e: StorageEvent) => {
+            if (e.key === 'sanha_notifications' && e.newValue) {
+                try {
+                    const newNotifications = JSON.parse(e.newValue)
+                    setNotifications(newNotifications)
+                } catch (error) {
+                    console.error('Failed to parse notifications from storage event:', error)
+                }
+            }
+        }
+
+        window.addEventListener('storage', handleStorageChange)
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange)
+        }
+    }, [])
 
     // Get WebSocket URL from environment
     const getWebSocketUrl = () => {
@@ -101,21 +138,30 @@ export const useWebSocket = (): UseWebSocketReturn => {
             }, 5000)
         })
 
-        // Event handlers for notifications
-        newSocket.on('event', (event: WebSocketEvent) => {
-            if (event.type === 'NEW_USER_FAQ' || event.type === 'NEW_CONTACT_US' || event.type === 'NEW_ENQUIRY') {
-                const notification: NotificationData = {
-                    id: event.data.id,
-                    type: event.data.type,
-                    title: event.data.title,
-                    message: event.data.message,
-                    priority: event.data.priority,
-                    timestamp: event.data.timestamp
-                }
-
-                addNotification(notification)
-            }
-        })
+           // Event handlers for notifications
+           newSocket.on('event', (event: WebSocketEvent) => {
+             if (event.type === 'NEW_USER_FAQ' || event.type === 'NEW_CONTACT_US' || event.type === 'NEW_ENQUIRY') {
+               const notification: NotificationData = {
+                 id: event.data.id,
+                 type: event.data.type,
+                 title: event.data.title,
+                 message: event.data.message,
+                 priority: event.data.priority,
+                 timestamp: event.data.timestamp
+               }
+               
+               addNotification(notification)
+               
+               // Dispatch event for real-time data updates
+               window.dispatchEvent(new CustomEvent('newNotificationReceived', {
+                 detail: {
+                   type: event.data.type,
+                   id: event.data.id,
+                   notification: notification
+                 }
+               }))
+             }
+           })
 
         newSocket.on('identified', () => {
             // Client identification confirmed
@@ -187,6 +233,7 @@ export const useWebSocket = (): UseWebSocketReturn => {
     // Clear all notifications
     const clearAllNotifications = () => {
         setNotifications([])
+        localStorage.removeItem('sanha_notifications')
     }
 
     // Get unread notifications count

@@ -40,7 +40,7 @@ const Login: React.FC = () => {
       </div>
 
       {/* Left side - Brand (Desktop) */}
-      <div className="hidden lg:flex lg:w-1/2 bg-black items-start text-start justify-start p-4 rounded-xl relative overflow-hidden order-2 lg:order-1">
+      <div className="hidden lg:flex lg:w-1/2 bg-[#1f222a] items-start text-start justify-start p-4 rounded-xl relative overflow-hidden order-2 lg:order-1">
         {/* Abstract Background Pattern */}
         <div className="absolute inset-0 opacity-20">
               <div className="absolute top-4 left-4 md:top-10 md:left-10 w-16 h-16 md:w-32 md:h-32 bg-white rounded-full blur-2xl md:blur-3xl"></div>

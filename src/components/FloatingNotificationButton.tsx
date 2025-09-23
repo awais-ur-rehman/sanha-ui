@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { FiBell } from 'react-icons/fi'
 import NotificationPanel from './NotificationPanel'
-import { useWebSocket } from '../hooks'
+import { useNotificationContext } from '../context/NotificationContext'
 
 const FloatingNotificationButton = () => {
   const [isNotificationPanelOpen, setIsNotificationPanelOpen] = useState(false)
-  const { isConnected, connectionStatus, getUnreadCount } = useWebSocket()
+  const { getUnreadCount } = useNotificationContext()
 
   const handleNotificationClick = () => {
     setIsNotificationPanelOpen(!isNotificationPanelOpen)

@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import { ToastProvider } from './components/CustomToast/ToastContext'
+import { NotificationProvider } from './context/NotificationContext'
 import './styles/dropdown.css'
 import ProtectedRoute from './components/ProtectedRoute'
 import PermissionRoute from './components/PermissionRoute'
@@ -32,7 +33,8 @@ function App() {
 
   return (
     <ToastProvider>
-      <Router>
+      <NotificationProvider>
+        <Router>
                         <Routes>
                   {/* Public Routes */}
                   <Route path={ROUTES.LOGIN} element={<Login />} />
@@ -181,7 +183,8 @@ function App() {
           <Route path="/" element={<Navigate to={ROUTES.LOGIN} replace />} />
           <Route path="*" element={<Navigate to={ROUTES.LOGIN} replace />} />
         </Routes>
-      </Router>
+        </Router>
+      </NotificationProvider>
     </ToastProvider>
   )
 }

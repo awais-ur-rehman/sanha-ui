@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
+import { useLocation } from 'react-router-dom'
 import { FiSearch, FiMessageCircle, FiEdit2 } from 'react-icons/fi'
 import { usePermissions } from '../../hooks/usePermissions'
-import { useGetApi, usePutApi } from '../../hooks'
+import { useGetApi, usePutApi, useRealTimeUpdates } from '../../hooks'
 import { useToast } from '../../components/CustomToast/ToastContext'
 import { CONTACT_US_ENDPOINTS } from '../../config/api'
 import type { ContactUs as ContactUsType, ContactUsReplyRequest } from '../../types/entities'
@@ -13,6 +14,7 @@ const ContactUs = () => {
   // Hooks
   const { hasPermission } = usePermissions()
   const { showToast } = useToast()
+  const location = useLocation()
   
   // Check permissions
   const hasReadPermission = hasPermission('Contact Us', 'read')
@@ -117,6 +119,36 @@ const ContactUs = () => {
   const [entriesList, setEntriesList] = useState<ContactUsType[]>([])
   const [selectedEntry, setSelectedEntry] = useState<ContactUsType | null>(null)
   const listRef = useRef<HTMLDivElement>(null)
+
+  // Handle page navigation - reset real-time list when returning to page
+  useEffect(() => {
+    // When component mounts or location changes, reset the real-time list to allow API data to load
+    setEntriesList([])
+  }, [location.pathname])
+
+  // Real-time updates hook
+  useRealTimeUpdates({
+    itemType: 'contact-us',
+    onNewItem: (newContactUs: ContactUsType) => {
+      setEntriesList(prev => {
+        // Check if contact us entry already exists to avoid duplicates
+        const exists = prev.some(entry => entry.id === newContactUs.id)
+        
+        if (exists) {
+          return prev
+        }
+        
+        // Only add to list if we're on the pending tab (where new contact us entries should appear)
+        if (activeTab !== 'pending') {
+          return prev
+        }
+        
+        // Add new contact us entry to the beginning of the list
+        return [newContactUs, ...prev]
+      })
+    },
+    currentPath: location.pathname
+  })
 
   // Right-panel reply/edit state
   const [isReplyingPanel, setIsReplyingPanel] = useState(false)

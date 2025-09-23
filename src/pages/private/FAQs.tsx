@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
+import { useLocation } from 'react-router-dom'
 import { FiSearch, FiMail, FiGlobe, FiMessageCircle, FiPlus, FiEdit, FiTrash2 } from 'react-icons/fi'
 import { usePermissions } from '../../hooks/usePermissions'
-import { useFaqsApi, useUserFaqsApi, useGetApi } from '../../hooks'
+import { useFaqsApi, useUserFaqsApi, useGetApi, useRealTimeUpdates } from '../../hooks'
 import CustomDropdown from '../../components/CustomDropdown'
 import SearchableDropdown from '../../components/SearchableDropdown'
 import CustomCheckbox from '../../components/CustomCheckbox'
@@ -56,6 +57,7 @@ const FAQs = () => {
   // Hooks
   const { hasPermission } = usePermissions()
   const { showToast } = useToast()
+  const location = useLocation()
   
   // Check if user has read permission for FAQs
 
@@ -192,7 +194,11 @@ const FAQs = () => {
     answer: faq.answer || '',
   })) || []
 
-  const userFaqs = userFaqsResponse?.data?.data?.map((userFaq: UserFAQ) => ({
+  // State for managing user FAQs list with real-time updates
+  const [userFaqsList, setUserFaqsList] = useState<UserFAQ[]>([])
+  
+  // Compute user FAQs from API response
+  const userFaqsFromApi = userFaqsResponse?.data?.data?.map((userFaq: UserFAQ) => ({
     ...userFaq,
     firstName: userFaq.firstName || '',
     lastName: userFaq.lastName || '',
@@ -202,6 +208,53 @@ const FAQs = () => {
     question: userFaq.question || '',
     answer: userFaq.answer || '',
   })) || []
+
+  // Use real-time list if available and on User FAQs tab, otherwise use API data
+  const userFaqs = (activeTab === 'User FAQs' && userFaqsList.length > 0) ? userFaqsList : userFaqsFromApi
+
+  // Real-time updates hook
+  useRealTimeUpdates({
+    itemType: 'faq',
+    onNewItem: (newUserFaq: UserFAQ) => {
+      setUserFaqsList(prev => {
+        // Check if FAQ already exists to avoid duplicates
+        const exists = prev.some(userFaq => userFaq.id === newUserFaq.id)
+        
+        if (exists) {
+          return prev
+        }
+        
+        // Only add to list if we're on the User FAQs tab
+        if (activeTab !== 'User FAQs') {
+          return prev
+        }
+        
+        // Add new user FAQ to the beginning of the list
+        return [newUserFaq, ...prev]
+      })
+    },
+    currentPath: location.pathname
+  })
+
+  // Sync API data with state when API data changes (only for User FAQs tab)
+  useEffect(() => {
+    if (activeTab === 'User FAQs' && userFaqsFromApi.length > 0 && userFaqsList.length === 0) {
+      setUserFaqsList(userFaqsFromApi)
+    }
+  }, [activeTab, userFaqsFromApi, userFaqsList.length])
+
+  // Clear real-time list when switching away from User FAQs tab
+  useEffect(() => {
+    if (activeTab !== 'User FAQs') {
+      setUserFaqsList([])
+    }
+  }, [activeTab])
+
+  // Handle page navigation - reset real-time list when returning to page
+  useEffect(() => {
+    // When component mounts or location changes, reset the real-time list to allow API data to load
+    setUserFaqsList([])
+  }, [location.pathname])
 
   // Update pagination when data changes
   useEffect(() => {

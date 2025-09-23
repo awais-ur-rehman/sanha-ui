@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { FiSearch } from 'react-icons/fi'
+import { useLocation } from 'react-router-dom'
 import { usePermissions } from '../../hooks/usePermissions'
-import { useEnquiriesApi, useGetApi } from '../../hooks'
+import { useEnquiriesApi, useGetApi, useRealTimeUpdates } from '../../hooks'
 import type { Enquiry } from '../../types/entities'
 import { useToast } from '../../components/CustomToast/ToastContext'
 import DateRangePicker from '../../components/DateRangePicker'
@@ -14,6 +15,7 @@ type EnquiryTabType = 'pending' | 'accepted' | 'rejected'
 const Enquiries = () => {
   const { hasPermission } = usePermissions()
   const { showToast } = useToast()
+  const location = useLocation()
 
   const hasReadPermission = hasPermission('Enquiry', 'read')
 
@@ -39,6 +41,7 @@ const Enquiries = () => {
   const [isDeleting, setIsDeleting] = useState(false)
   const [updatingId, setUpdatingId] = useState<number | null>(null)
   const [actionType, setActionType] = useState<'accept' | 'reject' | null>(null)
+  const [isReturningFromNavigation, setIsReturningFromNavigation] = useState(false)
   const [selectedEnquiry, setSelectedEnquiry] = useState<Enquiry | null>(null)
   const [tabCache, setTabCache] = useState<Record<EnquiryTabType, { list: Enquiry[]; pagination: { currentPage: number; totalPages: number; totalItems: number } }>>({
     pending: { list: [], pagination: { currentPage: 1, totalPages: 1, totalItems: 0 } },
@@ -97,15 +100,82 @@ const Enquiries = () => {
   const [enquiriesList, setEnquiriesList] = useState<Enquiry[]>([])
   const listRef = useRef<HTMLDivElement>(null)
 
+  // Real-time updates hook
+  useRealTimeUpdates({
+    itemType: 'enquiry',
+    onNewItem: (newEnquiry: Enquiry) => {
+      setEnquiriesList(prev => {
+        // Check if enquiry already exists to avoid duplicates
+        const exists = prev.some(enquiry => enquiry.id === newEnquiry.id)
+        
+        if (exists) {
+          return prev
+        }
+        
+        // Only add to list if we're on the pending tab (where new enquiries should appear)
+        if (activeTab !== 'pending') {
+          // Still update the pending tab cache
+          setTabCache(cache => ({
+            ...cache,
+            pending: {
+              ...cache.pending,
+              list: [newEnquiry, ...cache.pending.list],
+              pagination: {
+                ...cache.pending.pagination,
+                totalItems: cache.pending.pagination.totalItems + 1
+              }
+            }
+          }))
+          return prev
+        }
+        
+        // Add new enquiry to the beginning of the list
+        const updatedList = [newEnquiry, ...prev]
+        
+        // Update cache for current tab
+        setTabCache(cache => ({
+          ...cache,
+          [activeTab]: {
+            ...cache[activeTab],
+            list: updatedList,
+            pagination: {
+              ...cache[activeTab].pagination,
+              totalItems: cache[activeTab].pagination.totalItems + 1
+            }
+          }
+        }))
+        
+        return updatedList
+      })
+    },
+    currentPath: location.pathname
+  })
+
   useEffect(() => {
     if (data?.data?.pagination) {
+      console.log('📊 API data received', { enquiriesPageLength: enquiriesPage.length, currentListLength: enquiriesList.length })
       const nextTotalPages = Number(data.data.pagination.totalPages) || 1
       const nextTotalItems = Number(data.data.pagination.total) || 0
       setPagination(prev => ({ ...prev, totalPages: nextTotalPages, totalItems: nextTotalItems }))
       setEnquiriesList(prev => {
+        // If we have API data and no real-time data, use API data
+        if (enquiriesPage.length > 0 && prev.length === 0) {
+          console.log('✅ Using fresh API data')
+          setTabCache(cache => ({
+            ...cache,
+            [activeTab]: {
+              list: enquiriesPage,
+              pagination: { currentPage: pagination.currentPage, totalPages: nextTotalPages, totalItems: nextTotalItems },
+            },
+          }))
+          return enquiriesPage
+        }
+        
+        // Otherwise, merge with existing data for pagination
         const merged = pagination.currentPage === 1 ? enquiriesPage : [...prev, ...enquiriesPage]
         // Dedupe by id to avoid duplicates when switching tabs and returning
         const uniqueById = Array.from(new Map(merged.map((e) => [e.id, e])).values())
+        console.log('🔄 Merging data', { mergedLength: merged.length, uniqueLength: uniqueById.length })
         setTabCache(cache => ({
           ...cache,
           [activeTab]: {
@@ -120,9 +190,22 @@ const Enquiries = () => {
 
   // When active tab changes, hydrate from cache immediately; if empty, trigger fetch
   useEffect(() => {
+    console.log('📋 Tab change effect triggered', { activeTab, isReturningFromNavigation, cacheLength: tabCache[activeTab].list.length })
+    
+    // If we're returning from navigation, always fetch fresh data
+    if (isReturningFromNavigation) {
+      console.log('🔄 Returning from navigation, fetching fresh data')
+      setIsReturningFromNavigation(false)
+      setEnquiriesList([])
+      setPagination(prev => ({ ...prev, currentPage: 1 }))
+      refetch()
+      return
+    }
+    
     const cached = tabCache[activeTab]
     // Load from cache if available
     if (cached.list.length > 0) {
+      console.log('📦 Loading from cache', { cachedLength: cached.list.length })
       setEnquiriesList(cached.list)
       setPagination(prev => ({
         ...prev,
@@ -134,10 +217,32 @@ const Enquiries = () => {
       return
     }
     // No cache: reset and fetch
+    console.log('🔍 No cache, fetching fresh data')
     setEnquiriesList([])
     setPagination(prev => ({ ...prev, currentPage: 1 }))
     refetch()
-  }, [activeTab, refetch])
+  }, [activeTab, refetch, isReturningFromNavigation])
+
+  // Ensure API data is loaded when enquiriesList is empty
+  useEffect(() => {
+    if (enquiriesList.length === 0 && !isLoading) {
+      refetch()
+    }
+  }, [enquiriesList.length, isLoading, refetch])
+
+  // Handle page navigation - reset real-time list and cache when returning to page
+  useEffect(() => {
+    // When component mounts or location changes, reset everything to allow fresh API data to load
+    console.log('🔄 Page navigation detected, resetting state')
+    setEnquiriesList([])
+    setTabCache({
+      pending: { list: [], pagination: { currentPage: 1, totalPages: 1, totalItems: 0 } },
+      accepted: { list: [], pagination: { currentPage: 1, totalPages: 1, totalItems: 0 } },
+      rejected: { list: [], pagination: { currentPage: 1, totalPages: 1, totalItems: 0 } },
+    })
+    setPagination(prev => ({ ...prev, currentPage: 1 }))
+    setIsReturningFromNavigation(true)
+  }, [location.pathname])
 
   // Select first enquiry when data loads or tab changes
   useEffect(() => {
