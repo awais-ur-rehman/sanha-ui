@@ -62,10 +62,10 @@ const Login: React.FC = () => {
                   <div className="absolute inset-0 bg-gradient-to-r from-green-400 via-emerald-500 to-teal-600 shadow-2xl bubble-breathe bubble-distort" style={{ borderRadius: '50% 45% 55% 40% / 40% 50% 50% 55%' }}></div>
                   
                   {/* Inner spinning glow */}
-                  <div className="absolute inset-2 bg-black/80 blur-md opacity-60 inner-spin-glow bubble-distort" style={{ borderRadius: '50% 50% 50% 50% / 50% 50% 50% 50%' }}></div>
+                  <div className="absolute inset-2 bg-[#1f222a] blur-md opacity-60 inner-spin-glow bubble-distort" style={{ borderRadius: '50% 50% 50% 50% / 50% 50% 50% 50%' }}></div>
                   
                   {/* Inner cutout to make it completely hollow - distorted ring */}
-                  <div className="absolute inset-4 bg-black/80 bubble-distort" style={{ borderRadius: '50% 45% 55% 40% / 40% 50% 50% 55%' }}></div>
+                  <div className="absolute inset-4 bg-[#1f222a] bubble-distort" style={{ borderRadius: '50% 45% 55% 40% / 40% 50% 50% 55%' }}></div>
                 </div>
               </div>
             </div>
