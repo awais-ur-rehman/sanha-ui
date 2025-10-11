@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
-import { FiPlus, FiSearch, FiCheckCircle, FiXCircle, FiMail, FiPhone, FiGlobe, FiMapPin } from 'react-icons/fi'
+import { FiSearch, FiMail, FiPhone, FiGlobe, FiMapPin } from 'react-icons/fi'
 import { usePermissions } from '../../hooks/usePermissions'
 import { useGetApi, usePostApi, usePutApi, useDeleteApi } from '../../hooks'
 import { useToast } from '../../components/CustomToast/ToastContext'
-import { CLIENT_ENDPOINTS, API_CONFIG, getAuthHeaders, CLIENT_EXPORT_ENDPOINT } from '../../config/api'
+import { CLIENT_ENDPOINTS, CLIENT_EXPORT_ENDPOINT } from '../../config/api'
 import type { Client, ClientCreateRequest, ClientUpdateRequest } from '../../types/entities'
+import { CLIENT_STATUS } from '../../types/entities'
 import Modal from '../../components/Modal'
 import ClientForm from '../../forms/ClientForm'
 import EntityDetailSheet from '../../components/EntityDetailSheet'
@@ -35,7 +36,7 @@ const Clients = () => {
   const [filters, setFilters] = useState({
     startDate: '',
     endDate: '',
-    isActive: '',
+    status: '',
   })
   const [pagination, setPagination] = useState({
     currentPage: 1,
@@ -53,7 +54,7 @@ const Clients = () => {
     ...(searchTerm && { search: searchTerm }),
     ...(filters.startDate && { startDate: filters.startDate }),
     ...(filters.endDate && { endDate: filters.endDate }),
-    ...(filters.isActive && { isActive: filters.isActive }),
+    ...(filters.status && { status: filters.status }),
   })
 
   // API hooks
@@ -70,7 +71,7 @@ const Clients = () => {
     ...(searchTerm && { search: searchTerm }),
     ...(filters.startDate && { startDate: filters.startDate }),
     ...(filters.endDate && { endDate: filters.endDate }),
-    ...(filters.isActive && { isActive: filters.isActive }),
+    ...(filters.status && { status: filters.status }),
   })
   const exportCsvQuery = useGetApi<Blob>(
     `${CLIENT_EXPORT_ENDPOINT}?${exportQueryParams.toString()}`,
@@ -147,7 +148,6 @@ const Clients = () => {
   // Process clients data
   const clients = clientsResponse?.data?.data?.map((client: Client) => ({
     ...client,
-    isActive: Boolean(client.isActive), // Convert 0/1 to boolean
     logoUrl: client.logoUrl || '',
     name: client.name || '',
     email: client.email || '',
@@ -186,10 +186,10 @@ const Clients = () => {
     setPagination(prev => ({ ...prev, currentPage: 1 }))
   }
 
-  const handleIsActiveFilterChange = (value: string | number) => {
+  const handleStatusFilterChange = (value: string | number) => {
     setFilters(prev => ({ 
       ...prev, 
-      isActive: value.toString() 
+      status: value.toString() 
     }))
     setPagination(prev => ({ ...prev, currentPage: 1 }))
   }
@@ -217,37 +217,7 @@ const Clients = () => {
     setIsDeleteModalOpen(true)
   }
 
-  const handleToggleStatus = async (client: Client) => {
-    try {
-      console.log('Current client.isActive:', client.isActive, 'Type:', typeof client.isActive)
-      
-      // Use the isActive value that was passed from the detail sheet
-      // The detail sheet already toggled the value, so we use it directly
-      const payload = {
-        isActive: client.isActive, // Use the passed value directly
-      }
-      
-      console.log('Sending payload:', payload)
-
-      // Use direct fetch to ensure we send to the correct endpoint with client ID
-      const response = await fetch(`${API_CONFIG.baseURL}${CLIENT_ENDPOINTS.update}/${client.id}`, {
-        method: 'PUT',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(payload),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || 'Failed to update client status')
-      }
-
-      showToast('success', `Client ${!client.isActive ? 'activated' : 'deactivated'} successfully!`)
-      refetch() // Refresh the client list
-    } catch (error) {
-      console.error('Error updating client status:', error)
-      showToast('error', error instanceof Error ? error.message : 'Failed to update client status')
-    }
-  }
+  // Status changes are handled via Edit modal; no inline toggle
 
   const handleSubmitCreate = async (data: ClientCreateRequest) => {
     setIsSubmitting(true)
@@ -335,17 +305,21 @@ const Clients = () => {
           </div>
 
           {/* Status Filter */}
-          <CustomDropdown
-            options={[
-              { value: '', label: 'All Status' },
-              { value: 'true', label: 'Active' },
-              { value: 'false', label: 'Inactive' },
-            ]}
-            value={filters.isActive}
-            onChange={handleIsActiveFilterChange}
-            placeholder="Filter by status"
-            className="w-[120px] text-xs"
-          />
+          <div className="w-[220px]">
+            <CustomDropdown
+              options={[
+                { value: '', label: 'All Status' },
+                { value: CLIENT_STATUS.ACTIVE, label: CLIENT_STATUS.ACTIVE },
+                { value: CLIENT_STATUS.ON_HOLD, label: CLIENT_STATUS.ON_HOLD },
+                { value: CLIENT_STATUS.CERTIFICATE_ON_HOLD, label: CLIENT_STATUS.CERTIFICATE_ON_HOLD },
+                { value: CLIENT_STATUS.EXPIRED, label: CLIENT_STATUS.EXPIRED },
+              ]}
+              value={filters.status}
+              onChange={handleStatusFilterChange}
+              placeholder="Filter by status"
+              className="text-xs"
+            />
+          </div>
 
           {/* Date Range Picker */}
           <DateRangePicker
@@ -416,7 +390,7 @@ const Clients = () => {
                       />
                     )}
                     <div className='mr-2'>
-                      <div className="text-sm font-medium text-gray-900">{client.name}</div>
+                      <div className="text-sm font-medium text-gray-900 max-w-[200px] truncate" title={client.name}>{client.name}</div>
                     </div>
                   </div>
                 )
@@ -426,7 +400,7 @@ const Clients = () => {
                 header: 'Contact',
                 render: (client: Client) => (
                   <div>
-                    <div className="text-sm text-gray-900">{client.email}</div>
+                    <div className="text-sm text-gray-900 max-w-[220px] truncate" title={client.email}>{client.email}</div>
                 
                   </div>
                 )
@@ -436,7 +410,7 @@ const Clients = () => {
                 header: 'Certification',
                 render: (client: Client) => (
                   <div>
-                    <div className="text-sm text-gray-900">{client.standard}</div>
+                    <div className="text-sm text-gray-900 max-w-[200px] truncate" title={client.standard}>{client.standard}</div>
                   
                   </div>
                 )
@@ -445,9 +419,16 @@ const Clients = () => {
                 key: 'status',
                 header: 'Status',
                 render: (client: Client) => (
-                  <div className={`flex items-center space-x-1 px-2 max-w-20 py-1 rounded-full text-xs font-medium ${client.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                    {client.isActive ? <FiCheckCircle size={12} /> : <FiXCircle size={12} />}
-                    <span>{client.isActive ? 'Active' : 'Inactive'}</span>
+                  <div className={`flex items-center justify-center text-center space-x-1 px-2 max-w-40 py-1 rounded-full text-xs font-medium ${
+                    client.status === CLIENT_STATUS.ACTIVE
+                      ? 'bg-green-100 text-green-800'
+                      : client.status === CLIENT_STATUS.EXPIRED
+                        ? 'bg-red-100 text-red-800'
+                        : client.status === CLIENT_STATUS.ON_HOLD
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-purple-100 text-purple-800'
+                  }`}>
+                    <span>{client.status}</span>
                   </div>
                 )
               },
@@ -528,16 +509,9 @@ const Clients = () => {
         title={`Client Details - ${selectedClient?.name || ''}`}
         headerTitle={selectedClient?.name || ''}
         image={{ src: selectedClient?.logoUrl, alt: `${selectedClient?.name || ''} logo` }}
-        statusToggle={{
-          checked: Boolean(selectedClient?.isActive),
-          onChange: async (checked: boolean) => {
-            if (!selectedClient) return
-            await handleToggleStatus({ ...selectedClient, isActive: checked })
-          },
-          enabled: hasUpdatePermission,
-          labelActive: 'Active',
-          labelInactive: 'Inactive',
-        }}
+        sections={selectedClient ? [
+          { title: 'Status', type: 'chips', items: [selectedClient.status] },
+        ] : []}
         headerRows={selectedClient ? [
           {
             label: 'Client Code',

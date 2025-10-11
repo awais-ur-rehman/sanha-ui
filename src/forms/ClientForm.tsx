@@ -4,7 +4,9 @@ import { FiPlus, FiUpload, FiX } from 'react-icons/fi'
 import { useToast } from '../components/CustomToast/ToastContext'
 import { API_CONFIG, FILE_ENDPOINTS } from '../config/api'
 import type { Client, ClientCreateRequest, ClientUpdateRequest } from '../types/entities'
+import { CLIENT_STATUS, type ClientStatus } from '../types/entities'
 import DatePicker from '../components/DatePicker'
+import CustomDropdown from '../components/CustomDropdown'
 
 interface ClientFormProps {
   client?: Client
@@ -36,10 +38,12 @@ const ClientForm: React.FC<ClientFormProps> = ({
     handleSubmit,
     setValue,
     watch,
-    formState: { errors, isValid }
+    formState: { errors }
   } = useForm<ClientCreateRequest | ClientUpdateRequest>({ mode: 'onChange' })
 
   const watchedLogoUrl = watch('logoUrl')
+
+  const [statusValue, setStatusValue] = useState<ClientStatus>(CLIENT_STATUS.ACTIVE)
 
   // Track initial arrays for edit mode to detect changes outside react-hook-form
   const initialArraysRef = useRef({
@@ -62,7 +66,8 @@ const ClientForm: React.FC<ClientFormProps> = ({
       setValue('clientCode', client.clientCode)
       setValue('certifiedSince', client.certifiedSince)
       setValue('expiryDate', client.expiryDate)
-      setValue('isActive', client.isActive)
+      setValue('status' as any, client.status)
+      setStatusValue(client.status)
 
       const initAddresses = client.address.length > 0 ? client.address : []
       const initPhones = client.phone.length > 0 ? client.phone : []
@@ -88,10 +93,17 @@ const ClientForm: React.FC<ClientFormProps> = ({
       }
     } else {
       // Set default values for new client
-      setValue('isActive', true)
+      setValue('status' as any, CLIENT_STATUS.ACTIVE)
+      setStatusValue(CLIENT_STATUS.ACTIVE)
       setClientCodes([])
     }
   }, [client, setValue])
+
+  useEffect(() => {
+    if (statusValue) {
+      setValue('status' as any, statusValue)
+    }
+  }, [statusValue, setValue])
 
   const handleLogoUpload = async (file: File) => {
     const formData = new FormData()
@@ -163,8 +175,7 @@ const ClientForm: React.FC<ClientFormProps> = ({
       category: categories.filter(cat => cat.trim() !== ''),
       scope: scopes.filter(scope => scope.trim() !== ''),
       clientCode: clientCodes.filter(code => code.trim() !== ''),
-      // Only include isActive for edit mode (when client prop is provided)
-      ...(client && { isActive: data.isActive })
+      ...(client ? { status: (data as ClientUpdateRequest).status || statusValue } : { status: statusValue })
     }
     onSubmit(formData)
   }
@@ -174,11 +185,10 @@ const ClientForm: React.FC<ClientFormProps> = ({
     (watch('email') ?? '').toString().trim() !== '' &&
     (watch('standard') ?? '').toString().trim() !== '' &&
     (watch('certifiedSince') ?? '').toString().trim() !== '' &&
-    (watch('expiryDate') ?? '').toString().trim() !== ''
+    (watch('expiryDate') ?? '').toString().trim() !== '' &&
+    ((watch('status' as any) ?? '').toString().trim() !== '')
   )
-  const requiredReady = client
-    ? requiredReadyBase // relax client code requirement in edit mode
-    : (requiredReadyBase && clientCodes.some(c => c.trim() !== ''))
+  const requiredReady = requiredReadyBase
 
   // const arraysEqual = (a: string[], b: string[]) => {
   //   if (a.length !== b.length) return false
@@ -347,6 +357,26 @@ const ClientForm: React.FC<ClientFormProps> = ({
       </div>
 
       {/* Contact Information */}
+      <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Status *
+          </label>
+          <CustomDropdown
+            options={[
+              { value: CLIENT_STATUS.ACTIVE, label: CLIENT_STATUS.ACTIVE },
+              { value: CLIENT_STATUS.ON_HOLD, label: CLIENT_STATUS.ON_HOLD },
+              { value: CLIENT_STATUS.CERTIFICATE_ON_HOLD, label: CLIENT_STATUS.CERTIFICATE_ON_HOLD },
+              { value: CLIENT_STATUS.EXPIRED, label: CLIENT_STATUS.EXPIRED },
+            ]}
+            value={statusValue}
+            onChange={(val) => setStatusValue(val as ClientStatus)}
+            placeholder="Select status"
+          />
+        </div>
+      </div>
+
+      {/* Contact Information */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -387,10 +417,10 @@ const ClientForm: React.FC<ClientFormProps> = ({
           Website
         </label>
         <input
-          type="url"
+          type="text"
           {...register('website')}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
-          placeholder="https://www.example.com"
+          placeholder="Website URL"
         />
       </div>
 
@@ -571,7 +601,7 @@ const ClientForm: React.FC<ClientFormProps> = ({
         </button>
         <button
           type="submit"
-          disabled={isLoading || !requiredReady || !(client ? true : isValid)}
+          disabled={isLoading || !requiredReady}
           className="flex items-center space-x-2 px-10 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <span>{isLoading ? 'Saving...' : client ? 'Update Client' : 'Add Client'}</span>

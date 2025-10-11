@@ -696,10 +696,6 @@ const FAQs = () => {
                   <FiMail className="w-3 h-3" />
                   <span>{userFaq.email}</span>
                 </div>
-                <div className="flex items-center space-x-1">
-                  <FiGlobe className="w-3 h-3" />
-                  <span>{userFaq.country}</span>
-                </div>
               </div>
             </div>
           </div>
@@ -893,20 +889,6 @@ const FAQs = () => {
                 { value: 'Consumer', label: 'Consumer' },
               ]}
               className="w-[120px] text-xs"
-            />
-          )}
-
-          {/* User FAQ specific filters */}
-          {activeTab === 'User FAQs' && (
-            <SearchableDropdown
-              placeholder="Filter by country"
-              value={filters.country}
-              onChange={(value) => handleFilterChange('country', value)}
-              options={[
-                { value: '', label: 'All Countries' },
-                ...COUNTRIES.map(country => ({ value: country, label: country }))
-              ]}
-              className="w-[150px] text-xs"
             />
           )}
 

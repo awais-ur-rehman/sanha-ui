@@ -290,6 +290,15 @@ export interface UserFAQUpdateRequest {
 }
 
 // Client entity
+export type ClientStatus = 'Active' | 'On Hold' | 'Certificate on Hold' | 'Expired'
+
+export const CLIENT_STATUS = {
+  ACTIVE: 'Active',
+  ON_HOLD: 'On Hold',
+  CERTIFICATE_ON_HOLD: 'Certificate on Hold',
+  EXPIRED: 'Expired',
+} as const
+
 export interface Client {
   id: number;
   name: string;
@@ -306,7 +315,7 @@ export interface Client {
   clientCode: string[];
   certifiedSince: string;
   expiryDate: string;
-  isActive: boolean;
+  status: ClientStatus;
   createdAt: string;
   updatedAt: string;
 }
@@ -326,7 +335,7 @@ export interface ClientCreateRequest {
   clientCode: string[];
   certifiedSince: string;
   expiryDate: string;
-  isActive?: boolean;
+  status: ClientStatus;
 }
 
 export interface ClientUpdateRequest {
@@ -344,7 +353,7 @@ export interface ClientUpdateRequest {
   clientCode?: string[];
   certifiedSince?: string;
   expiryDate?: string;
-  isActive?: boolean;
+  status?: ClientStatus;
 }
 
 // Client Name entity for dropdown
