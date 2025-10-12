@@ -328,6 +328,17 @@ const EntityDetailSheet = <T,>({
             )}
           </div>
 
+          {descriptionSections.map((sec, idx) => (
+            sec.text ? (
+              <div key={`${sec.title}-${idx}`}>
+                <h3 className={`font-semibold text-gray-900 ${dense ? 'mb-1 text-sm' : 'mb-2'}`}>{sec.title}</h3>
+                <div className={`${sec.maxHeightClass || (dense ? 'max-h-[2.4rem]' : 'max-h-[3.2rem]')} overflow-y-auto bg-gray-50 ${dense ? 'p-2' : 'p-3'} rounded-lg`}>
+                  <p className={`${dense ? 'text-xs leading-snug' : 'text-sm leading-relaxed'} text-gray-600`}>{sec.text}</p>
+                </div>
+              </div>
+            ) : null
+          ))}
+
           {chipSections.map((section, idx) => (
             section.items && section.items.length > 0 ? (
               <div key={`${section.title}-${idx}`}>
@@ -452,17 +463,6 @@ const EntityDetailSheet = <T,>({
               </div>
             </div>
           )}
-
-          {descriptionSections.map((sec, idx) => (
-            sec.text ? (
-              <div key={`${sec.title}-${idx}`}>
-                <h3 className={`font-semibold text-gray-900 ${dense ? 'mb-1 text-sm' : 'mb-2'}`}>{sec.title}</h3>
-                <div className={`${sec.maxHeightClass || (dense ? 'max-h-[2.4rem]' : 'max-h-[3.2rem]')} overflow-y-auto bg-gray-50 ${dense ? 'p-2' : 'p-3'} rounded-lg`}>
-                  <p className={`${dense ? 'text-xs leading-snug' : 'text-sm leading-relaxed'} text-gray-600`}>{sec.text}</p>
-                </div>
-              </div>
-            ) : null
-          ))}
 
           {linkSection && linkSection.links && linkSection.links.length > 0 && (
             <div>
