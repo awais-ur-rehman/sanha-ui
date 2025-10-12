@@ -7,6 +7,7 @@ import type { Client, ClientCreateRequest, ClientUpdateRequest } from '../types/
 import { CLIENT_STATUS, type ClientStatus } from '../types/entities'
 import DatePicker from '../components/DatePicker'
 import CustomDropdown from '../components/CustomDropdown'
+import CustomTextarea from '../components/CustomTextarea'
 
 interface ClientFormProps {
   client?: Client
@@ -59,6 +60,7 @@ const ClientForm: React.FC<ClientFormProps> = ({
     if (client) {
       setValue('name', client.name)
       setValue('logoUrl', client.logoUrl)
+      setValue('description', client.description as any)
       setValue('email', client.email)
       setValue('fax', client.fax)
       setValue('website', client.website)
@@ -410,6 +412,18 @@ const ClientForm: React.FC<ClientFormProps> = ({
             placeholder="+1-234-567-8900"
           />
         </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Description
+        </label>
+        <CustomTextarea
+          rows={4}
+          maxLength={1000}
+          placeholder="Enter a brief description of the client"
+          {...register('description')}
+        />
       </div>
 
       <div>

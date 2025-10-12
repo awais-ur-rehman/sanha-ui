@@ -93,6 +93,7 @@ export interface EntityDetailSheetProps<T> {
   entity: T | null
   open: boolean
   onClose: () => void
+  dense?: boolean
   // New interface props
   titleAccessor?: (entity: T) => string
   imageAccessor?: (entity: T) => string
@@ -141,6 +142,7 @@ const EntityDetailSheet = <T,>({
   entity,
   open,
   onClose,
+  dense = false,
   // New interface props
   titleAccessor,
   imageAccessor,
@@ -208,7 +210,7 @@ const EntityDetailSheet = <T,>({
 
   return (
     <Sheet open={open} close={onClose} title={computedTitle}>
-      <div className="flex flex-col h-full p-6 text-sm">
+      <div className={`flex flex-col h-full ${dense ? 'p-4 text-xs' : 'p-6 text-sm'}`}>
         {computedImage && (
           <div className="flex justify-center mb-6">
             <div className="relative w-32 h-32 overflow-hidden rounded-lg">
@@ -239,22 +241,22 @@ const EntityDetailSheet = <T,>({
           </div>
         )}
 
-        <div className="flex flex-col gap-4 flex-1 pt-8">
-          <div className="flex items-start justify-between gap-4 mb-4">
+        <div className={`flex flex-col ${dense ? 'gap-3 pt-4' : 'gap-4 pt-8'} flex-1`}>
+          <div className={`flex items-start justify-between gap-4 ${dense ? 'mb-2' : 'mb-4'}`}>
             <div className="min-w-0 flex-1">
-              <h2 className="font-semibold text-lg text-gray-900 mb-2 truncate" title={computedHeaderTitle}>
+              <h2 className={`font-semibold ${dense ? 'text-base mb-1' : 'text-lg mb-2'} text-gray-900 truncate`} title={computedHeaderTitle}>
                 {computedHeaderTitle}
               </h2>
               {/* Status display for products and ecodes only (not for books and resources) */}
               {(computedStatus?.badge || statusBadge) && !computedStatus?.badge?.text?.includes('Active') && !computedStatus?.badge?.text?.includes('Inactive') && (
-                <div className="mb-2">
+                <div className={`${dense ? 'mb-1' : 'mb-2'}`}>
                   <span className={`px-3 py-1 rounded-full text-xs font-medium ${computedStatus?.badge?.colorClass || badgeColorToClasses(statusBadge?.color || 'gray')}`}>
                     {computedStatus?.badge?.text || statusBadge?.text}
                   </span>
                 </div>
               )}
               {headerRows.length > 0 && (
-                <div className="space-y-1">
+                <div className={`${dense ? 'space-y-0.5' : 'space-y-1'}`}>
                   {headerRows.map((row, idx) => (
                     <div key={`${row.label}-${idx}`} className="text-gray-700">
                       <span className="font-medium">{row.label}:</span>{' '}
@@ -283,10 +285,10 @@ const EntityDetailSheet = <T,>({
               )}
             </div>
             {(statusToggle || statusBadge || computedStatus) && (
-              <div className="flex flex-col items-end gap-2 flex-shrink-0 ml-4">
+              <div className={`flex flex-col items-end ${dense ? 'gap-1' : 'gap-2'} flex-shrink-0 ml-4`}>
                 {statusToggle && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-600">{statusLabel}</span>
+                  <div className={`flex items-center ${dense ? 'gap-1' : 'gap-2'}`}>
+                    <span className={`${dense ? 'text-[10px]' : 'text-xs'} text-gray-600`}>{statusLabel}</span>
                     <Switch
                       checked={localChecked}
                       onCheckedChange={async (checked) => {
@@ -303,9 +305,9 @@ const EntityDetailSheet = <T,>({
                   </div>
                 )}
                 {computedStatus && (
-                  <div className="flex flex-col items-end gap-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-600">{computedStatus.isActive ? 'Active' : 'Inactive'}</span>
+                  <div className={`flex flex-col items-end ${dense ? 'gap-1' : 'gap-2'}`}>
+                    <div className={`flex items-center ${dense ? 'gap-1' : 'gap-2'}`}>
+                      <span className={`${dense ? 'text-[10px]' : 'text-xs'} text-gray-600`}>{computedStatus.isActive ? 'Active' : 'Inactive'}</span>
                       <Switch
                         checked={computedStatus.isActive}
                       onCheckedChange={async () => {
@@ -329,14 +331,14 @@ const EntityDetailSheet = <T,>({
           {chipSections.map((section, idx) => (
             section.items && section.items.length > 0 ? (
               <div key={`${section.title}-${idx}`}>
-                <h3 className="font-medium text-sm text-gray-900 mb-1">{section.title}</h3>
+                <h3 className={`font-medium ${dense ? 'text-xs mb-0.5' : 'text-sm mb-1'} text-gray-900`}>{section.title}</h3>
                 <div className="flex flex-wrap gap-1">
                   {section.items.slice(0, section.limit ?? 3).map((item, i) => (
-                    <span key={`${item}-${i}`} className="px-2 py-0.5 bg-gray-100 text-gray-800 text-xs rounded-full">{item}</span>
+                    <span key={`${item}-${i}`} className={`px-2 py-0.5 bg-gray-100 text-gray-800 ${dense ? 'text-[10px]' : 'text-xs'} rounded-full`}>{item}</span>
                   ))}
                   {section.items.length > (section.limit ?? 3) && (
                     <Tooltip content={section.items.join(', ')}>
-                      <span className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs rounded-full cursor-default">
+                      <span className={`px-2 py-0.5 bg-gray-100 text-gray-700 ${dense ? 'text-[10px]' : 'text-xs'} rounded-full cursor-default`}>
                         +{section.items.length - (section.limit ?? 3)} more
                       </span>
                     </Tooltip>
@@ -349,22 +351,22 @@ const EntityDetailSheet = <T,>({
           {/* New sections rendering */}
           {sections.map((section, idx) => (
             <div key={`${section.title}-${idx}`}>
-              <h3 className="font-semibold text-gray-900 mb-2">{section.title}</h3>
+              <h3 className={`font-semibold text-gray-900 ${dense ? 'mb-1 text-sm' : 'mb-2'}`}>{section.title}</h3>
               {section.type === 'chips' ? (
                 <div className="flex flex-wrap gap-1">
                   {(section.items as string[])?.filter(item => item && item.trim() !== '').map((item, i) => (
-                    <span key={`${item}-${i}`} className="px-2 py-0.5 bg-gray-100 text-gray-800 text-xs rounded-full">{item}</span>
+                    <span key={`${item}-${i}`} className={`px-2 py-0.5 bg-gray-100 text-gray-800 ${dense ? 'text-[10px]' : 'text-xs'} rounded-full`}>{item}</span>
                   ))}
                   {(!section.items || (section.items as string[]).length === 0 || (section.items as string[]).every(item => !item || item.trim() === '')) && (
                     <span className="text-sm text-gray-500 italic">No items available</span>
                   )}
                 </div>
               ) : section.title.toLowerCase().includes('description') ? (
-                <div className="max-h-[120px] overflow-y-auto bg-gray-50 p-3 rounded-lg">
+                <div className={`${dense ? 'max-h-[2.4rem] p-2' : 'max-h-[2.6rem] p-3'} overflow-y-auto bg-gray-50 rounded-lg`}>
                   {(section.items as SectionItem[])?.filter(item => item && item.label && item.value).map((item, i) => (
                     <div key={`${item.label}-${i}`} className="mb-2 last:mb-0">
-                      <p className="text-sm font-medium text-gray-700 mb-1">{item.label}</p>
-                      <p className="text-sm text-gray-900 leading-relaxed">{item.value || 'N/A'}</p>
+                      <p className={`${dense ? 'text-xs mb-0.5' : 'text-sm mb-1'} font-medium text-gray-700`}>{item.label}</p>
+                      <p className={`${dense ? 'text-xs leading-snug' : 'text-sm leading-relaxed'} text-gray-900`}>{item.value || 'N/A'}</p>
                     </div>
                   ))}
                   {(!section.items || (section.items as SectionItem[]).length === 0 || (section.items as SectionItem[]).every(item => !item || !item.label || !item.value)) && (
@@ -372,12 +374,12 @@ const EntityDetailSheet = <T,>({
                   )}
                 </div>
               ) : (
-                <div className="space-y-2">
+                <div className={`${dense ? 'space-y-1' : 'space-y-2'}`}>
                   {(section.items as SectionItem[])?.filter(item => item && item.label && item.value).map((item, i) => (
                     <div key={`${item.label}-${i}`} className="flex items-start space-x-3">
                       <div>
-                        <p className="text-sm font-medium text-gray-700">{item.label}</p>
-                        <p className="text-sm text-gray-900">{item.value || 'N/A'}</p>
+                        <p className={`${dense ? 'text-xs' : 'text-sm'} font-medium text-gray-700`}>{item.label}</p>
+                        <p className={`${dense ? 'text-xs' : 'text-sm'} text-gray-900`}>{item.value || 'N/A'}</p>
                       </div>
                     </div>
                   ))}
@@ -391,16 +393,16 @@ const EntityDetailSheet = <T,>({
 
           {infoGrid.length > 0 && (
             <div className="space-y-3">
-              <h3 className="font-semibold text-gray-900">{infoGridTitle}</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <h3 className={`font-semibold text-gray-900 ${dense ? 'text-sm' : ''}`}>{infoGridTitle}</h3>
+              <div className={`grid grid-cols-1 md:grid-cols-2 ${dense ? 'gap-3' : 'gap-4'}`}>
                 {infoGrid.map((item, idx) => (
                   <div key={`${item.label}-${idx}`} className="flex items-start space-x-3 min-w-0">
                     {item.icon}
                     <div>
-                      <p className="text-sm font-medium text-gray-700">{item.label}</p>
+                      <p className={`${dense ? 'text-xs' : 'text-sm'} font-medium text-gray-700`}>{item.label}</p>
                       {item.tooltip ? (
                         <Tooltip content={item.tooltip}>
-                          <p className={`text-sm text-gray-900 truncate ${item.truncateWidth || 'max-w-[200px]'}`}>
+                          <p className={`${dense ? 'text-xs' : 'text-sm'} text-gray-900 truncate ${item.truncateWidth || 'max-w-[200px]'}`}>
                             {item.link ? (
                               <a href={item.value} target="_blank" rel="noopener noreferrer" className="text-[#0c684b] hover:underline">
                                 {item.value}
@@ -411,7 +413,7 @@ const EntityDetailSheet = <T,>({
                           </p>
                         </Tooltip>
                       ) : (
-                        <p className="text-sm text-gray-900">
+                        <p className={`${dense ? 'text-xs' : 'text-sm'} text-gray-900`}>
                           {item.link ? (
                             <a href={item.value} target="_blank" rel="noopener noreferrer" className="text-[#0c684b] hover:underline">
                               {item.value}
@@ -430,18 +432,18 @@ const EntityDetailSheet = <T,>({
 
           {dateGrid.length > 0 && (
             <div className="space-y-3">
-              <h3 className="font-semibold text-gray-900">{dateGridTitle}</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <h3 className={`font-semibold text-gray-900 ${dense ? 'text-sm' : ''}`}>{dateGridTitle}</h3>
+              <div className={`grid grid-cols-1 md:grid-cols-2 ${dense ? 'gap-3' : 'gap-4'}`}>
                 {dateGrid.map((d, idx) => (
                   <div key={`${d.label}-${idx}`} className="flex items-start space-x-3">
                     <div>
-                      <p className="text-sm font-medium text-gray-700">{d.label}</p>
-                      <div className="flex items-center space-x-2">
-                        <p className={`text-sm ${d.isExpired ? 'text-red-600' : 'text-gray-900'}`}>
+                      <p className={`${dense ? 'text-xs' : 'text-sm'} font-medium text-gray-700`}>{d.label}</p>
+                      <div className={`flex items-center ${dense ? 'space-x-1' : 'space-x-2'}`}>
+                        <p className={`${dense ? 'text-xs' : 'text-sm'} ${d.isExpired ? 'text-red-600' : 'text-gray-900'}`}>
                           {new Date(d.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
                         </p>
                         {d.showExpiredBadge && d.isExpired && (
-                          <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">Expired</span>
+                          <span className={`px-2 py-1 bg-red-100 text-red-800 ${dense ? 'text-[10px]' : 'text-xs'} rounded-full`}>Expired</span>
                         )}
                       </div>
                     </div>
@@ -454,9 +456,9 @@ const EntityDetailSheet = <T,>({
           {descriptionSections.map((sec, idx) => (
             sec.text ? (
               <div key={`${sec.title}-${idx}`}>
-                <h3 className="font-semibold text-gray-900 mb-2">{sec.title}</h3>
-                <div className={`${sec.maxHeightClass || 'max-h-[200px]'} overflow-y-auto bg-gray-50 p-3 rounded-lg`}>
-                  <p className="text-sm text-gray-600 leading-relaxed">{sec.text}</p>
+                <h3 className={`font-semibold text-gray-900 ${dense ? 'mb-1 text-sm' : 'mb-2'}`}>{sec.title}</h3>
+                <div className={`${sec.maxHeightClass || (dense ? 'max-h-[2.4rem]' : 'max-h-[3.2rem]')} overflow-y-auto bg-gray-50 ${dense ? 'p-2' : 'p-3'} rounded-lg`}>
+                  <p className={`${dense ? 'text-xs leading-snug' : 'text-sm leading-relaxed'} text-gray-600`}>{sec.text}</p>
                 </div>
               </div>
             ) : null
@@ -487,7 +489,7 @@ const EntityDetailSheet = <T,>({
           )}
         </div>
 
-        <div className="flex gap-3 mt-4 flex-shrink-0">
+        <div className={`flex ${dense ? 'gap-2 mt-3' : 'gap-3 mt-4'} flex-shrink-0`}>
           {(footerActions?.hasDeletePermission && footerActions.onDelete) || (hasDeletePermission && onDelete) ? (
             <button
               onClick={() => {
@@ -497,7 +499,7 @@ const EntityDetailSheet = <T,>({
                   onDelete(entity)
                 }
               }}
-              className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 text-red-400 hover:text-white border border-red-400 rounded-lg hover:bg-red-700 transition-colors"
+              className={`flex-1 flex items-center justify-center ${dense ? 'space-x-1 px-3 py-2 text-xs' : 'space-x-2 px-4 py-3'} text-red-400 hover:text-white border border-red-400 rounded-lg hover:bg-red-700 transition-colors`}
             >
               <FiTrash2 size={16} />
               <span>Delete</span>
@@ -512,7 +514,7 @@ const EntityDetailSheet = <T,>({
                   onEdit(entity)
                 }
               }}
-              className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors"
+              className={`flex-1 flex items-center justify-center ${dense ? 'space-x-1 px-3 py-2 text-xs' : 'space-x-2 px-4 py-3'} bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors`}
             >
               <FiEdit size={16} />
               <span>Edit</span>

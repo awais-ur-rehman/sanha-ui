@@ -303,6 +303,7 @@ export interface Client {
   id: number;
   name: string;
   logoUrl: string;
+  description?: string;
   address: string[];
   phone: string[];
   email: string;
@@ -323,6 +324,7 @@ export interface Client {
 export interface ClientCreateRequest {
   name: string;
   logoUrl: string;
+  description?: string;
   address: string[];
   phone: string[];
   email: string;
@@ -341,6 +343,7 @@ export interface ClientCreateRequest {
 export interface ClientUpdateRequest {
   name?: string;
   logoUrl?: string;
+  description?: string;
   address?: string[];
   phone?: string[];
   email?: string;
