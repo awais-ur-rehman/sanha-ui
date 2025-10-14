@@ -57,6 +57,8 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
   });
 
   const watchedImageUrl = watch('imageUrl');
+  const watchedDescription = (watch('description') as string) || '';
+  const isMediaCategory = category === 'Videos' || category === 'Podcast';
 
   // Update form values when resource changes (for edit mode)
   useEffect(() => {
@@ -546,8 +548,12 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
                 {...field}
                 rows={7}
                 placeholder="Enter resource description"
+                maxLength={1000}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent resize-none"
               />
+              <div className="flex justify-end mt-1">
+                <span className="text-xs text-gray-400">{watchedDescription.length}/1000</span>
+              </div>
               {errors.description && (
                 <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
               )}
@@ -555,57 +561,80 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
           )}
         />
 
-        {/* Image Upload */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Resource Image *
-          </label>
-          <div className="space-y-2">
-            {watchedImageUrl ? (
-              <div className="relative inline-block">
-                <img 
-                  src={watchedImageUrl} 
-                  alt="Resource image" 
-                  className="w-16 h-20 object-cover rounded border"
+        {/* Media URL or Image Upload */}
+        {isMediaCategory ? (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {category === 'Videos' ? 'Video URL *' : 'Podcast URL *'}
+            </label>
+            <Controller
+              name="imageUrl"
+              control={control}
+              render={({ field }) => (
+                <input
+                  {...field}
+                  type="url"
+                  placeholder={`Enter ${category === 'Videos' ? 'YouTube' : 'podcast'} link`}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
                 />
-                <button
-                  type="button"
-                  onClick={removeImage}
-                  className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 hover:bg-red-600"
-                >
-                  <FiX size={10} />
-                </button>
-              </div>
-            ) : (
-              <div className="w-16 h-20 border-2 border-dashed border-gray-300 rounded flex items-center justify-center">
-                <FiImage className="text-gray-400" size={16} />
-              </div>
-            )}
-            
-            <div>
-              <input
-                type="file"
-                accept=".jpg,.jpeg,.png,.gif,.bmp,.webp,.svg"
-                onChange={handleImageChange}
-                className="hidden"
-                id="image-upload"
-                disabled={uploadingImage}
-              />
-              <label
-                htmlFor="image-upload"
-                className={`inline-flex items-center px-3 py-1.5 border border-gray-300 rounded text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0c684b] cursor-pointer ${
-                  uploadingImage ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-              >
-                <FiUpload className="mr-1" size={12} />
-                {uploadingImage ? 'Uploading...' : 'Upload Image'}
-              </label>
-            </div>
+              )}
+            />
             {errors.imageUrl && (
               <p className="mt-1 text-sm text-red-600">{errors.imageUrl.message}</p>
             )}
           </div>
-        </div>
+        ) : (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Resource Image *
+            </label>
+            <div className="space-y-2">
+              {watchedImageUrl ? (
+                <div className="relative inline-block">
+                  <img 
+                    src={watchedImageUrl} 
+                    alt="Resource image" 
+                    className="w-16 h-20 object-cover rounded border"
+                  />
+                  <button
+                    type="button"
+                    onClick={removeImage}
+                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 hover:bg-red-600"
+                  >
+                    <FiX size={10} />
+                  </button>
+                </div>
+              ) : (
+                <div className="w-16 h-20 border-2 border-dashed border-gray-300 rounded flex items-center justify-center">
+                  <FiImage className="text-gray-400" size={16} />
+                </div>
+              )}
+              
+              <div>
+                <input
+                  type="file"
+                  accept=".jpg,.jpeg,.png,.gif,.bmp,.webp,.svg"
+                  onChange={handleImageChange}
+                  className="hidden"
+                  id="image-upload"
+                  disabled={uploadingImage}
+                />
+                <label
+                  htmlFor="image-upload"
+                  className={`inline-flex items-center px-3 py-1.5 border border-gray-300 rounded text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0c684b] cursor-pointer ${
+                    uploadingImage ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                >
+                  <FiUpload className="mr-1" size={12} />
+                  {uploadingImage ? 'Uploading...' : 'Upload Image'}
+                </label>
+              </div>
+              {errors.imageUrl && (
+                <p className="mt-1 text-sm text-red-600">{errors.imageUrl.message}</p>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Resource Links & Files */}
         <div>

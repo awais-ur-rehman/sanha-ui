@@ -25,7 +25,7 @@ const Resources = () => {
   const [selectedResource, setSelectedResource] = useState<Resource | null>(null)
   const [isOverlayOpen, setIsOverlayOpen] = useState(false)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState<'Articles' | 'News'>('Articles')
+  const [activeTab, setActiveTab] = useState<'Policies' | 'Guides' | 'Articles' | 'Videos' | 'Podcast'>('Policies')
   const [searchTerm, setSearchTerm] = useState('')
   const [filters, setFilters] = useState({
     isActive: '',
@@ -39,6 +39,43 @@ const Resources = () => {
     itemsPerPage: 12,
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const getYouTubeId = (url: string): string | null => {
+    try {
+      const u = new URL(url)
+      if (u.hostname.includes('youtu.be')) {
+        return u.pathname.split('/')[1] || null
+      }
+      if (u.searchParams.get('v')) {
+        return u.searchParams.get('v')
+      }
+      const path = u.pathname
+      const embedMatch = path.match(/\/embed\/([^/?]+)/)
+      if (embedMatch) return embedMatch[1]
+      const shortsMatch = path.match(/\/shorts\/([^/?]+)/)
+      if (shortsMatch) return shortsMatch[1]
+      return null
+    } catch {
+      return null
+    }
+  }
+
+  const getFavicon = (url: string): string => {
+    try {
+      return `https://www.google.com/s2/favicons?sz=128&domain_url=${encodeURIComponent(url)}`
+    } catch {
+      return '/placeholder-resource.jpg'
+    }
+  }
+
+  const getResourceThumbnail = (resource: Resource): string => {
+    const url = resource.imageUrl || ''
+    if ((resource.category === 'Videos' || resource.category === 'Podcast') && url) {
+      const ytId = getYouTubeId(url)
+      if (ytId) return `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`
+      return getFavicon(url)
+    }
+    return url || '/placeholder-resource.jpg'
+  }
 
   
   // Delete modal state
@@ -249,7 +286,7 @@ const Resources = () => {
     >
       <div className="relative h-48 overflow-hidden">
         <img
-          src={resource.imageUrl || '/placeholder-resource.jpg'}
+          src={getResourceThumbnail(resource)}
           alt={resource.title}
           className="w-full h-full object-cover"
           onError={(e) => {
@@ -317,26 +354,19 @@ const Resources = () => {
       {/* Tab Navigation */}
       <div className="mb-6">
         <div className="inline-flex bg-gray-100 rounded-lg p-1">
-          <button
-            onClick={() => setActiveTab('Articles')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-              activeTab === 'Articles'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            Articles
-          </button>
-          <button
-            onClick={() => setActiveTab('News')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-              activeTab === 'News'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            News
-          </button>
+          {(['Policies','Guides','Articles','Videos','Podcast'] as const).map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                activeTab === tab
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -451,7 +481,7 @@ const Resources = () => {
         hasUpdatePermission={hasPermission('Resources', 'update')}
         hasDeletePermission={hasPermission('Resources', 'delete')}
         titleAccessor={(resource: Resource) => resource.title}
-        imageAccessor={(resource: Resource) => resource.imageUrl}
+        imageAccessor={(resource: Resource) => getResourceThumbnail(resource)}
         statusToggle={{
           checked: Boolean(selectedResource?.isActive),
           onChange: async (checked: boolean) => {
