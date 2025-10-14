@@ -73,12 +73,13 @@ const AccessControl = () => {
       console.log('Response data:', result)
       
       if (result.success) {
-        const paginatedData = result.data as PaginatedResponse<any>
-        setDataForTab(activeTab, paginatedData.data)
-        setCurrentPage(paginatedData.meta.page)
-        setTotalPages(paginatedData.meta.totalPages)
-        setTotalItems(paginatedData.meta.total)
-        setItemsPerPage(paginatedData.meta.limit)
+        const payload = result.data
+        const pagination = payload?.pagination || payload?.meta || {}
+        setDataForTab(activeTab, payload?.data || [])
+        setCurrentPage(Number(pagination.page || 1))
+        setTotalPages(Number(pagination.totalPages || 1))
+        setTotalItems(Number(pagination.total || 0))
+        setItemsPerPage(Number(pagination.limit || itemsPerPage))
       } else {
         throw new Error(result.message || 'Failed to fetch data')
       }

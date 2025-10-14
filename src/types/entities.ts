@@ -436,3 +436,30 @@ export interface ContactUsReplyRequest {
   replyMessage: string;
   isUpdatedResponse?: boolean;
 }
+
+// Report a Product
+export type ReportProductType = 'Incorrect Certification' | 'Suspicious Ingredients' | 'Expired Certificate' | 'Counterfeit Product' | 'Misleading Information' | 'Other'
+
+export type ReportStatus = 'Pending' | 'Resolved'
+
+export interface ReportProduct {
+  id: number;
+  reportType: ReportProductType;
+  otherReportType?: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  productName: string;
+  manufacturer: string;
+  productImage: string;
+  reportMessage: string;
+  purchaseLocation?: string;
+  status: ReportStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ReportProductRespondRequest {
+  id: number;
+  message: string;
+}

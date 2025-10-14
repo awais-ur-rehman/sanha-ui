@@ -196,6 +196,12 @@ const Sidebar = () => {
       icon: getIcon('enquiries', isActive(ROUTES.ENQUIRIES))
     },
     {
+      id: 'reported-products',
+      title: 'Reported Products',
+      path: ROUTES.REPORTED_PRODUCTS,
+      icon: getIcon('enquiries', isActive(ROUTES.REPORTED_PRODUCTS))
+    },
+    {
       id: 'contact-us',
       title: 'Contact Us',
       path: ROUTES.CONTACT_US,

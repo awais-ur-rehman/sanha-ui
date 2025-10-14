@@ -124,6 +124,14 @@ export const CONTACT_US_ENDPOINTS = {
   exportCsv: '/contact-us/export/csv',
 }
 
+// Reported Product Endpoints
+export const REPORTED_PRODUCT_ENDPOINTS = {
+  getAll: '/report-products',
+  getById: '/report-products',
+  exportCsv: '/report-products/export/csv',
+  respond: '/report-products/respond',
+}
+
 // Export Endpoints for other modules
 export const CLIENT_EXPORT_ENDPOINT = '/clients/export/csv'
 export const ECODE_EXPORT_ENDPOINT = '/ecodes/export/csv'

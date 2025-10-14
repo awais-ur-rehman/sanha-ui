@@ -31,6 +31,7 @@ export const ROUTES = {
     PRODUCTS: '/products',
     ENQUIRIES: '/enquiries',
     CONTACT_US: '/contact-us',
+    REPORTED_PRODUCTS: '/reported-products',
 } as const
 
 export type RouteKey = keyof typeof ROUTES 

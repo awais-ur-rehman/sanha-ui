@@ -370,6 +370,7 @@ const ContactUs = () => {
             </div>
 
             {/* Type Filter */}
+            <div className='w-[200px]'>
             <CustomDropdown
               options={[
                 { value: '', label: 'All Types' },
@@ -382,8 +383,9 @@ const ContactUs = () => {
               value={filters.type}
               onChange={handleTypeFilterChange}
               placeholder="Filter by type"
-              className="w-[200px] text-xs"
+              className="text-xs"
             />
+            </div>
 
             {/* Date Range Picker */}
             <DateRangePicker

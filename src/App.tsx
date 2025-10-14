@@ -21,6 +21,7 @@ import Research from './pages/private/Research'
 import Settings from './pages/private/Settings'
 import Enquiries from './pages/private/Enquiries'
 import ContactUs from './pages/private/ContactUs'
+import ReportedProducts from './pages/private/ReportedProducts'
 import { ROUTES } from './config/routes'
 import { useAuthStore } from './store'
 
@@ -144,6 +145,16 @@ function App() {
               <PermissionRoute moduleName="Contact Us">
                 <MainLayout>
                   <ContactUs />
+                </MainLayout>
+              </PermissionRoute>
+            }
+          />
+          <Route
+            path={ROUTES.REPORTED_PRODUCTS}
+            element={
+              <PermissionRoute moduleName="Reported Products">
+                <MainLayout>
+                  <ReportedProducts />
                 </MainLayout>
               </PermissionRoute>
             }
