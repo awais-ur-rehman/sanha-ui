@@ -47,7 +47,7 @@ export const useWebSocket = (): UseWebSocketReturn => {
         return []
     })
     const { user } = useAuthStore()
-    const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+    const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     // Save notifications to localStorage whenever notifications change
     useEffect(() => {
