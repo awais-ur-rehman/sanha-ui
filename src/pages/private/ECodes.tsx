@@ -1,15 +1,18 @@
 import { useState, useEffect } from 'react'
-import { FiSearch, FiPlus } from 'react-icons/fi'
+import { FiSearch } from 'react-icons/fi'
 import { usePermissions } from '../../hooks/usePermissions'
-import { useGetApi } from '../../hooks'
+import { useGetApi, useDeleteApi } from '../../hooks'
 import CustomDropdown from '../../components/CustomDropdown'
 import { useToast } from '../../components/CustomToast/ToastContext'
-import { ECODE_ENDPOINTS, API_CONFIG, getAuthHeaders } from '../../config/api'
+import { ECODE_ENDPOINTS, API_CONFIG, getAuthHeaders, ECODE_EXPORT_ENDPOINT } from '../../config/api'
 import type { ECode } from '../../types/entities'
-import ECodeDetailSheet from '../../components/ECodeDetailSheet'
+import EntityDetailSheet from '../../components/EntityDetailSheet'
 import Modal from '../../components/Modal'
+import DeleteConfirmationModal from '../../components/DeleteConfirmationModal'
 
 import ECodeForm from '../../forms/ECodeForm'
+import { Pagination } from '../../components'
+import StyledTable from '../../components/StyledTable'
 
 const ECodes = () => {
   // Hooks
@@ -23,6 +26,7 @@ const ECodes = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [filters, setFilters] = useState({
     status: '',
+    isActive: '',
   })
   const [pagination, setPagination] = useState({
     currentPage: 1,
@@ -31,6 +35,7 @@ const ECodes = () => {
     itemsPerPage: 10,
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
 
   
   // Delete modal state
@@ -43,6 +48,7 @@ const ECodes = () => {
     limit: pagination.itemsPerPage.toString(),
     ...(searchTerm && { search: searchTerm }),
     ...(filters.status && { status: filters.status }),
+    ...(filters.isActive && { isActive: filters.isActive }),
   })
 
   // API hooks
@@ -54,7 +60,50 @@ const ECodes = () => {
     }
   )
 
+  // Export CSV hook
+  const exportQueryParams = new URLSearchParams({
+    ...(searchTerm && { search: searchTerm }),
+    ...(filters.status && { status: filters.status }),
+    ...(filters.isActive && { isActive: filters.isActive }),
+  })
+  const exportCsvQuery = useGetApi<Blob>(
+    `${ECODE_EXPORT_ENDPOINT}?${exportQueryParams.toString()}`,
+    { requireAuth: true, enabled: false, staleTime: 0, responseType: 'blob' }
+  )
+
+  const handleExport = async () => {
+    try {
+      const result = await exportCsvQuery.refetch()
+      const blob = result.data as Blob
+      if (!blob) return
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `ecodes-${new Date().toISOString().slice(0,10)}.csv`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(url)
+    } catch {}
+  }
+
   // Delete E-Code mutation
+  const deleteECodeMutation = useDeleteApi(
+    `${ECODE_ENDPOINTS.delete}/${selectedECode?.id}?hardDelete=true`,
+    {
+      requireAuth: true,
+      onSuccess: () => {
+        showToast('success', 'E-Code deleted successfully!')
+        setIsDeleteModalOpen(false)
+        setIsOverlayOpen(false)
+        setSelectedECode(null)
+        refetch()
+      },
+      onError: (error) => {
+        showToast('error', error.message || 'Failed to delete E-Code')
+      },
+    }
+  )
   
 
   // Process E-Codes data
@@ -90,6 +139,14 @@ const ECodes = () => {
     setPagination(prev => ({ ...prev, currentPage: 1 }))
   }
 
+  const handleIsActiveFilterChange = (value: string | number) => {
+    setFilters(prev => ({ 
+      ...prev, 
+      isActive: value.toString() 
+    }))
+    setPagination(prev => ({ ...prev, currentPage: 1 }))
+  }
+
   const handlePageChange = (page: number) => {
     setPagination(prev => ({ ...prev, currentPage: page }))
   }
@@ -97,6 +154,12 @@ const ECodes = () => {
   const handleViewECode = (ecode: ECode) => {
     setSelectedECode(ecode)
     setIsOverlayOpen(true)
+  }
+
+  const handleDeleteECode = (ecode: ECode) => {
+    setSelectedECode(ecode)
+    setIsOverlayOpen(false) // Close the detail sheet
+    setIsDeleteModalOpen(true)
   }
 
   const handleAddECode = () => {
@@ -154,6 +217,9 @@ const ECodes = () => {
 
   const handleToggleStatus = async (ecode: ECode) => {
     try {
+      // Toggle the isActive status
+      const newStatus = !ecode.isActive
+      
       // Prepare the complete E-Code data for update
       const updateData = {
         code: ecode.code,
@@ -164,7 +230,7 @@ const ECodes = () => {
         source: ecode.source || [],
         healthInfo: ecode.healthInfo || [],
         uses: ecode.uses || [],
-        isActive: ecode.isActive,
+        isActive: newStatus,
       }
 
       const response = await fetch(`${API_CONFIG.baseURL}${ECODE_ENDPOINTS.update}/${ecode.id}`, {
@@ -175,14 +241,14 @@ const ECodes = () => {
 
       if (!response.ok) {
         // Special handling for 404 error when deactivating
-        if (response.status === 404 && !ecode.isActive) {
+        if (response.status === 404 && !newStatus) {
           // The E-Code was successfully deactivated but the API can't find it to return
           // This is likely a backend issue where inactive records are filtered out
           console.log('E-Code deactivated successfully but API returned 404 (backend filtering issue)')
           
           // Update selected ecode if it's the same
           if (selectedECode?.id === ecode.id) {
-            setSelectedECode(prev => prev ? { ...prev, isActive: ecode.isActive } : null)
+            setSelectedECode(prev => prev ? { ...prev, isActive: newStatus } : null)
           }
           
           showToast('success', 'E-Code deactivated successfully!')
@@ -198,10 +264,10 @@ const ECodes = () => {
 
       // Update selected ecode if it's the same
       if (selectedECode?.id === ecode.id) {
-        setSelectedECode(prev => prev ? { ...prev, isActive: ecode.isActive } : null)
+        setSelectedECode(prev => prev ? { ...prev, isActive: newStatus } : null)
       }
       
-      showToast('success', `E-Code ${ecode.isActive ? 'activated' : 'deactivated'} successfully!`)
+      showToast('success', `E-Code ${newStatus ? 'activated' : 'deactivated'} successfully!`)
       
       // Refetch ecodes to update the list
       refetch()
@@ -236,7 +302,7 @@ const ECodes = () => {
 
   return (
     <div className="py-4">
-      <div className='bg-white rounded-lg shadow-lg overflow-hidden min-h-[calc(100vh-35px)] px-6 py-10'>
+      <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] px-6 py-10'>
         {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-semibold text-gray-900">E-Codes</h1>
@@ -244,187 +310,186 @@ const ECodes = () => {
       </div>
 
       {/* Filters */}
-      <div className="mb-6">
-        <div className="flex items-center gap-4">
+      <div className='py-6'>
+        <div className="flex items-center gap-3">
           {/* Search */}
-          <div className="relative flex-1">
+          <div className="relative w-72">
             <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
             <input
               type="text"
               placeholder="Search E-Codes by code, name, or status..."
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
+              className="w-full pl-10 pr-3 py-[10px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-xs"
             />
           </div>
 
           {/* Status Filter */}
-          <div className="w-48">
-            <CustomDropdown
-              placeholder="All Status"
-              value={filters.status}
-              onChange={(value) => handleFilterChange('status', value as string)}
-              options={[
-                { value: '', label: 'All Status' },
-                { value: 'halaal', label: 'Halaal' },
-                { value: 'haraam', label: 'Haraam' },
-                { value: 'doubtful', label: 'Doubtful' },
-              ]}
-            />
-          </div>
+          <CustomDropdown
+            placeholder="All Status"
+            value={filters.status}
+            onChange={(value) => handleFilterChange('status', value as string)}
+            options={[
+              { value: '', label: 'All Status' },
+              { value: 'halaal', label: 'Halaal' },
+              { value: 'haraam', label: 'Haraam' },
+              { value: 'doubtful', label: 'Doubtful' },
+            ]}
+            className="w-[120px] text-xs"
+          />
 
-          {/* Add E-Code Button */}
-          <button
-            onClick={handleAddECode}
-                            disabled={isSubmitting}
-            className="flex items-center space-x-2 cursor-pointer px-4 py-2 bg-[#0c684b] text-white rounded-lg hover:bg-green-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <FiPlus size={16} />
-            <span>Add E-Code</span>
-          </button>
+          {/* Active Status Filter */}
+          <CustomDropdown
+            placeholder="All Records"
+            value={filters.isActive}
+            onChange={handleIsActiveFilterChange}
+            options={[
+              { value: '', label: 'All Records' },
+              { value: 'true', label: 'Active' },
+              { value: 'false', label: 'Inactive' },
+            ]}
+            className="w-[150px] text-xs"
+          />
+
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              onClick={handleExport}
+              className="px-10 py-[10px] text-xs border border-[#0c684b] text-[#0c684b] rounded-sm hover:bg-gray-50 transition-colors"
+            >
+              Export
+            </button>
+            {hasPermission('E-Codes', 'create') && (
+              <button
+                onClick={handleAddECode}
+                disabled={isSubmitting}
+                className="flex items-center space-x-2 px-10 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span>Add E-Code</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
-            {/* E-Codes Table */}
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Code
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Name
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Function
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Source
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {loading ? (
-                // Loading rows
-                Array.from({ length: 5 }).map((_, index) => (
-                  <tr key={index} className="animate-pulse">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="h-4 bg-gray-200 rounded w-16"></div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="h-4 bg-gray-200 rounded w-32"></div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="h-4 bg-gray-200 rounded w-24"></div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="h-4 bg-gray-200 rounded w-20"></div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="h-4 bg-gray-200 rounded w-28"></div>
-                    </td>
-                  </tr>
-                ))
-              ) : ecodes.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
-                    No E-Codes found
-                  </td>
-                </tr>
-              ) : (
-                ecodes.map((ecode: ECode) => (
-                  <tr
-                    key={ecode.id}
-                    onClick={() => !isSubmitting && handleViewECode(ecode)}
-                    className={`transition-colors ${
-                      isSubmitting 
-                        ? 'cursor-not-allowed opacity-50' 
-                        : 'hover:bg-gray-50 cursor-pointer'
-                    }`}
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {ecode.code}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {ecode.name}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      {displayArrayItems(ecode.function || [])}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        ecode.status === 'halaal' 
-                          ? 'bg-green-100 text-green-800'
-                          : ecode.status === 'haraam'
-                          ? 'bg-red-100 text-red-800'
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {ecode.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      {displayArrayItems(ecode.source || [])}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+      {/* E-Codes Table */}
+      {loading || ecodes.length === 0 ? (
+        <div className="bg-white rounded-lg border border-gray-200">
+          {loading ? (
+            <div className="p-6">
+              <div className="animate-pulse space-y-4">
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <div key={index} className="h-16 bg-gray-200 rounded"></div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="p-12 text-center text-gray-500">No E-Codes found</div>
+          )}
         </div>
+      ) : (
+        <>
+          <StyledTable<ECode>
+            data={ecodes}
+            columns={[
+              { key: 'code', header: 'Code', render: (e: ECode) => (<span className="text-sm font-medium text-gray-900">{e.code}</span>) },
+              { key: 'name', header: 'Name', render: (e: ECode) => (<span className="text-sm text-gray-900">{e.name}</span>) },
+              { key: 'function', header: 'Function', render: (e: ECode) => (<span className="text-sm text-gray-600">{displayArrayItems(e.function || [])}</span>) },
+              { key: 'status', header: 'Status', render: (e: ECode) => (
+                <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${e.status === 'halaal' ? 'bg-green-100 text-green-800' : e.status === 'haraam' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                  {e.status}
+                </span>
+              ) },
+              { key: 'active', header: 'Active Status', render: (e: ECode) => (
+                <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${e.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                  {e.isActive ? 'Active' : 'Inactive'}
+                </span>
+              ) },
+              { key: 'source', header: 'Source', render: (e: ECode) => (<span className="text-sm text-gray-600">{displayArrayItems(e.source || [])}</span>) },
+            ]}
+            onRowClick={(e) => !isSubmitting && handleViewECode(e)}
+          />
 
-        {/* Pagination */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
-          <div className="text-sm text-gray-700">
-            Showing {((pagination.currentPage - 1) * pagination.itemsPerPage) + 1} to{' '}
-            {Math.min(pagination.currentPage * pagination.itemsPerPage, pagination.totalItems || 0)} of{' '}
-            {pagination.totalItems || 0} results
-          </div>
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => handlePageChange(pagination.currentPage - 1)}
-              disabled={pagination.currentPage <= 1}
-              className="px-3 py-2 text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Previous
-            </button>
-            <span className="px-3 py-2 text-gray-700">
-              Page {pagination.currentPage} of {pagination.totalPages || 1}
-            </span>
-            <button
-              onClick={() => handlePageChange(pagination.currentPage + 1)}
-              disabled={pagination.currentPage >= (pagination.totalPages || 1)}
-              className="px-3 py-2 text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Next
-            </button>
-          </div>
-        </div>
-      </div>
+          {/* Pagination */}
+          <Pagination
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            totalItems={pagination.totalItems}
+            itemsPerPage={pagination.itemsPerPage}
+            onPageChange={handlePageChange}
+          />
+        </>
+      )}
  
 
       {/* E-Code Detail Sheet */}
-      <ECodeDetailSheet
-        ecode={selectedECode}
+      <EntityDetailSheet
+        entity={selectedECode}
         open={isOverlayOpen}
         onClose={closeOverlay}
         onEdit={(ecode) => {
           setIsOverlayOpen(false)
-          handleEditECode(ecode)
+          handleEditECode(ecode as ECode)
         }}
-        onDelete={() => {
+        onDelete={(ecode) => {
           setIsOverlayOpen(false)
-          setSelectedECode(null)
-          showToast('success', 'E-Code deleted successfully!')
+          handleDeleteECode(ecode as ECode)
         }}
-        onToggleStatus={handleToggleStatus}
         hasUpdatePermission={hasPermission('E-Codes', 'update')}
         hasDeletePermission={hasPermission('E-Codes', 'delete')}
-        onRefetch={refetch}
+        titleAccessor={(ecode: ECode) => ecode.name}
+        statusToggle={{
+          checked: Boolean(selectedECode?.isActive),
+          onChange: async (checked: boolean) => {
+            if (!selectedECode) return
+            await handleToggleStatus({ ...selectedECode, isActive: checked })
+          },
+          enabled: hasPermission('E-Codes', 'update'),
+          labelActive: 'Active',
+          labelInactive: 'Inactive',
+        }}
+        statusBadge={selectedECode ? {
+          text: selectedECode.status,
+          color: selectedECode.status === 'halaal' ? 'green' : selectedECode.status === 'haraam' ? 'red' : 'yellow'
+        } : undefined}
+        sections={[
+          {
+            title: 'E-Code Information',
+            items: [
+              { label: 'Code', value: selectedECode?.code || 'N/A' },
+              { label: 'Alternate Names', value: selectedECode?.alternateName?.join(', ') || 'N/A' },
+            ]
+          },
+          {
+            title: 'Function',
+            type: 'chips',
+            items: selectedECode?.function || [],
+          },
+          {
+            title: 'Source',
+            type: 'chips',
+            items: selectedECode?.source || [],
+          },
+          {
+            title: 'Health Information',
+            type: 'chips',
+            items: selectedECode?.healthInfo || [],
+          },
+          {
+            title: 'Uses',
+            type: 'chips',
+            items: selectedECode?.uses || [],
+          },
+        ]}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={() => deleteECodeMutation.mutate()}
+        title="Delete E-Code"
+        message={`Are you sure you want to permanently delete the E-Code "${selectedECode?.name}"? This action cannot be undone.`}
+        isLoading={deleteECodeMutation.isPending}
       />
 
       {/* Add/Edit E-Code Modal */}
@@ -433,13 +498,16 @@ const ECodes = () => {
           isOpen={isAddModalOpen}
           onClose={handleECodeFormCancel}
           title={selectedECode ? 'Edit E-Code' : 'Add New E-Code'}
+          size="xl"
         >
-          <ECodeForm
-            ecode={selectedECode}
-            onSubmit={handleECodeFormSubmit}
-            onCancel={handleECodeFormCancel}
-            isLoading={isSubmitting}
-          />
+          <div className="h-[70vh] overflow-hidden">
+            <ECodeForm
+              ecode={selectedECode}
+              onSubmit={handleECodeFormSubmit}
+              onCancel={handleECodeFormCancel}
+              isLoading={isSubmitting}
+            />
+          </div>
         </Modal>
       )}
       </div>

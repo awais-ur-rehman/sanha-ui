@@ -1,0 +1,643 @@
+import { useEffect, useRef, useState } from 'react'
+import { FiSearch } from 'react-icons/fi'
+import { useLocation } from 'react-router-dom'
+import { usePermissions } from '../../hooks/usePermissions'
+import { useEnquiriesApi, useGetApi, useRealTimeUpdates } from '../../hooks'
+import type { Enquiry } from '../../types/entities'
+import { useToast } from '../../components/CustomToast/ToastContext'
+import DateRangePicker from '../../components/DateRangePicker'
+import DeleteConfirmationModal from '../../components/DeleteConfirmationModal'
+// import { Pagination } from '../../components'
+import { API_CONFIG, ENQUIRY_ENDPOINTS, getAuthHeaders } from '../../config/api'
+
+type EnquiryTabType = 'pending' | 'accepted' | 'rejected'
+
+const Enquiries = () => {
+  const { hasPermission } = usePermissions()
+  const { showToast } = useToast()
+  const location = useLocation()
+
+  const hasReadPermission = hasPermission('Enquiry', 'read')
+
+  const [activeTab, setActiveTab] = useState<EnquiryTabType>('pending')
+  const [searchTerm, setSearchTerm] = useState('')
+  const [filters, setFilters] = useState({
+    state: '',
+    startDate: '',
+    endDate: '',
+    email: '',
+    firstName: '',
+    lastName: '',
+  })
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 10,
+  })
+
+  const [enquiryToDelete, setEnquiryToDelete] = useState<Enquiry | null>(null)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [updatingId, setUpdatingId] = useState<number | null>(null)
+  const [actionType, setActionType] = useState<'accept' | 'reject' | null>(null)
+  const [isReturningFromNavigation, setIsReturningFromNavigation] = useState(false)
+  const [selectedEnquiry, setSelectedEnquiry] = useState<Enquiry | null>(null)
+  const [tabCache, setTabCache] = useState<Record<EnquiryTabType, { list: Enquiry[]; pagination: { currentPage: number; totalPages: number; totalItems: number } }>>({
+    pending: { list: [], pagination: { currentPage: 1, totalPages: 1, totalItems: 0 } },
+    accepted: { list: [], pagination: { currentPage: 1, totalPages: 1, totalItems: 0 } },
+    rejected: { list: [], pagination: { currentPage: 1, totalPages: 1, totalItems: 0 } },
+  })
+
+  const queryParams = new URLSearchParams({
+    page: pagination.currentPage.toString(),
+    limit: pagination.itemsPerPage.toString(),
+    state: activeTab,
+    ...(searchTerm && { search: searchTerm }),
+    ...(filters.email && { email: filters.email }),
+    ...(filters.firstName && { firstName: filters.firstName }),
+    ...(filters.lastName && { lastName: filters.lastName }),
+    ...(filters.startDate && { startDate: filters.startDate }),
+    ...(filters.endDate && { endDate: filters.endDate }),
+  })
+
+  const { data, isLoading, refetch } = useEnquiriesApi(queryParams.toString(), {
+    requireAuth: true,
+    staleTime: 0,
+  })
+
+  // Export CSV
+  const exportParams = new URLSearchParams({
+    state: activeTab.charAt(0).toUpperCase() + activeTab.slice(1),
+    ...(searchTerm && { search: searchTerm }),
+    ...(filters.email && { email: filters.email }),
+    ...(filters.firstName && { firstName: filters.firstName }),
+    ...(filters.lastName && { lastName: filters.lastName }),
+    ...(filters.startDate && { startDate: filters.startDate }),
+    ...(filters.endDate && { endDate: filters.endDate }),
+  })
+  const exportCsvQuery = useGetApi<Blob>(`${ENQUIRY_ENDPOINTS.exportCsv}?${exportParams.toString()}`,
+    { requireAuth: true, enabled: false, staleTime: 0, responseType: 'blob' }
+  )
+
+  const handleExport = async () => {
+    try {
+      const result = await exportCsvQuery.refetch()
+      const blob = result.data as Blob
+      if (!blob) return
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `enquiries-${activeTab}-${new Date().toISOString().slice(0,10)}.csv`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(url)
+    } catch {}
+  }
+
+  const enquiriesPage: Enquiry[] = data?.data?.data || []
+  const [enquiriesList, setEnquiriesList] = useState<Enquiry[]>([])
+  const listRef = useRef<HTMLDivElement>(null)
+
+  // Real-time updates hook
+  useRealTimeUpdates({
+    itemType: 'enquiry',
+    onNewItem: (newEnquiry: Enquiry) => {
+      setEnquiriesList(prev => {
+        // Check if enquiry already exists to avoid duplicates
+        const exists = prev.some(enquiry => enquiry.id === newEnquiry.id)
+        
+        if (exists) {
+          return prev
+        }
+        
+        // Only add to list if we're on the pending tab (where new enquiries should appear)
+        if (activeTab !== 'pending') {
+          // Still update the pending tab cache
+          setTabCache(cache => ({
+            ...cache,
+            pending: {
+              ...cache.pending,
+              list: [newEnquiry, ...cache.pending.list],
+              pagination: {
+                ...cache.pending.pagination,
+                totalItems: cache.pending.pagination.totalItems + 1
+              }
+            }
+          }))
+          return prev
+        }
+        
+        // Add new enquiry to the beginning of the list
+        const updatedList = [newEnquiry, ...prev]
+        
+        // Update cache for current tab
+        setTabCache(cache => ({
+          ...cache,
+          [activeTab]: {
+            ...cache[activeTab],
+            list: updatedList,
+            pagination: {
+              ...cache[activeTab].pagination,
+              totalItems: cache[activeTab].pagination.totalItems + 1
+            }
+          }
+        }))
+        
+        return updatedList
+      })
+    },
+    currentPath: location.pathname
+  })
+
+  useEffect(() => {
+    if (data?.data?.pagination) {
+      console.log('📊 API data received', { enquiriesPageLength: enquiriesPage.length, currentListLength: enquiriesList.length })
+      const nextTotalPages = Number(data.data.pagination.totalPages) || 1
+      const nextTotalItems = Number(data.data.pagination.total) || 0
+      setPagination(prev => ({ ...prev, totalPages: nextTotalPages, totalItems: nextTotalItems }))
+      setEnquiriesList(prev => {
+        // If we have API data and no real-time data, use API data
+        if (enquiriesPage.length > 0 && prev.length === 0) {
+          console.log('✅ Using fresh API data')
+          setTabCache(cache => ({
+            ...cache,
+            [activeTab]: {
+              list: enquiriesPage,
+              pagination: { currentPage: pagination.currentPage, totalPages: nextTotalPages, totalItems: nextTotalItems },
+            },
+          }))
+          return enquiriesPage
+        }
+        
+        // Otherwise, merge with existing data for pagination
+        const merged = pagination.currentPage === 1 ? enquiriesPage : [...prev, ...enquiriesPage]
+        // Dedupe by id to avoid duplicates when switching tabs and returning
+        const uniqueById = Array.from(new Map(merged.map((e) => [e.id, e])).values())
+        console.log('🔄 Merging data', { mergedLength: merged.length, uniqueLength: uniqueById.length })
+        setTabCache(cache => ({
+          ...cache,
+          [activeTab]: {
+            list: uniqueById,
+            pagination: { currentPage: pagination.currentPage, totalPages: nextTotalPages, totalItems: nextTotalItems },
+          },
+        }))
+        return uniqueById
+      })
+    }
+  }, [data, enquiriesPage, pagination.currentPage, activeTab])
+
+  // When active tab changes, hydrate from cache immediately; if empty, trigger fetch
+  useEffect(() => {
+    console.log('📋 Tab change effect triggered', { activeTab, isReturningFromNavigation, cacheLength: tabCache[activeTab].list.length })
+    
+    // If we're returning from navigation, always fetch fresh data
+    if (isReturningFromNavigation) {
+      console.log('🔄 Returning from navigation, fetching fresh data')
+      setIsReturningFromNavigation(false)
+      setEnquiriesList([])
+      setPagination(prev => ({ ...prev, currentPage: 1 }))
+      refetch()
+      return
+    }
+    
+    const cached = tabCache[activeTab]
+    // Load from cache if available
+    if (cached.list.length > 0) {
+      console.log('📦 Loading from cache', { cachedLength: cached.list.length })
+      setEnquiriesList(cached.list)
+      setPagination(prev => ({
+        ...prev,
+        currentPage: cached.pagination.currentPage || 1,
+        totalPages: cached.pagination.totalPages || 1,
+        totalItems: cached.pagination.totalItems || 0,
+      }))
+      // Do not change selection if already selected
+      return
+    }
+    // No cache: reset and fetch
+    console.log('🔍 No cache, fetching fresh data')
+    setEnquiriesList([])
+    setPagination(prev => ({ ...prev, currentPage: 1 }))
+    refetch()
+  }, [activeTab, refetch, isReturningFromNavigation])
+
+  // Ensure API data is loaded when enquiriesList is empty
+  useEffect(() => {
+    if (enquiriesList.length === 0 && !isLoading) {
+      refetch()
+    }
+  }, [enquiriesList.length, isLoading, refetch])
+
+  // Handle page navigation - reset real-time list and cache when returning to page
+  useEffect(() => {
+    // When component mounts or location changes, reset everything to allow fresh API data to load
+    console.log('🔄 Page navigation detected, resetting state')
+    setEnquiriesList([])
+    setTabCache({
+      pending: { list: [], pagination: { currentPage: 1, totalPages: 1, totalItems: 0 } },
+      accepted: { list: [], pagination: { currentPage: 1, totalPages: 1, totalItems: 0 } },
+      rejected: { list: [], pagination: { currentPage: 1, totalPages: 1, totalItems: 0 } },
+    })
+    setPagination(prev => ({ ...prev, currentPage: 1 }))
+    setIsReturningFromNavigation(true)
+  }, [location.pathname])
+
+  // Select first enquiry when data loads or tab changes
+  useEffect(() => {
+    if (enquiriesList.length === 0) {
+      setSelectedEnquiry(null)
+      return
+    }
+    // If nothing selected yet for this tab, select first; otherwise keep current
+    if (!selectedEnquiry) {
+      setSelectedEnquiry(enquiriesList[0])
+      return
+    }
+    // If selected item no longer exists in list, select first
+    if (!enquiriesList.find(e => e.id === selectedEnquiry.id)) {
+      setSelectedEnquiry(enquiriesList[0])
+    }
+  }, [enquiriesList])
+
+  const handleSearch = (term: string) => {
+    setSearchTerm(term)
+    setPagination(prev => ({ ...prev, currentPage: 1 }))
+    setEnquiriesList([])
+    // Clear cache for active tab when filters change to avoid merging with stale data
+    setTabCache(cache => ({
+      ...cache,
+      [activeTab]: { list: [], pagination: { currentPage: 1, totalPages: 1, totalItems: 0 } },
+    }))
+  }
+
+
+  const handleDateFilterApply = (startDate: string, endDate: string) => {
+    setFilters(prev => ({ ...prev, startDate, endDate }))
+    setPagination(prev => ({ ...prev, currentPage: 1 }))
+    setEnquiriesList([])
+    setTabCache(cache => ({
+      ...cache,
+      [activeTab]: { list: [], pagination: { currentPage: 1, totalPages: 1, totalItems: 0 } },
+    }))
+  }
+
+  // const handlePageChange = (page: number) => {
+  //   setPagination(prev => ({ ...prev, currentPage: page }))
+  // }
+
+  const handleLeftScroll = () => {
+    const el = listRef.current
+    if (!el) return
+    const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 100
+    const hasMore = pagination.currentPage < pagination.totalPages
+    if (nearBottom && hasMore && !isLoading) {
+      setPagination(prev => ({ ...prev, currentPage: prev.currentPage + 1 }))
+    }
+  }
+
+
+
+  const handleConfirmDelete = async () => {
+    if (!enquiryToDelete) return
+    setIsDeleting(true)
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}${ENQUIRY_ENDPOINTS.delete}/${enquiryToDelete.id}?hardDelete=true`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+      })
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to delete enquiry')
+      }
+      showToast('success', 'Enquiry deleted successfully!')
+      setIsDeleteModalOpen(false)
+      setEnquiryToDelete(null)
+      refetch()
+    } catch (error) {
+      showToast('error', error instanceof Error ? error.message : 'Failed to delete enquiry')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  const handleAccept = async (enquiry: Enquiry) => {
+    setUpdatingId(enquiry.id)
+    setActionType('accept')
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}${ENQUIRY_ENDPOINTS.update}/${enquiry.id}`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ state: 'Accepted' }),
+      })
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to accept enquiry')
+      }
+
+      showToast('success', 'Enquiry accepted successfully')
+      refetch()
+    } catch (error) {
+      console.error('Error accepting enquiry:', error)
+      showToast('error', error instanceof Error ? error.message : 'Failed to accept enquiry')
+    } finally {
+      setUpdatingId(null)
+      setActionType(null)
+    }
+  }
+
+  const handleReject = async (enquiry: Enquiry) => {
+    setUpdatingId(enquiry.id)
+    setActionType('reject')
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}${ENQUIRY_ENDPOINTS.update}/${enquiry.id}`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ state: 'Rejected' }),
+      })
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to reject enquiry')
+      }
+
+      showToast('success', 'Enquiry rejected successfully')
+      refetch()
+    } catch (error) {
+      console.error('Error rejecting enquiry:', error)
+      showToast('error', error instanceof Error ? error.message : 'Failed to reject enquiry')
+    } finally {
+      setUpdatingId(null)
+      setActionType(null)
+    }
+  }
+
+  if (!hasReadPermission) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <p className="text-gray-500 text-lg">You don't have permission to view enquiries</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="py-4">
+      <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] px-6 py-10'> 
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-semibold text-gray-900">Enquiries</h1>
+          <p className="text-gray-600">View and manage customer enquiries.</p>
+        </div>
+
+        {/* Tabs */}
+        <div className="mb-6">
+          <div className="inline-flex bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => setActiveTab('pending')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                activeTab === 'pending'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Pending
+            </button>
+            <button
+              onClick={() => setActiveTab('accepted')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                activeTab === 'accepted'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Accepted
+            </button>
+            <button
+              onClick={() => setActiveTab('rejected')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                activeTab === 'rejected'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Rejected
+            </button>
+          </div>
+        </div>
+
+        {/* Filters */}
+        <div className='py-6'>
+          <div className="flex items-center gap-3">
+            {/* Search */}
+            <div className="relative w-72">
+              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+              <input
+                type="text"
+                placeholder="Search in name, email, or message"
+                value={searchTerm}
+                onChange={(e) => handleSearch(e.target.value)}
+                className="w-full pl-10 pr-3 py-[10px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-xs"
+              />
+            </div>
+
+
+            {/* Date Range Picker */}
+            <DateRangePicker
+              startDate={filters.startDate}
+              endDate={filters.endDate}
+              onDateRangeChange={handleDateFilterApply}
+              placeholder="Select date range"
+              includeTime={true}
+              className="w-[250px] text-xs"
+            />
+
+            <div className="ml-auto flex items-center gap-2">
+            <button
+              onClick={handleExport}
+                className="px-10 py-[10px] text-xs border border-[#0c684b] text-[#0c684b] rounded-sm hover:bg-gray-50 transition-colors"
+              >
+                Export
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Two Panel Layout */}
+        <div className="flex gap-6 h-[calc(100vh-350px)]">
+          {/* Left Panel - User List */}
+          <div className="w-1/5 h-full flex flex-col border border-gray-200 rounded-lg overflow-hidden">
+            <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+              <h3 className="text-xs text-gray-500">Total Enquiries: {enquiriesList.length}</h3>
+            </div>
+            <div ref={listRef} onScroll={handleLeftScroll} className="overflow-y-auto flex-1">
+              {isLoading && enquiriesList.length === 0 ? (
+                Array.from({ length: 5 }).map((_, index) => (
+                  <div key={index} className="p-4 border-b border-gray-100 animate-pulse">
+                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-3 bg-gray-200 rounded mb-1"></div>
+                    <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                  </div>
+                ))
+              ) : enquiriesList.length === 0 ? (
+                <div className="p-8 text-center text-gray-500">
+                  <p className="text-sm">No enquiries found</p>
+                </div>
+              ) : (
+                enquiriesList.map((enquiry: Enquiry) => (
+                  <div
+                    key={enquiry.id}
+                    onClick={() => setSelectedEnquiry(enquiry)}
+                    className={`p-4 border-b border-gray-100 cursor-pointer transition-colors hover:bg-gray-50 ${
+                      selectedEnquiry?.id === enquiry.id ? 'bg-[#0c684b]/5 border-l-4 border-l-[#0c684b]' : ''
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-900 text-sm">
+                          {enquiry.firstName} {enquiry.lastName}
+                        </h4>
+                        <p className="text-xs text-gray-600 mt-1">{enquiry.email}</p>
+                        <p className="text-xs text-gray-500 mt-1">{enquiry.phone}</p>
+                      </div>
+                      <div className="text-right">
+                        <span className={`inline-flex items-center px-2 py-1 rounded-md text-[10px] ${
+                          enquiry.state === 'Pending' ? 'bg-[#0c684b] text-white' :
+                          enquiry.state === 'Accepted' ? 'bg-[#0c684b] text-white' :
+                          'bg-[#0c684b] text-white'
+                        }`}>
+                          {enquiry.state}
+                        </span>
+                        <p className="text-xs text-gray-400 mt-5">
+                          {new Date(enquiry.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Right Panel - Details */}
+          <div className="flex-1 border border-gray-200 rounded-lg overflow-hidden">
+            {selectedEnquiry ? (
+              <div className="h-full flex flex-col">
+                {/* Header */}
+                <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-900">
+                        {selectedEnquiry.firstName} {selectedEnquiry.lastName}
+                      </h3>
+                      <p className="text-sm text-gray-600">Enquiry Details</p>
+                    </div>
+                    <span className={`inline-flex items-center px-4 py-2 rounded-full text-xs bg-[#0c684b] text-white`}>
+                      {selectedEnquiry.state}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 p-6 overflow-y-auto">
+                  <div className="space-y-6">
+                    {/* Personal Information */}
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-900 mb-3">Personal Information</h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-xs text-gray-500">First Name</label>
+                          <p className="text-sm text-gray-900 mt-1">{selectedEnquiry.firstName}</p>
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-500">Last Name</label>
+                          <p className="text-sm text-gray-900 mt-1">{selectedEnquiry.lastName}</p>
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-500">Email</label>
+                          <p className="text-sm text-gray-900 mt-1">{selectedEnquiry.email}</p>
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-500">Phone</label>
+                          <p className="text-sm text-gray-900 mt-1">{selectedEnquiry.phone}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Message */}
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-900 mb-3">Message</h4>
+                      <div className="bg-gray-50 rounded-lg p-4 max-h-[168px] overflow-y-auto">
+                        <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{selectedEnquiry.message}</p>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                {activeTab === 'pending' && (
+                  <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+                    <div className="flex justify-end gap-3">
+                      <button
+                        onClick={() => handleReject(selectedEnquiry)}
+                        disabled={updatingId === selectedEnquiry.id}
+                        className="px-12 py-[10px] text-xs border border-[#0c684b] text-[#0c684b] rounded-sm hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {updatingId === selectedEnquiry.id && actionType === 'reject' ? 'Rejecting...' : 'Reject'}
+                      </button>
+                      <button
+                        onClick={() => handleAccept(selectedEnquiry)}
+                        disabled={updatingId === selectedEnquiry.id}
+                        className="px-12 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {updatingId === selectedEnquiry.id && actionType === 'accept' ? 'Accepting...' : 'Accept'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'rejected' && (
+                  <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+                    <div className="flex justify-end gap-3">
+                      <button
+                        onClick={() => handleAccept(selectedEnquiry)}
+                        disabled={updatingId === selectedEnquiry.id}
+                        className="px-12 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {updatingId === selectedEnquiry.id && actionType === 'accept' ? 'Accepting...' : 'Accept'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="h-full flex items-center justify-center text-gray-500">
+                <div className="text-center">
+                  <p className="text-lg font-medium">Select an enquiry</p>
+                  <p className="text-sm">Choose an enquiry from the list to view details</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+
+        {/* Delete Confirmation Modal */}
+        <DeleteConfirmationModal
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          onConfirm={handleConfirmDelete}
+          title="Delete Enquiry"
+          message={`Are you sure you want to delete the enquiry from "${enquiryToDelete?.firstName} ${enquiryToDelete?.lastName}"? This action cannot be undone.`}
+          isLoading={isDeleting}
+        />
+      </div>
+    </div>
+  )
+}
+
+export default Enquiries
+
+

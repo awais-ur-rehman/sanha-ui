@@ -19,13 +19,8 @@ const Login: React.FC = () => {
 
   const handleLoginSuccess = (data: LoginResponse) => {
     if (data.success && data.data) {
-      // Store token in localStorage
       localStorage.setItem('token', data.data.token)
-      
-      // Update auth context with admin data (which includes permissions)
       login(data.data.admin)
-      
-      // Navigate to dashboard
       navigate(ROUTES.DASHBOARD)
     }
   }
@@ -45,7 +40,7 @@ const Login: React.FC = () => {
       </div>
 
       {/* Left side - Brand (Desktop) */}
-      <div className="hidden lg:flex lg:w-1/2 bg-black items-start text-start justify-start p-4 rounded-xl relative overflow-hidden order-2 lg:order-1">
+      <div className="hidden lg:flex lg:w-1/2 bg-[#1f222a] items-start text-start justify-start p-4 rounded-xl relative overflow-hidden order-2 lg:order-1">
         {/* Abstract Background Pattern */}
         <div className="absolute inset-0 opacity-20">
               <div className="absolute top-4 left-4 md:top-10 md:left-10 w-16 h-16 md:w-32 md:h-32 bg-white rounded-full blur-2xl md:blur-3xl"></div>
@@ -67,10 +62,10 @@ const Login: React.FC = () => {
                   <div className="absolute inset-0 bg-gradient-to-r from-green-400 via-emerald-500 to-teal-600 shadow-2xl bubble-breathe bubble-distort" style={{ borderRadius: '50% 45% 55% 40% / 40% 50% 50% 55%' }}></div>
                   
                   {/* Inner spinning glow */}
-                  <div className="absolute inset-2 bg-black/80 blur-md opacity-60 inner-spin-glow bubble-distort" style={{ borderRadius: '50% 50% 50% 50% / 50% 50% 50% 50%' }}></div>
+                  <div className="absolute inset-2 bg-[#1f222a] blur-md opacity-60 inner-spin-glow bubble-distort" style={{ borderRadius: '50% 50% 50% 50% / 50% 50% 50% 50%' }}></div>
                   
                   {/* Inner cutout to make it completely hollow - distorted ring */}
-                  <div className="absolute inset-4 bg-black/80 bubble-distort" style={{ borderRadius: '50% 45% 55% 40% / 40% 50% 50% 55%' }}></div>
+                  <div className="absolute inset-4 bg-[#1f222a] bubble-distort" style={{ borderRadius: '50% 45% 55% 40% / 40% 50% 50% 55%' }}></div>
                 </div>
               </div>
             </div>

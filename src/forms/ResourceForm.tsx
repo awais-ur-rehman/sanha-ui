@@ -57,6 +57,8 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
   });
 
   const watchedImageUrl = watch('imageUrl');
+  const watchedDescription = (watch('description') as string) || '';
+  const isMediaCategory = category === 'Videos' || category === 'Podcast';
 
   // Update form values when resource changes (for edit mode)
   useEffect(() => {
@@ -66,6 +68,18 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
       setValue('description', resource.description || '');
       setValue('imageUrl', resource.imageUrl || '');
 
+      // Initialize resourceRows with existing URLs
+      if (resource.listUrl && resource.listUrl.length > 0) {
+        setResourceRows(resource.listUrl.map(link => ({
+          url: link.url,
+          type: link.type
+        })));
+      } else {
+        setResourceRows([{ url: '', type: 'link' }]);
+      }
+    } else {
+      // Reset to default for new resource
+      setResourceRows([{ url: '', type: 'link' }]);
     }
   }, [resource, setValue]);
 
@@ -448,8 +462,6 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
   };
 
   const handleFormSubmit = (data: any) => {
-    const currentDate = new Date().toISOString().split('T')[0];
-    
     // Convert resource rows to listUrl format
     const listUrl = resourceRows
       .filter(row => row.url.trim()) // Only include rows with URLs
@@ -461,15 +473,23 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
     const formData = {
       ...data,
       category,
-      publishedDate: currentDate,
       listUrl,
     };
+
+    // Only include publishedDate for new resources, not for editing
+    if (!resource) {
+      const currentDate = new Date().toISOString().split('T')[0];
+      formData.publishedDate = currentDate;
+    }
+
     onSubmit(formData);
   };
 
   return (
-    <div className="space-y-6">
-      <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
+    <div className="flex flex-col h-full max-h-[80vh]">
+      <form onSubmit={handleSubmit(handleFormSubmit)} className="flex flex-col h-full">
+        {/* Form content - scrollable */}
+        <div className="flex-1 overflow-y-auto space-y-4 p-2">
         {/* Title and Author - Parallel */}
         <div className="grid grid-cols-2 gap-4">
           <Controller
@@ -526,10 +546,14 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
               </label>
               <textarea
                 {...field}
-                rows={4}
+                rows={7}
                 placeholder="Enter resource description"
+                maxLength={1000}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent resize-none"
               />
+              <div className="flex justify-end mt-1">
+                <span className="text-xs text-gray-400">{watchedDescription.length}/1000</span>
+              </div>
               {errors.description && (
                 <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
               )}
@@ -537,60 +561,80 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
           )}
         />
 
-        {/* Image Upload */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Resource Image *
-          </label>
-          <div className="space-y-2">
-            {watchedImageUrl ? (
-              <div className="relative inline-block">
-                <img 
-                  src={watchedImageUrl} 
-                  alt="Resource image" 
-                  className="w-16 h-20 object-cover rounded border"
+        {/* Media URL or Image Upload */}
+        {isMediaCategory ? (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {category === 'Videos' ? 'Video URL *' : 'Podcast URL *'}
+            </label>
+            <Controller
+              name="imageUrl"
+              control={control}
+              render={({ field }) => (
+                <input
+                  {...field}
+                  type="url"
+                  placeholder={`Enter ${category === 'Videos' ? 'YouTube' : 'podcast'} link`}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
                 />
-                <button
-                  type="button"
-                  onClick={removeImage}
-                  className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 hover:bg-red-600"
-                >
-                  <FiX size={10} />
-                </button>
-              </div>
-            ) : (
-              <div className="w-16 h-20 border-2 border-dashed border-gray-300 rounded flex items-center justify-center">
-                <FiImage className="text-gray-400" size={16} />
-              </div>
-            )}
-            
-            <div>
-              <input
-                type="file"
-                accept=".jpg,.jpeg,.png,.gif,.bmp,.webp,.svg"
-                onChange={handleImageChange}
-                className="hidden"
-                id="image-upload"
-                disabled={uploadingImage}
-              />
-              <label
-                htmlFor="image-upload"
-                className={`inline-flex items-center px-3 py-1.5 border border-gray-300 rounded text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0c684b] cursor-pointer ${
-                  uploadingImage ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-              >
-                <FiUpload className="mr-1" size={12} />
-                {uploadingImage ? 'Uploading...' : 'Upload Image'}
-              </label>
-              {uploadingImage && (
-                <p className="text-xs text-blue-600 mt-1">Uploading...</p>
               )}
-            </div>
+            />
             {errors.imageUrl && (
               <p className="mt-1 text-sm text-red-600">{errors.imageUrl.message}</p>
             )}
           </div>
-        </div>
+        ) : (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Resource Image *
+            </label>
+            <div className="space-y-2">
+              {watchedImageUrl ? (
+                <div className="relative inline-block">
+                  <img 
+                    src={watchedImageUrl} 
+                    alt="Resource image" 
+                    className="w-16 h-20 object-cover rounded border"
+                  />
+                  <button
+                    type="button"
+                    onClick={removeImage}
+                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 hover:bg-red-600"
+                  >
+                    <FiX size={10} />
+                  </button>
+                </div>
+              ) : (
+                <div className="w-16 h-20 border-2 border-dashed border-gray-300 rounded flex items-center justify-center">
+                  <FiImage className="text-gray-400" size={16} />
+                </div>
+              )}
+              
+              <div>
+                <input
+                  type="file"
+                  accept=".jpg,.jpeg,.png,.gif,.bmp,.webp,.svg"
+                  onChange={handleImageChange}
+                  className="hidden"
+                  id="image-upload"
+                  disabled={uploadingImage}
+                />
+                <label
+                  htmlFor="image-upload"
+                  className={`inline-flex items-center px-3 py-1.5 border border-gray-300 rounded text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0c684b] cursor-pointer ${
+                    uploadingImage ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                >
+                  <FiUpload className="mr-1" size={12} />
+                  {uploadingImage ? 'Uploading...' : 'Upload Image'}
+                </label>
+              </div>
+              {errors.imageUrl && (
+                <p className="mt-1 text-sm text-red-600">{errors.imageUrl.message}</p>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Resource Links & Files */}
         <div>
@@ -651,26 +695,27 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
             )}
           </div>
         </div>
+        </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-3 pt-4">
-          <button
-            type="submit"
-            disabled={isLoading || uploadingImage || uploadingDocuments}
-            className="flex-1 px-4 py-2 bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoading 
-              ? (resource ? 'Updating...' : 'Creating...') 
-              : (resource ? 'Update Resource' : 'Create Resource')
-            }
-          </button>
+        {/* Form Actions - fixed bottom within modal content */}
+        <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200 mt-4 flex-shrink-0 bg-white">
           <button
             type="button"
             onClick={onCancel}
             disabled={isLoading}
-            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-10 py-[10px] text-xs border border-[#0c684b] text-[#0c684b] rounded-sm hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={isLoading || uploadingImage || uploadingDocuments}
+            className="flex items-center space-x-2 px-10 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span>{isLoading 
+              ? (resource ? 'Updating...' : 'Creating...') 
+              : (resource ? 'Update Resource' : 'Add Resource')
+            }</span>
           </button>
         </div>
       </form>

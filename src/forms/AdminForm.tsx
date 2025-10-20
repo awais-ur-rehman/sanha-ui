@@ -90,7 +90,7 @@ const AdminForm = ({ admin, onSubmit, onCancel, loading = false }: AdminFormProp
   }))
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 text-sm">
       <div className="grid grid-cols-2 gap-4">
         <CustomInput
           label="Username *"

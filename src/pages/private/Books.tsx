@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
-import { FiPlus, FiSearch } from 'react-icons/fi'
+import { FiSearch } from 'react-icons/fi'
 import Modal from '../../components/Modal'
 import BookForm from '../../forms/BookForm'
-import BookDetailSheet from '../../components/BookDetailSheet'
+import EntityDetailSheet from '../../components/EntityDetailSheet'
 import DeleteConfirmationModal from '../../components/DeleteConfirmationModal'
 import type { Book } from '../../types/entities'
 import { BOOK_ENDPOINTS, API_CONFIG, getAuthHeaders } from '../../config/api'
@@ -10,6 +10,7 @@ import { usePermissions } from '../../hooks/usePermissions'
 import { useGetApi, useDeleteApi } from '../../hooks'
 import CustomDropdown from '../../components/CustomDropdown'
 import { useToast } from '../../components/CustomToast/ToastContext'
+import { Pagination } from '../../components'
 
 const Books = () => {
   // Hooks
@@ -131,11 +132,14 @@ const Books = () => {
   }
 
   const handleToggleStatus = async (book: Book) => {
+    // Toggle the isActive status
+    const newStatus = !book.isActive
+    
     const response = await fetch(`${API_CONFIG.baseURL}${BOOK_ENDPOINTS.update}/${book.id}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
       body: JSON.stringify({
-        isActive: !book.isActive,
+        isActive: newStatus,
       }),
     })
 
@@ -146,10 +150,10 @@ const Books = () => {
 
     // Update selected book if it's the same
     if (selectedBook?.id === book.id) {
-      setSelectedBook(prev => prev ? { ...prev, isActive: !prev.isActive } : null)
+      setSelectedBook(prev => prev ? { ...prev, isActive: newStatus } : null)
     }
     
-    showToast('success', `Book ${!book.isActive ? 'activated' : 'deactivated'} successfully!`)
+    showToast('success', `Book ${newStatus ? 'activated' : 'deactivated'} successfully!`)
     
     // Refetch books to update the list
     refetch()
@@ -174,7 +178,10 @@ const Books = () => {
     setIsAddModalOpen(true)
   }
 
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
   const handleBookFormSubmit = async (formData: any) => {
+    setIsSubmitting(true)
     try {
       const isEditing = !!selectedBook
       const url = isEditing 
@@ -206,6 +213,8 @@ const Books = () => {
     } catch (error) {
       console.error('Error saving book:', error)
       showToast('error', error instanceof Error ? error.message : 'Failed to save book')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -234,71 +243,71 @@ const Books = () => {
   )
 
   return (
-    <div className="py-4">
-      <div className='bg-white rounded-lg shadow-lg overflow-hidden min-h-[calc(100vh-35px)] max-h-[calc(100vh-35px)] overflow-y-auto px-6 py-10'>
-{/* Header */}
-<div className="mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">Books</h1>
-        <p className="text-gray-600">View & manage books.</p>
+    <div className="py-3 lg:py-4">
+      <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] max-h-[calc(100vh-35px)] overflow-y-auto px-4 lg:px-6 py-6 lg:py-10'>
+      {/* Header */}
+<div className="mb-4 lg:mb-6">
+        <h1 className="text-xl lg:text-2xl font-semibold text-gray-900">Books</h1>
+        <p className="text-sm lg:text-base text-gray-600">View & manage books.</p>
       </div>
 
       {/* Clean Filters */}
-      <div className="mb-6">
-        <div className="flex items-center gap-4">
+      <div className='py-6'>
+        <div className="flex items-center gap-3">
           {/* Search */}
-          <div className="relative flex-1">
+          <div className="relative w-72">
             <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
             <input
               type="text"
               placeholder="Search books by title, author, or published by..."
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
+              className="w-full pl-10 pr-3 py-[10px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-xs"
             />
           </div>
 
           {/* Language Filter */}
-          <div className="w-48">
-            <CustomDropdown
-              placeholder="All Languages"
-              value={filters.contentLanguage}
-              onChange={(value) => handleFilterChange('contentLanguage', value as string)}
-              options={[
-                { value: '', label: 'All Languages' },
-                { value: 'English', label: 'English' },
-                { value: 'Urdu', label: 'Urdu' },
-                { value: 'Arabic', label: 'Arabic' },
-              ]}
-            />
-          </div>
+          <CustomDropdown
+            placeholder="All Languages"
+            value={filters.contentLanguage}
+            onChange={(value) => handleFilterChange('contentLanguage', value as string)}
+            options={[
+              { value: '', label: 'All Languages' },
+              { value: 'English', label: 'English' },
+              { value: 'Urdu', label: 'Urdu' },
+              { value: 'Arabic', label: 'Arabic' },
+            ]}
+            className="w-[150px] text-xs"
+          />
 
           {/* Status Filter */}
-          <div className="w-48">
-            <CustomDropdown
-              placeholder="All Status"
-              value={filters.isActive}
-              onChange={(value) => handleFilterChange('isActive', value as string)}
-              options={[
-                { value: '', label: 'All Status' },
-                { value: 'true', label: 'Active' },
-                { value: 'false', label: 'Inactive' },
-              ]}
-            />
-          </div>
+          <CustomDropdown
+            placeholder="All Status"
+            value={filters.isActive}
+            onChange={(value) => handleFilterChange('isActive', value as string)}
+            options={[
+              { value: '', label: 'All Status' },
+              { value: 'true', label: 'Active' },
+              { value: 'false', label: 'Inactive' },
+            ]}
+            className="w-[150px] text-xs"
+          />
 
-          {/* Add Book Button */}
-          <button
-            onClick={handleAddBook}
-            className="flex items-center space-x-2 cursor-pointer px-4 py-2 bg-[#0c684b] text-white rounded-lg hover:bg-green-900 transition-colors"
-          >
-            <FiPlus size={16} />
-            <span>Add Book</span>
-          </button>
+          <div className="ml-auto flex items-center gap-2">
+            {hasPermission('Books', 'create') && (
+              <button
+                onClick={handleAddBook}
+                className="flex items-center space-x-2 px-10 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors"
+              >
+                <span>Add Book</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Books Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 lg:gap-6">
         {loading ? (
           // Loading shimmer cards
           Array.from({ length: 12 }).map((_, index) => (
@@ -313,7 +322,7 @@ const Books = () => {
             <div
               key={book.id}
               onClick={() => handleViewBook(book)}
-              className=" p-4 cursor-pointer group"
+              className="p-3 lg:p-4 cursor-pointer group"
             >
               {/* Book Image with Language Chip */}
               <div className="relative mb-3">
@@ -335,10 +344,10 @@ const Books = () => {
 
               {/* Book Info */}
               <div className="space-y-1">
-                <h3 className="font-medium text-gray-900 line-clamp-2 group-hover:text-[#0c684b] transition-colors">
+                <h3 className="font-medium text-sm lg:text-base text-gray-900 line-clamp-2 group-hover:text-[#0c684b] transition-colors">
                   {book.title || 'Untitled'}
                 </h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-xs lg:text-sm text-gray-600">
                   {book.author || 'Unknown Author'}
                 </p>
                 <p className="text-xs text-gray-500">
@@ -352,43 +361,69 @@ const Books = () => {
 
       {/* Pagination */}
       {!loading && pagination.totalPages > 1 && (
-        <div className="flex items-center justify-center mt-8 space-x-2">
-          <button
-            onClick={() => handlePageChange(pagination.currentPage - 1)}
-            disabled={pagination.currentPage <= 1}
-            className="px-3 py-2 text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Previous
-          </button>
-          <span className="px-3 py-2 text-gray-700">
-            Page {pagination.currentPage} of {pagination.totalPages}
-          </span>
-          <button
-            onClick={() => handlePageChange(pagination.currentPage + 1)}
-            disabled={pagination.currentPage >= pagination.totalPages}
-            className="px-3 py-2 text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Next
-          </button>
+        <div className="mt-8">
+          <Pagination
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            totalItems={pagination.totalItems}
+            itemsPerPage={pagination.itemsPerPage}
+            onPageChange={handlePageChange}
+            className="justify-center"
+          />
         </div>
       )}
 
       {/* Book Detail Sheet */}
-      <BookDetailSheet
-        book={selectedBook}
+      <EntityDetailSheet
+        entity={selectedBook}
         open={isOverlayOpen}
         onClose={closeOverlay}
         onEdit={(book) => {
           setIsOverlayOpen(false)
-          handleEditBook(book)
+          handleEditBook(book as Book)
         }}
         onDelete={(book) => {
           setIsOverlayOpen(false)
-          handleDeleteBook(book)
+          handleDeleteBook(book as Book)
         }}
-        onToggleStatus={handleToggleStatus}
-        hasUpdatePermission={hasPermission('books', 'update')}
-        hasDeletePermission={hasPermission('books', 'delete')}
+        hasUpdatePermission={hasPermission('Books', 'update')}
+        hasDeletePermission={hasPermission('Books', 'delete')}
+        titleAccessor={(book: Book) => book.title}
+        imageAccessor={(book: Book) => book.imageUrl}
+        statusToggle={{
+          checked: Boolean(selectedBook?.isActive),
+          onChange: async (checked: boolean) => {
+            if (!selectedBook) return
+            await handleToggleStatus({ ...selectedBook, isActive: checked })
+          },
+          enabled: hasPermission('Books', 'update'),
+          labelActive: 'Active',
+          labelInactive: 'Inactive',
+        }}
+        sections={[
+          {
+            title: 'Book Information',
+            items: [
+              { label: 'Author', value: selectedBook?.author || 'N/A' },
+              { label: 'Published By', value: selectedBook?.publishedBy || 'N/A' },
+              { label: 'Content Language', value: selectedBook?.contentLanguage || 'N/A' },
+            ]
+          },
+          {
+            title: 'Description',
+            items: [
+              { label: 'Description', value: selectedBook?.description || 'N/A' },
+            ]
+          },
+        ]}
+        linkSection={selectedBook?.url ? {
+          title: 'PDF Link',
+          links: [{
+            url: selectedBook.url,
+            typeTag: 'PDF'
+          }],
+          maxHeightClass: 'max-h-[60px] min-h-[40px]'
+        } : undefined}
       />
 
       {/* Add/Edit Book Modal */}
@@ -397,12 +432,16 @@ const Books = () => {
           isOpen={isAddModalOpen}
           onClose={handleBookFormCancel}
           title={selectedBook ? 'Edit Book' : 'Add New Book'}
+          size="xl"
         >
-          <BookForm
-            book={selectedBook}
-            onSubmit={handleBookFormSubmit}
-            onCancel={handleBookFormCancel}
-          />
+          <div className="h-[70vh] overflow-hidden">
+            <BookForm
+              book={selectedBook}
+              onSubmit={handleBookFormSubmit}
+              onCancel={handleBookFormCancel}
+              loading={isSubmitting}
+            />
+          </div>
         </Modal>
       )}
 

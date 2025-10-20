@@ -1,16 +1,19 @@
 import { useState, useEffect } from 'react'
-import { FiPlus, FiSearch, FiCheckCircle, FiXCircle } from 'react-icons/fi'
+import { FiSearch, FiMail, FiPhone, FiGlobe, FiMapPin } from 'react-icons/fi'
 import { usePermissions } from '../../hooks/usePermissions'
 import { useGetApi, usePostApi, usePutApi, useDeleteApi } from '../../hooks'
 import { useToast } from '../../components/CustomToast/ToastContext'
-import { CLIENT_ENDPOINTS, API_CONFIG, getAuthHeaders } from '../../config/api'
+import { CLIENT_ENDPOINTS, CLIENT_EXPORT_ENDPOINT } from '../../config/api'
 import type { Client, ClientCreateRequest, ClientUpdateRequest } from '../../types/entities'
+import { CLIENT_STATUS } from '../../types/entities'
 import Modal from '../../components/Modal'
 import ClientForm from '../../forms/ClientForm'
-import ClientDetailSheet from '../../components/ClientDetailSheet'
+import EntityDetailSheet from '../../components/EntityDetailSheet'
 import DateRangePicker from '../../components/DateRangePicker'
 import DeleteConfirmationModal from '../../components/DeleteConfirmationModal'
 import CustomDropdown from '../../components/CustomDropdown'
+import { Pagination } from '../../components'
+import StyledTable from '../../components/StyledTable'
 
 const Clients = () => {
   // Hooks
@@ -33,7 +36,7 @@ const Clients = () => {
   const [filters, setFilters] = useState({
     startDate: '',
     endDate: '',
-    isActive: '',
+    status: '',
   })
   const [pagination, setPagination] = useState({
     currentPage: 1,
@@ -51,7 +54,7 @@ const Clients = () => {
     ...(searchTerm && { search: searchTerm }),
     ...(filters.startDate && { startDate: filters.startDate }),
     ...(filters.endDate && { endDate: filters.endDate }),
-    ...(filters.isActive && { isActive: filters.isActive }),
+    ...(filters.status && { status: filters.status }),
   })
 
   // API hooks
@@ -62,6 +65,34 @@ const Clients = () => {
       staleTime: 0, // Always fetch fresh data
     }
   )
+
+  // Export CSV hook
+  const exportQueryParams = new URLSearchParams({
+    ...(searchTerm && { search: searchTerm }),
+    ...(filters.startDate && { startDate: filters.startDate }),
+    ...(filters.endDate && { endDate: filters.endDate }),
+    ...(filters.status && { status: filters.status }),
+  })
+  const exportCsvQuery = useGetApi<Blob>(
+    `${CLIENT_EXPORT_ENDPOINT}?${exportQueryParams.toString()}`,
+    { requireAuth: true, enabled: false, staleTime: 0, responseType: 'blob' }
+  )
+
+  const handleExport = async () => {
+    try {
+      const result = await exportCsvQuery.refetch()
+      const blob = result.data as Blob
+      if (!blob) return
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `clients-${new Date().toISOString().slice(0,10)}.csv`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(url)
+    } catch {}
+  }
 
   const createClientMutation = usePostApi<ClientCreateRequest, any>(
     CLIENT_ENDPOINTS.create,
@@ -98,7 +129,7 @@ const Clients = () => {
 
 
   const deleteClientMutation = useDeleteApi(
-    `${CLIENT_ENDPOINTS.delete}/${selectedClient?.id}`,
+    `${CLIENT_ENDPOINTS.delete}/${selectedClient?.id}?hardDelete=true`,
     {
       requireAuth: true,
       onSuccess: () => {
@@ -117,11 +148,10 @@ const Clients = () => {
   // Process clients data
   const clients = clientsResponse?.data?.data?.map((client: Client) => ({
     ...client,
-    isActive: Boolean(client.isActive), // Convert 0/1 to boolean
     logoUrl: client.logoUrl || '',
     name: client.name || '',
     email: client.email || '',
-    clientCode: client.clientCode || '',
+    clientCode: Array.isArray(client.clientCode) ? client.clientCode : (client.clientCode ? [client.clientCode as unknown as string] : []),
     standard: client.standard || '',
     address: client.address || [],
     phone: client.phone || [],
@@ -156,10 +186,10 @@ const Clients = () => {
     setPagination(prev => ({ ...prev, currentPage: 1 }))
   }
 
-  const handleIsActiveFilterChange = (value: string | number) => {
+  const handleStatusFilterChange = (value: string | number) => {
     setFilters(prev => ({ 
       ...prev, 
-      isActive: value.toString() 
+      status: value.toString() 
     }))
     setPagination(prev => ({ ...prev, currentPage: 1 }))
   }
@@ -187,37 +217,7 @@ const Clients = () => {
     setIsDeleteModalOpen(true)
   }
 
-  const handleToggleStatus = async (client: Client) => {
-    try {
-      console.log('Current client.isActive:', client.isActive, 'Type:', typeof client.isActive)
-      
-      // Use the isActive value that was passed from the detail sheet
-      // The detail sheet already toggled the value, so we use it directly
-      const payload = {
-        isActive: client.isActive, // Use the passed value directly
-      }
-      
-      console.log('Sending payload:', payload)
-
-      // Use direct fetch to ensure we send to the correct endpoint with client ID
-      const response = await fetch(`${API_CONFIG.baseURL}${CLIENT_ENDPOINTS.update}/${client.id}`, {
-        method: 'PUT',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(payload),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || 'Failed to update client status')
-      }
-
-      showToast('success', `Client ${!client.isActive ? 'activated' : 'deactivated'} successfully!`)
-      refetch() // Refresh the client list
-    } catch (error) {
-      console.error('Error updating client status:', error)
-      showToast('error', error instanceof Error ? error.message : 'Failed to update client status')
-    }
-  }
+  // Status changes are handled via Edit modal; no inline toggle
 
   const handleSubmitCreate = async (data: ClientCreateRequest) => {
     setIsSubmitting(true)
@@ -278,44 +278,48 @@ const Clients = () => {
 
   return (
     <div className="py-4">
-      <div className='bg-white rounded-lg shadow-lg overflow-hidden min-h-[calc(100vh-35px)] p-6'>
+      <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] p-6'>
 
         {/* Header */}
-      <div className="flex items-center justify-between my-4">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-2xl font-semibold text-gray-900">Clients</h1>
-          <p className="text-gray-600">Manage client information and certifications</p>
+          <p className="text-gray-600 text-sm">Manage client information and certifications</p>
         </div>
         
       </div>
 
       {/* Filters */}
       <div className='py-6'>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           {/* Search */}
-          <div className="relative flex-1">
+          <div className="relative w-72">
             <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
             <input
               type="text"
               placeholder="Search clients by name, standard, client code, email, fax, or website..."
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
+              className="w-full pl-10 pr-3 py-[10px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-xs"
             />
           </div>
 
           {/* Status Filter */}
-          <CustomDropdown
-            options={[
-              { value: '', label: 'All Status' },
-              { value: 'true', label: 'Active' },
-              { value: 'false', label: 'Inactive' },
-            ]}
-            value={filters.isActive}
-            onChange={handleIsActiveFilterChange}
-            placeholder="Filter by status"
-            
-          />
+          <div className="w-[220px]">
+            <CustomDropdown
+              options={[
+                { value: '', label: 'All Status' },
+                { value: CLIENT_STATUS.ACTIVE, label: CLIENT_STATUS.ACTIVE },
+                { value: CLIENT_STATUS.ON_HOLD, label: CLIENT_STATUS.ON_HOLD },
+                { value: CLIENT_STATUS.CERTIFICATE_ON_HOLD, label: CLIENT_STATUS.CERTIFICATE_ON_HOLD },
+                { value: CLIENT_STATUS.EXPIRED, label: CLIENT_STATUS.EXPIRED },
+              ]}
+              value={filters.status}
+              onChange={handleStatusFilterChange}
+              placeholder="Filter by status"
+              className="text-xs"
+            />
+          </div>
 
           {/* Date Range Picker */}
           <DateRangePicker
@@ -323,178 +327,167 @@ const Clients = () => {
             endDate={filters.endDate}
             onDateRangeChange={handleDateFilterApply}
             placeholder="Filter by date range"
-            className="w-64"
+            className="w-72 text-xs"
+            includeTime={true}
           />
 
-{hasCreatePermission && (
+        <div className="ml-auto flex items-center gap-2">
           <button
-            onClick={handleAddClient}
-            className="flex items-center space-x-2 px-4 py-2 bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors"
+            onClick={handleExport}
+            className="px-10 py-[10px] text-xs border border-[#0c684b] text-[#0c684b] rounded-sm hover:bg-gray-50 transition-colors"
           >
-            <FiPlus size={16} />
-            <span>Add Client</span>
+            Export
           </button>
-        )}
+          {hasCreatePermission && (
+            <button
+              onClick={handleAddClient}
+              className="flex items-center space-x-2 px-10 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors"
+            >
+     
+              <span>Add Client</span>
+            </button>
+          )}
+        </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="bg-white rounded-lg border border-gray-200">
-        {loading ? (
-          <div className="p-6">
-            <div className="animate-pulse space-y-4">
-              {Array.from({ length: 5 }).map((_, index) => (
-                <div key={index} className="h-16 bg-gray-200 rounded"></div>
-              ))}
-            </div>
-          </div>
-        ) : clients.length === 0 ? (
-          <div className="p-12 text-center">
-            <div className="text-gray-500">
-              <p className="text-lg font-medium">No clients found</p>
-              <p className="text-sm">Try adjusting your search or filters</p>
-            </div>
-          </div>
-        ) : (
-          <>
-            {/* Table */}
-            <div className="overflow-x-auto ">
-              <table className="w-full">
-                <thead className="bg-gray-100 border-b border-gray-200">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Client
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Contact
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Certification
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Expiry
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {clients.map((client: Client) => (
-                    <tr 
-                      key={client.id} 
-                      className="hover:bg-gray-50 cursor-pointer"
-                      onClick={() => handleRowClick(client)}
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          {client.logoUrl && (
-                            <img
-                              src={client.logoUrl}
-                              alt={`${client.name} logo`}
-                              className="w-10 h-10 rounded-lg object-cover mr-3"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement
-                                target.style.display = 'none'
-                              }}
-                            />
-                          )}
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">{client.name}</div>
-                            <div className="text-sm text-gray-500">{client.clientCode}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{client.email}</div>
-                        {client.phone.length > 0 && (
-                          <div className="text-sm text-gray-500">{client.phone[0]}</div>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{client.standard}</div>
-                        {client.category.length > 0 && (
-                          <div className="text-sm text-gray-500">{client.category[0]}</div>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className={`flex items-center space-x-1 px-2 max-w-20 py-1 rounded-full text-xs font-medium ${
-                          client.isActive 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          {client.isActive ? <FiCheckCircle size={12} /> : <FiXCircle size={12} />}
-                          <span>{client.isActive ? 'Active' : 'Inactive'}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{formatDate(client.expiryDate)}</div>
-                        {isExpired(client.expiryDate) && (
-                          <div className="text-xs text-red-600">Expired</div>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Pagination */}
-              <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
-                <div className="text-sm text-gray-700">
-                  Showing {((pagination.currentPage - 1) * pagination.itemsPerPage) + 1} to{' '}
-                  {Math.min(pagination.currentPage * pagination.itemsPerPage, pagination.totalItems || 0)} of{' '}
-                  {pagination.totalItems || 0} results
-                </div>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => handlePageChange(pagination.currentPage - 1)}
-                    disabled={pagination.currentPage <= 1}
-                    className="px-3 py-2 text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Previous
-                  </button>
-                  <span className="px-3 py-2 text-gray-700">
-                    Page {pagination.currentPage} of {pagination.totalPages || 1}
-                  </span>
-                  <button
-                    onClick={() => handlePageChange(pagination.currentPage + 1)}
-                    disabled={pagination.currentPage >= (pagination.totalPages || 1)}
-                    className="px-3 py-2 text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Next
-                  </button>
-                </div>
+      {loading || clients.length === 0 ? (
+        <div className="bg-white rounded-lg border border-gray-200">
+          {loading ? (
+            <div className="p-6">
+              <div className="animate-pulse space-y-4">
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <div key={index} className="h-16 bg-gray-200 rounded"></div>
+                ))}
               </div>
-         
-          </>
-        )}
-      </div>
+            </div>
+          ) : (
+            <div className="p-12 text-center">
+              <div className="text-gray-500">
+                <p className="text-lg font-medium">No clients found</p>
+                <p className="text-sm">Try adjusting your search or filters</p>
+              </div>
+            </div>
+          )}
+        </div>
+      ) : (
+        <>
+          <StyledTable<Client>
+            data={clients}
+            columns={[
+              {
+                key: 'client',
+                header: 'Client',
+                render: (client: Client) => (
+                  <div className="flex items-center">
+                    {client.logoUrl && (
+                      <img
+                        src={client.logoUrl}
+                        alt={`${client.name} logo`}
+                        className="w-10 h-10 rounded-lg object-cover mr-3"
+                        onError={(e) => { const t = e.target as HTMLImageElement; t.style.display = 'none' }}
+                      />
+                    )}
+                    <div className='mr-2'>
+                      <div className="text-sm font-medium text-gray-900 max-w-[200px] truncate" title={client.name}>{client.name}</div>
+                    </div>
+                  </div>
+                )
+              },
+              {
+                key: 'contact',
+                header: 'Contact',
+                render: (client: Client) => (
+                  <div>
+                    <div className="text-sm text-gray-900 max-w-[220px] truncate" title={client.email}>{client.email}</div>
+                
+                  </div>
+                )
+              },
+              {
+                key: 'certification',
+                header: 'Certification',
+                render: (client: Client) => (
+                  <div>
+                    <div className="text-sm text-gray-900 max-w-[200px] truncate" title={client.standard}>{client.standard}</div>
+                  
+                  </div>
+                )
+              },
+              {
+                key: 'status',
+                header: 'Status',
+                render: (client: Client) => (
+                  <div className={`flex items-center justify-center text-center space-x-1 px-2 max-w-40 py-1 rounded-full text-xs font-medium ${
+                    client.status === CLIENT_STATUS.ACTIVE
+                      ? 'bg-green-100 text-green-800'
+                      : client.status === CLIENT_STATUS.EXPIRED
+                        ? 'bg-red-100 text-red-800'
+                        : client.status === CLIENT_STATUS.ON_HOLD
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-purple-100 text-purple-800'
+                  }`}>
+                    <span>{client.status}</span>
+                  </div>
+                )
+              },
+              {
+                key: 'expiry',
+                header: 'Expiry',
+                render: (client: Client) => (
+                  <div>
+                    <div className="text-sm text-gray-900">{formatDate(client.expiryDate)}</div>
+                    {isExpired(client.expiryDate) && (
+                      <div className="text-xs text-red-600">Expired</div>
+                    )}
+                  </div>
+                )
+              }
+            ]}
+            onRowClick={handleRowClick}
+          />
+
+          <Pagination
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            totalItems={pagination.totalItems}
+            itemsPerPage={pagination.itemsPerPage}
+            onPageChange={handlePageChange}
+          />
+        </>
+      )}
 
       {/* Modals */}
       <Modal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         title="Add New Client"
+        size="xl"
       >
-        <ClientForm
-          onSubmit={(data: ClientCreateRequest | ClientUpdateRequest) => handleSubmitCreate(data as ClientCreateRequest)}
-          onCancel={() => setIsAddModalOpen(false)}
-          isLoading={isSubmitting}
-        />
+        <div className="h-[70vh] overflow-hidden">
+          <ClientForm
+            onSubmit={(data: ClientCreateRequest | ClientUpdateRequest) => handleSubmitCreate(data as ClientCreateRequest)}
+            onCancel={() => setIsAddModalOpen(false)}
+            isLoading={isSubmitting}
+          />
+        </div>
       </Modal>
 
       <Modal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         title="Edit Client"
+        size="xl"
       >
-        <ClientForm
-          client={selectedClient || undefined}
-          onSubmit={handleSubmitUpdate}
-          onCancel={() => setIsEditModalOpen(false)}
-          isLoading={isSubmitting}
-        />
+        <div className="h-[70vh] overflow-hidden">
+          <ClientForm
+            client={selectedClient || undefined}
+            onSubmit={handleSubmitUpdate}
+            onCancel={() => setIsEditModalOpen(false)}
+            isLoading={isSubmitting}
+          />
+        </div>
       </Modal>
 
       {hasDeletePermission && (
@@ -508,22 +501,63 @@ const Clients = () => {
         />
       )}
 
-      {/* Client Detail Sheet */}
-      <ClientDetailSheet
-        client={selectedClient}
+      {/* Client Detail Sheet (Unified) */}
+      <EntityDetailSheet<Client>
+        entity={selectedClient}
         open={isOverlayOpen}
         onClose={closeOverlay}
-        onEdit={(client) => {
-          setIsOverlayOpen(false)
-          handleEditClient(client)
+        dense
+        title={`Client Details - ${selectedClient?.name || ''}`}
+        headerTitle={selectedClient?.name || ''}
+        image={{ src: selectedClient?.logoUrl, alt: `${selectedClient?.name || ''} logo` }}
+        descriptionSections={selectedClient ? [
+          { title: 'Description', text: selectedClient.description || '', maxHeightClass: 'max-h-[3.2rem]' }
+        ] : []}
+        sections={selectedClient ? [
+          { title: 'Status', type: 'chips', items: [selectedClient.status] },
+        ] : []}
+        headerRows={selectedClient ? [
+          {
+            label: 'Client Code',
+            value: selectedClient.clientCode && selectedClient.clientCode.length > 0 ? selectedClient.clientCode.join(', ') : '—',
+            tooltip: selectedClient.clientCode && selectedClient.clientCode.length > 0 ? selectedClient.clientCode.join(', ') : '—',
+            truncateWidth: 'max-w-[320px]'
+          },
+          {
+            label: 'Standard',
+            value: selectedClient.standard || '—',
+            tooltip: selectedClient.standard || '—',
+            truncateWidth: 'max-w-[420px]'
+          },
+        ] : []}
+        chipSections={selectedClient ? [
+          { title: 'Categories', items: selectedClient.category || [], limit: 3 },
+          { title: 'Certification Scopes', items: selectedClient.scope || [], limit: 3 },
+          { title: 'Products', items: selectedClient.products || [], limit: 3 },
+        ] : []}
+        infoGrid={selectedClient ? [
+          { label: 'Email', value: selectedClient.email || '—', icon: (<FiMail className="text-gray-400 mt-1" size={16} />), tooltip: selectedClient.email, truncateWidth: 'max-w-[200px]' },
+          ...(selectedClient.fax ? [{ label: 'Fax', value: selectedClient.fax }] : []),
+          ...(selectedClient.website ? [{ label: 'Website', value: selectedClient.website, link: true, icon: (<FiGlobe className="text-gray-400 mt-1" size={16} />), tooltip: selectedClient.website, truncateWidth: 'max-w-[140px]' }] : []),
+          ...(selectedClient.phone && selectedClient.phone.length > 0 ? [{ label: 'Phone Numbers', value: selectedClient.phone[0], icon: (<FiPhone className="text-gray-400 mt-1" size={16} />), tooltip: selectedClient.phone.join(', '), truncateWidth: 'max-w-[200px]' }] : []),
+          ...(selectedClient.address && selectedClient.address.length > 0 ? [{ label: 'Addresses', value: selectedClient.address[0], icon: (<FiMapPin className="text-gray-400 mt-1" size={16} />), tooltip: selectedClient.address.join(', '), truncateWidth: 'max-w-[200px]' }] : []),
+        ] : []}
+        dateGrid={selectedClient ? [
+          { label: 'Certified Since', date: selectedClient.certifiedSince },
+          { label: 'Expiry Date', date: selectedClient.expiryDate, isExpired: isExpired(selectedClient.expiryDate), showExpiredBadge: true },
+        ] : []}
+        footerActions={{
+          onEdit: (client) => {
+            setIsOverlayOpen(false)
+            handleEditClient(client)
+          },
+          onDelete: (client) => {
+            setIsOverlayOpen(false)
+            handleDeleteClient(client)
+          },
+          hasUpdatePermission,
+          hasDeletePermission,
         }}
-        onDelete={(client) => {
-          setIsOverlayOpen(false)
-          handleDeleteClient(client)
-        }}
-        onToggleStatus={handleToggleStatus}
-        hasUpdatePermission={hasUpdatePermission}
-        hasDeletePermission={hasDeletePermission}
       />
       </div>
       

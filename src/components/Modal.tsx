@@ -9,19 +9,25 @@ interface ModalProps {
   size?: 'sm' | 'md' | 'lg' | 'xl'
 }
 
-const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
+const Modal = ({ isOpen, onClose, title, children, size = 'md' }: ModalProps) => {
   if (!isOpen) return null
+
+  const sizeClasses = {
+    sm: 'max-w-sm',
+    md: 'max-w-lg',
+    lg: 'max-w-xl',
+    xl: 'max-w-2xl',
+  }
 
   return (
     <div className="fixed inset-0 z-50 bg-black/20 flex items-center justify-center p-4">
       {/* Modal container */}
-      <div className="w-full max-w-2xl bg-white rounded-lg shadow-xl flex flex-col max-h-[90vh]">
+      <div className={`w-full ${sizeClasses[size]} bg-white rounded-md shadow-xl flex flex-col `}>
         {/* Header */}
         {title && (
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-              <p className="text-sm text-gray-600 mt-1">Create a new {title.toLowerCase().replace('add ', '')} in your system</p>
+              <h3 className="text-lg font-medium text-gray-900">{title}</h3>
             </div>
             <button
               onClick={onClose}
@@ -33,7 +39,7 @@ const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
         )}
 
         {/* Content */}
-        <div className="flex-1 overflow-visible p-6">{children}</div>
+        <div className="flex-1 overflow-y-auto p-6 text-sm">{children}</div>
       </div>
     </div>
   )

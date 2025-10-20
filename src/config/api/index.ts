@@ -1,6 +1,6 @@
 // API Configuration
 export const API_CONFIG = {
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3003/api/v1',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://quiet-similarly-cattle.ngrok-free.app/api/v1',
   timeout: import.meta.env.VITE_API_TIMEOUT || 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -96,7 +96,7 @@ export const CLIENT_ENDPOINTS = {
   update: '/clients',
   delete: '/clients',
   getNames: '/clients/names',
-} 
+}
 
 // Product Endpoints
 export const PRODUCT_ENDPOINTS = {
@@ -106,4 +106,45 @@ export const PRODUCT_ENDPOINTS = {
   update: '/products',
   delete: '/products',
   getByName: '/products/name',
-} 
+}
+
+// Enquiry Endpoints
+export const ENQUIRY_ENDPOINTS = {
+  getAll: '/enquiries',
+  getById: '/enquiries',
+  update: '/enquiries',
+  delete: '/enquiries',
+  exportCsv: '/enquiries/export/csv',
+}
+
+// Contact Us Endpoints
+export const CONTACT_US_ENDPOINTS = {
+  getAll: '/contact-us',
+  reply: '/contact-us/reply',
+  exportCsv: '/contact-us/export/csv',
+}
+
+// Reported Product Endpoints
+export const REPORTED_PRODUCT_ENDPOINTS = {
+  getAll: '/report-products',
+  getById: '/report-products',
+  exportCsv: '/report-products/export/csv',
+  respond: '/report-products/respond',
+}
+
+// Newsletter Endpoints
+export const NEWSLETTER_ENDPOINTS = {
+  getAll: '/newsletter',
+  subscribe: '/newsletter/subscribe',
+  sendSingle: '/newsletter/send/single',
+  sendBulk: '/newsletter/send/bulk',
+  getJobStatus: '/newsletter/jobs',
+  getAllJobs: '/newsletter/jobs',
+}
+
+// Export Endpoints for other modules
+export const CLIENT_EXPORT_ENDPOINT = '/clients/export/csv'
+export const ECODE_EXPORT_ENDPOINT = '/ecodes/export/csv'
+export const FAQ_EXPORT_ENDPOINT = '/faqs/export/csv'
+export const USER_FAQ_EXPORT_ENDPOINT = '/user-faqs/export/csv'
+export const PRODUCT_EXPORT_ENDPOINT = '/products/export/csv'
