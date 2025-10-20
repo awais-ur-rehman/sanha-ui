@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { FiSearch } from 'react-icons/fi'
+import { FiSearch, FiImage } from 'react-icons/fi'
 import { usePermissions } from '../../hooks/usePermissions'
 import { useGetApi } from '../../hooks'
 import { useToast } from '../../components/CustomToast/ToastContext'
@@ -391,43 +391,79 @@ const ReportedProducts = () => {
                 </div>
 
                 <div className="flex-1 px-6 py-2 overflow-y-auto">
-                  <div className="space-y-6">
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-900 mb-1">Reporter</h4>
-                      <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-4">
+                    {/* Main Content Row - Reporter, Product, and Image */}
+                    <div className="flex gap-6">
+                      {/* Left Side - Reporter and Product Info */}
+                      <div className="flex-1 space-y-4">
                         <div>
-                          <label className="text-xs text-gray-500">Name</label>
-                          <p className="text-sm text-gray-900 mt-1">{selected.firstName} {selected.lastName}</p>
+                          <h4 className="text-base font-semibold text-gray-900 mb-2">Reporter</h4>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Name</label>
+                              <p className="text-sm text-gray-900 mt-1 font-medium">{selected.firstName} {selected.lastName}</p>
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Email</label>
+                              <p className="text-sm text-gray-900 mt-1">{selected.email}</p>
+                            </div>
+                          </div>
                         </div>
+
                         <div>
-                          <label className="text-xs text-gray-500">Email</label>
-                          <p className="text-sm text-gray-900 mt-1">{selected.email}</p>
+                          <h4 className="text-base font-semibold text-gray-900 mb-2">Product</h4>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Name</label>
+                              <p className="text-sm text-gray-900 mt-1 font-medium">{selected.productName}</p>
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Manufacturer</label>
+                              <p className="text-sm text-gray-900 mt-1">{selected.manufacturer}</p>
+                            </div>
+                            {selected.purchaseLocation && (
+                              <div className="col-span-2">
+                                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Purchase Location</label>
+                                <p className="text-sm text-gray-900 mt-1">{selected.purchaseLocation}</p>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-900 mb-1">Product</h4>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="text-xs text-gray-500">Name</label>
-                          <p className="text-sm text-gray-900 mt-1">{selected.productName}</p>
-                        </div>
-                        <div>
-                          <label className="text-xs text-gray-500">Manufacturer</label>
-                          <p className="text-sm text-gray-900 mt-1">{selected.manufacturer}</p>
-                        </div>
-                        {selected.purchaseLocation && (
-                          <div className="col-span-2">
-                            <label className="text-xs text-gray-500">Purchase Location</label>
-                            <p className="text-sm text-gray-900 mt-1">{selected.purchaseLocation}</p>
+                      {/* Right Side - Product Image */}
+                      <div className="w-48 flex-shrink-0">
+                        {selected.productImage ? (
+                          <div className="relative">
+                            <img
+                              src={selected.productImage}
+                              alt={`${selected.productName} - Product Image`}
+                              className="w-full h-full rounded-lg object-contain"
+                              onError={(e) => {
+                                // Fallback to placeholder if image fails to load
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                                const placeholder = target.nextElementSibling as HTMLElement;
+                                if (placeholder) placeholder.style.display = 'flex';
+                              }}
+                            />
+                            <div className="hidden w-full h-48 rounded-lg border border-gray-200 shadow-sm bg-gray-50 flex-col items-center justify-center p-4">
+                              <FiImage className="w-8 h-8 text-gray-400 mb-2" />
+                              <p className="text-xs text-gray-500 text-center">Image not available</p>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="w-full h-48 rounded-lg border border-gray-200 shadow-sm bg-gray-50 flex flex-col items-center justify-center p-4">
+                            <FiImage className="w-8 h-8 text-gray-400 mb-2" />
+                            <p className="text-xs text-gray-500 text-center">No image submitted</p>
                           </div>
                         )}
                       </div>
                     </div>
 
+                    {/* Report Section */}
                     <div>
-                      <h4 className="text-sm font-medium text-gray-900 mb-1">Report</h4>
+                      <h4 className="text-base font-semibold text-gray-900 mb-2">Report</h4>
                       <div className="rounded-lg max-h-[168px] overflow-y-auto">
                         <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{selected.reportMessage}</p>
                       </div>
