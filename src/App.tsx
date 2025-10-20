@@ -22,6 +22,7 @@ import Settings from './pages/private/Settings'
 import Enquiries from './pages/private/Enquiries'
 import ContactUs from './pages/private/ContactUs'
 import ReportedProducts from './pages/private/ReportedProducts'
+import Newsletter from './pages/private/Newsletter'
 import { ROUTES } from './config/routes'
 import { useAuthStore } from './store'
 
@@ -155,6 +156,16 @@ function App() {
               <PermissionRoute moduleName="Reported Products">
                 <MainLayout>
                   <ReportedProducts />
+                </MainLayout>
+              </PermissionRoute>
+            }
+          />
+          <Route
+            path={ROUTES.NEWSLETTER}
+            element={
+              <PermissionRoute moduleName="Newsletter">
+                <MainLayout>
+                  <Newsletter />
                 </MainLayout>
               </PermissionRoute>
             }

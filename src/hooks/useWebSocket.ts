@@ -11,7 +11,7 @@ interface WebSocketEvent {
 
 interface NotificationData {
     id: string | number
-    type: 'user_faq' | 'contact_us' | 'enquiry'
+    type: 'user_faq' | 'contact_us' | 'enquiry' | 'report_product'
     title: string
     message: string
     priority: 'low' | 'medium' | 'high'
@@ -138,30 +138,30 @@ export const useWebSocket = (): UseWebSocketReturn => {
             }, 5000)
         })
 
-           // Event handlers for notifications
-           newSocket.on('event', (event: WebSocketEvent) => {
-             if (event.type === 'NEW_USER_FAQ' || event.type === 'NEW_CONTACT_US' || event.type === 'NEW_ENQUIRY') {
-               const notification: NotificationData = {
-                 id: event.data.id,
-                 type: event.data.type,
-                 title: event.data.title,
-                 message: event.data.message,
-                 priority: event.data.priority,
-                 timestamp: event.data.timestamp
-               }
-               
-               addNotification(notification)
-               
-               // Dispatch event for real-time data updates
-               window.dispatchEvent(new CustomEvent('newNotificationReceived', {
-                 detail: {
-                   type: event.data.type,
-                   id: event.data.id,
-                   notification: notification
-                 }
-               }))
-             }
-           })
+        // Event handlers for notifications
+        newSocket.on('event', (event: WebSocketEvent) => {
+            if (event.type === 'NEW_USER_FAQ' || event.type === 'NEW_CONTACT_US' || event.type === 'NEW_ENQUIRY' || event.type === 'NEW_REPORT_PRODUCT') {
+                const notification: NotificationData = {
+                    id: event.data.id,
+                    type: event.data.type,
+                    title: event.data.title,
+                    message: event.data.message,
+                    priority: event.data.priority,
+                    timestamp: event.data.timestamp
+                }
+
+                addNotification(notification)
+
+                // Dispatch event for real-time data updates
+                window.dispatchEvent(new CustomEvent('newNotificationReceived', {
+                    detail: {
+                        type: event.data.type,
+                        id: event.data.id,
+                        notification: notification
+                    }
+                }))
+            }
+        })
 
         newSocket.on('identified', () => {
             // Client identification confirmed

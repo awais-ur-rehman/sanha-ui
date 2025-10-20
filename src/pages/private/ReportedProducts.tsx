@@ -38,6 +38,8 @@ const ReportedProducts = () => {
     status: activeTab === 'pending' ? 'Pending' : 'Resolved',
     ...(searchTerm && { search: searchTerm }),
     ...(filters.reportType && { reportType: filters.reportType }),
+    ...(filters.startDate && { startDate: filters.startDate }),
+    ...(filters.endDate && { endDate: filters.endDate }),
   })
 
   const { data, isLoading, refetch } = useGetApi<any>(
@@ -49,6 +51,8 @@ const ReportedProducts = () => {
     status: activeTab === 'pending' ? 'Pending' : 'Resolved',
     ...(searchTerm && { search: searchTerm }),
     ...(filters.reportType && { reportType: filters.reportType }),
+    ...(filters.startDate && { startDate: filters.startDate }),
+    ...(filters.endDate && { endDate: filters.endDate }),
   })
   const exportCsvQuery = useGetApi<Blob>(
     `${REPORTED_PRODUCT_ENDPOINTS.exportCsv}?${exportParams.toString()}`,
@@ -94,6 +98,49 @@ const ReportedProducts = () => {
     })
   }, [location.pathname])
 
+  // Handle navigation from notification to select a specific report
+  useEffect(() => {
+    const state = location.state as any
+    if (state?.fromNotification && state?.notificationId && state?.notificationType === 'report_product') {
+      const targetId = Number(state.notificationId)
+
+      // Try to select if already in current items; otherwise fetch it and select
+      const selectIfPresent = () => {
+        const found = items.find(e => e.id === targetId)
+        if (found) {
+          setSelected(found)
+          return true
+        }
+        return false
+      }
+
+      if (!selectIfPresent()) {
+        // Fetch the specific reported product and select it
+        fetch(`${API_CONFIG.baseURL}${REPORTED_PRODUCT_ENDPOINTS.getById}/${targetId}`, {
+          headers: getAuthHeaders()
+        })
+          .then(async resp => {
+            if (!resp.ok) return
+            const data = await resp.json()
+            const item = data?.data as ReportProduct | undefined
+            if (!item) return
+            setItems(prev => {
+              const exists = prev.some(r => r.id === item.id)
+              const next = exists ? prev : [item, ...prev]
+              return next
+            })
+            setSelected(item)
+            // Ensure the correct tab is active based on status
+            setActiveTab(item.status === 'Resolved' ? 'resolved' : 'pending')
+          })
+          .catch(() => {})
+      }
+
+      // Clear navigation state to avoid reprocessing
+      window.history.replaceState({}, document.title, location.pathname)
+    }
+  }, [location.state, items])
+
   useEffect(() => {
     if (data?.data?.pagination) {
       const nextTotalPages = Number(data.data.pagination.totalPages) || 1
@@ -101,9 +148,8 @@ const ReportedProducts = () => {
       setPagination(prev => ({ ...prev, totalPages: nextTotalPages, totalItems: nextTotalItems }))
 
       // Keep tab-specific list cached; merge/dedupe for current tab only
-      const filtered = pageItems.filter(i => activeTab === 'pending' ? i.status === 'Pending' : i.status === 'Resolved')
       const base = pagination.currentPage === 1 ? [] : tabCache[activeTab].list
-      const merged = [...base, ...filtered]
+      const merged = [...base, ...pageItems]
       const uniqueById = Array.from(new Map(merged.map(e => [e.id, e])).values())
       setItems(uniqueById)
       setTabCache(cache => ({
@@ -287,7 +333,7 @@ const ReportedProducts = () => {
           {/* Left Panel - List */}
           <div className="w-1/5 h-full flex flex-col border border-gray-200 rounded-lg overflow-hidden">
             <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-              <h3 className="text-xs text-gray-500">Total Reports: {filteredItems.length}</h3>
+              <h3 className="text-xs text-gray-500">Total Reports: {pagination.totalItems}</h3>
             </div>
             <div ref={listRef} onScroll={handleLeftScroll} className="overflow-y-auto flex-1">
               {isLoading && filteredItems.length === 0 ? (

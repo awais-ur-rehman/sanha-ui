@@ -2,7 +2,7 @@ import { useEffect, useCallback } from 'react'
 import { API_CONFIG, getAuthHeaders } from '../config/api'
 
 interface UseRealTimeUpdatesProps {
-  itemType: 'faq' | 'enquiry' | 'contact-us'
+  itemType: 'faq' | 'enquiry' | 'contact-us' | 'reported-products'
   onNewItem: (item: any) => void
   currentPath?: string
 }
@@ -19,6 +19,8 @@ export const useRealTimeUpdates = ({ itemType, onNewItem, currentPath }: UseReal
         return `${baseUrl}/enquiries/${id}`
       case 'contact_us':
         return `${baseUrl}/contact-us/${id}`
+      case 'report_product':
+        return `${baseUrl}/report-products/${id}`
       default:
         return null
     }
@@ -33,6 +35,8 @@ export const useRealTimeUpdates = ({ itemType, onNewItem, currentPath }: UseReal
         return 'enquiry'
       case 'contact_us':
         return 'contact-us'
+      case 'report_product':
+        return 'reported-products'
       default:
         return null
     }
@@ -78,7 +82,8 @@ export const useRealTimeUpdates = ({ itemType, onNewItem, currentPath }: UseReal
       const routeMapping = {
         'faq': 'faqs',
         'enquiry': 'enquiries',
-        'contact-us': 'contact-us'
+        'contact-us': 'contact-us',
+        'reported-products': 'reported-products'
       }
       const expectedRoute = routeMapping[itemType as keyof typeof routeMapping] || itemType
 

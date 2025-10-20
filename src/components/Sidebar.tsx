@@ -14,7 +14,8 @@ import {
   FiHelpCircle,
   FiUsers,
   FiMail,
-  FiMessageSquare
+  FiMessageSquare,
+  FiSend
 } from 'react-icons/fi'
 import { 
   HiHome,
@@ -31,7 +32,8 @@ import {
   HiQuestionMarkCircle,
   HiUsers,
   HiMail,
-  HiChatAlt2
+  HiChatAlt2,
+  HiPaperAirplane
 } from 'react-icons/hi'
 import { useAuthStore, useUIStore } from '../store'
 import logo from '../assets/logo/sanhaLogo.png'
@@ -94,6 +96,8 @@ const Sidebar = () => {
           return <HiDocumentText className={iconClass} />
         case 'research':
           return <HiSearch className={iconClass} />
+        case 'newsletter':
+          return <HiPaperAirplane className={iconClass} />
         case 'settings':
           return <HiCog className={iconClass} />
         case 'logout':
@@ -127,6 +131,8 @@ const Sidebar = () => {
           return <FiFileText className={iconClass} />
         case 'research':
           return <FiSearch className={iconClass} />
+        case 'newsletter':
+          return <FiSend className={iconClass} />
         case 'settings':
           return <FiSettings className={iconClass} />
         case 'logout':
@@ -206,6 +212,12 @@ const Sidebar = () => {
       title: 'Contact Us',
       path: ROUTES.CONTACT_US,
       icon: getIcon('contact-us', isActive(ROUTES.CONTACT_US))
+    },
+    {
+      id: 'newsletter',
+      title: 'Newsletter',
+      path: ROUTES.NEWSLETTER,
+      icon: getIcon('newsletter', isActive(ROUTES.NEWSLETTER))
     },
   ]
 

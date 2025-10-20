@@ -463,3 +463,27 @@ export interface ReportProductRespondRequest {
   id: number;
   message: string;
 }
+
+// Newsletter entity
+export interface NewsletterSubscriber {
+  id: number
+  email: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface NewsletterSection {
+  heading: string
+  description: string
+  link?: string
+  linkText?: string
+  linkStyle: 'button' | 'link'
+}
+
+export interface NewsletterData {
+  mainHeading: string
+  sections: NewsletterSection[]
+  userEmail?: string
+  month?: string
+  year?: string
+}

@@ -24,6 +24,9 @@ export const useNotificationHandler = () => {
       case 'contact_us':
         targetRoute = ROUTES.CONTACT_US
         break
+      case 'report_product':
+        targetRoute = ROUTES.REPORTED_PRODUCTS
+        break
       default:
         return
     }
@@ -53,6 +56,14 @@ export const useNotificationHandler = () => {
           }
         } else if (notification.type === 'contact_us') {
           const response = await fetch(`${API_CONFIG.baseURL}/contact-us/${notification.id}`, {
+            headers: getAuthHeaders()
+          })
+          if (response.ok) {
+            const data = await response.json()
+            itemData = data.data
+          }
+        } else if (notification.type === 'report_product') {
+          const response = await fetch(`${API_CONFIG.baseURL}/report-products/${notification.id}`, {
             headers: getAuthHeaders()
           })
           if (response.ok) {

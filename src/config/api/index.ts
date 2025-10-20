@@ -132,6 +132,16 @@ export const REPORTED_PRODUCT_ENDPOINTS = {
   respond: '/report-products/respond',
 }
 
+// Newsletter Endpoints
+export const NEWSLETTER_ENDPOINTS = {
+  getAll: '/newsletter',
+  subscribe: '/newsletter/subscribe',
+  sendSingle: '/newsletter/send/single',
+  sendBulk: '/newsletter/send/bulk',
+  getJobStatus: '/newsletter/jobs',
+  getAllJobs: '/newsletter/jobs',
+}
+
 // Export Endpoints for other modules
 export const CLIENT_EXPORT_ENDPOINT = '/clients/export/csv'
 export const ECODE_EXPORT_ENDPOINT = '/ecodes/export/csv'
