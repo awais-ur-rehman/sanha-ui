@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import { ToastProvider } from './components/CustomToast/ToastContext'
+import { NotificationProvider } from './context/NotificationContext'
 import './styles/dropdown.css'
 import ProtectedRoute from './components/ProtectedRoute'
 import PermissionRoute from './components/PermissionRoute'
@@ -18,6 +19,10 @@ import Products from './pages/private/Products'
 import News from './pages/private/News'
 import Research from './pages/private/Research'
 import Settings from './pages/private/Settings'
+import Enquiries from './pages/private/Enquiries'
+import ContactUs from './pages/private/ContactUs'
+import ReportedProducts from './pages/private/ReportedProducts'
+import Newsletter from './pages/private/Newsletter'
 import { ROUTES } from './config/routes'
 import { useAuthStore } from './store'
 
@@ -30,7 +35,8 @@ function App() {
 
   return (
     <ToastProvider>
-      <Router>
+      <NotificationProvider>
+        <Router>
                         <Routes>
                   {/* Public Routes */}
                   <Route path={ROUTES.LOGIN} element={<Login />} />
@@ -125,6 +131,46 @@ function App() {
             }
           />
           <Route
+            path={ROUTES.ENQUIRIES}
+            element={
+              <PermissionRoute moduleName="Enquiry">
+                <MainLayout>
+                  <Enquiries />
+                </MainLayout>
+              </PermissionRoute>
+            }
+          />
+          <Route
+            path={ROUTES.CONTACT_US}
+            element={
+              <PermissionRoute moduleName="Contact Us">
+                <MainLayout>
+                  <ContactUs />
+                </MainLayout>
+              </PermissionRoute>
+            }
+          />
+          <Route
+            path={ROUTES.REPORTED_PRODUCTS}
+            element={
+              <PermissionRoute moduleName="Reported Products">
+                <MainLayout>
+                  <ReportedProducts />
+                </MainLayout>
+              </PermissionRoute>
+            }
+          />
+          <Route
+            path={ROUTES.NEWSLETTER}
+            element={
+              <PermissionRoute moduleName="Newsletter">
+                <MainLayout>
+                  <Newsletter />
+                </MainLayout>
+              </PermissionRoute>
+            }
+          />
+          <Route
             path={ROUTES.NEWS}
             element={
               <PermissionRoute moduleName="News">
@@ -159,7 +205,8 @@ function App() {
           <Route path="/" element={<Navigate to={ROUTES.LOGIN} replace />} />
           <Route path="*" element={<Navigate to={ROUTES.LOGIN} replace />} />
         </Routes>
-      </Router>
+        </Router>
+      </NotificationProvider>
     </ToastProvider>
   )
 }

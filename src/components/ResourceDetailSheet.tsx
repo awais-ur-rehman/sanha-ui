@@ -2,9 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { FiEdit, FiTrash2, FiExternalLink } from 'react-icons/fi';
 import Sheet from './ui/sheet';
 import { Switch } from './ui/switch';
-import { useDeleteApi } from '../hooks/useDeleteApi';
-import { useToast } from '../components/CustomToast/ToastContext';
-import { RESOURCE_ENDPOINTS } from '../config/api';
 import type { Resource } from '../types/entities';
 
 interface ResourceDetailSheetProps {
@@ -28,50 +25,14 @@ const ResourceDetailSheet: React.FC<ResourceDetailSheetProps> = ({
   onToggleStatus,
   hasUpdatePermission,
   hasDeletePermission,
-  onRefetch,
+  // onRefetch,
 }) => {
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [localIsActive, setLocalIsActive] = useState(resource?.isActive ?? false);
-  const { showToast } = useToast();
 
   // Update local state when resource changes
   useEffect(() => {
     setLocalIsActive(resource?.isActive ?? false);
   }, [resource?.isActive]);
-
-  const deleteResourceMutation = useDeleteApi(
-    resource ? `${RESOURCE_ENDPOINTS.delete}/${resource.id}?hardDelete=true` : '',
-    {
-      requireAuth: true,
-      invalidateQueries: ['resources'],
-      onSuccess: () => {
-        if (resource) {
-          onDelete(resource);
-        }
-        setShowDeleteConfirm(false);
-        // Call the refetch function if provided
-        if (onRefetch) {
-          onRefetch();
-        }
-      },
-      onError: (error) => {
-        console.error('Error deleting Resource:', error);
-        showToast('error', error instanceof Error ? error.message : 'Failed to delete Resource');
-      },
-    }
-  );
-
-  const handleDeleteClick = () => {
-    setShowDeleteConfirm(true);
-  };
-
-  const handleConfirmDelete = () => {
-    deleteResourceMutation.mutate();
-  };
-
-  const handleCancelDelete = () => {
-    setShowDeleteConfirm(false);
-  };
 
   const handleToggleChange = async (checked: boolean) => {
     if (!resource) return;
@@ -95,7 +56,7 @@ const ResourceDetailSheet: React.FC<ResourceDetailSheetProps> = ({
       <div className="flex flex-col h-full p-6">
         {/* Resource Image */}
         <div className="flex justify-center mb-6">
-          <div className="relative w-full h-64 overflow-hidden rounded-lg">
+          <div className="relative w-full h-40 overflow-hidden rounded-lg">
             <img
               draggable={false}
               className="absolute inset-0 w-full h-full object-cover object-center"
@@ -109,136 +70,108 @@ const ResourceDetailSheet: React.FC<ResourceDetailSheetProps> = ({
         </div>
 
         {/* Resource Info */}
-        <div className="flex flex-col gap-2 flex-1">
-          <div className="text-left">
-            <h2 className="font-semibold text-xl text-gray-900 mb-2">
-              {resource.title || 'Untitled'}
-            </h2>
-            <p className="text-base text-gray-700 mb-1">
-              By {resource.authorName || 'Unknown Author'}
-            </p>
-            <div className="flex items-center gap-2">
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                resource.category === 'Articles' 
-                  ? 'bg-blue-100 text-blue-800'
-                  : 'bg-purple-100 text-purple-800'
-              }`}>
-                {resource.category}
-              </span>
-            </div>
-          </div>
-
-          {/* Status Toggle */}
-          {hasUpdatePermission && (
-            <div className="flex items-center gap-3 mt-2">
-              <Switch checked={localIsActive} onCheckedChange={handleToggleChange} />
-              <span className="text-sm text-gray-700">
-                {localIsActive ? 'Active' : 'Inactive'}
-              </span>
-            </div>
-          )}
-
-          {/* Description */}
-          {resource.description && (
-            <div className="flex-1">
-              <h3 className="font-semibold text-gray-900 mb-2">Description</h3>
-              <div className='max-h-[100px] min-h-[100px] overflow-y-auto bg-gray-50 p-2 rounded-lg'>
-              <p className="text-sm text-gray-600 leading-relaxed">
-                {resource.description}
-              </p>
-              </div>
-            </div>
-          )}
-
-          {/* Published Date */}
-          <div>
-            <h3 className="font-semibold text-gray-900 mb-2">Published Date</h3>
-            <p className="text-sm text-gray-600">
-              {new Date(resource.publishedDate).toLocaleDateString()}
-            </p>
-          </div>
-
-          {/* Resource Links */}
-          {resource.listUrl && resource.listUrl.length > 0 && (
+        <div className="flex flex-col gap-4 flex-1">
+          <div className="text-left flex justify-between items-start">
             <div>
-              <h3 className="font-semibold text-gray-900 mb-2">Resource Links</h3>
-              <div className="space-y-2 bg-gray-50 p-2 rounded-lg overflow-y-auto max-h-[100px] min-h-[100px]">
-                {resource.listUrl.map((link, index) => (
-                  <div key={index} className="flex items-center gap-2 p-2">
-                    <span className="text-xs px-2 py-1 bg-gray-200 rounded text-gray-700">
-                      {link.type}
-                    </span>
-                    <a
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-green-600 hover:text-green-700 flex-1 truncate"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {link.url}
-                    </a>
-                    <FiExternalLink size={14} className="text-gray-400" />
-                  </div>
-                ))}
+              <h2 className="font-semibold text-xl text-gray-900 mb-2">
+                {resource.title || 'Untitled'}
+              </h2>
+              <p className="text-base text-gray-700 mb-1">
+                By {resource.authorName || 'Unknown Author'}
+              </p>
+              <div className="flex items-center gap-2">
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  resource.category === 'Articles' 
+                    ? 'bg-blue-100 text-blue-800'
+                    : 'bg-purple-100 text-purple-800'
+                }`}>
+                  {resource.category}
+                </span>
               </div>
             </div>
-          )}
+            {hasUpdatePermission && (
+              <div className="flex items-center gap-2">
+                <Switch checked={localIsActive} onCheckedChange={handleToggleChange} />
+                <span className="text-sm text-gray-700">
+                  {localIsActive ? 'Active' : 'Inactive'}
+                </span>
+              </div>
+            )}
+          </div>
 
-         
-        </div>
+          {/* Scrollable Content */}
+          <div className="flex-1 overflow-y-auto space-y-4 pr-2">
+            {/* Description */}
+            {resource.description && (
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-2">Description</h3>
+                <div className='max-h-[290px] overflow-y-auto bg-gray-50 p-3 rounded-lg'>
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    {resource.description}
+                  </p>
+                </div>
+              </div>
+            )}
 
-        {/* Action Buttons */}
-        <div className="flex gap-3 mt-6">
-          {hasUpdatePermission && (
-            <button
-              onClick={() => onEdit(resource)}
-              className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors"
-            >
-              <FiEdit size={16} />
-              <span>Edit</span>
-            </button>
-          )}
-          
-          {hasDeletePermission && (
-            <button
-              onClick={handleDeleteClick}
-              disabled={deleteResourceMutation.isPending}
-              className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 text-red-400 hover:text-white border border-red-400 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
-            >
-              <FiTrash2 size={16} />
-              <span>{deleteResourceMutation.isPending ? 'Deleting...' : 'Delete'}</span>
-            </button>
-          )}
+            {/* Published Date */}
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-2">Published Date</h3>
+              <p className="text-sm text-gray-600">
+                {new Date(resource.publishedDate).toLocaleDateString()}
+              </p>
+            </div>
+
+            {/* Resource Links */}
+            {resource.listUrl && resource.listUrl.length > 0 && (
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-2">Resource Links</h3>
+                <div className="space-y-2 bg-gray-50 p-2 rounded-lg overflow-y-auto max-h-[100px] min-h-[100px]">
+                  {resource.listUrl.map((link, index) => (
+                    <div key={index} className="flex items-center gap-2 p-2">
+                      <span className="text-xs px-2 py-1 bg-gray-200 rounded text-gray-700">
+                        {link.type}
+                      </span>
+                      <a
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-green-600 hover:text-green-700 flex-1 truncate"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {link.url}
+                      </a>
+                      <FiExternalLink size={14} className="text-gray-400" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Fixed Action Buttons */}
+          <div className="flex gap-3 mt-4 flex-shrink-0">
+            {hasDeletePermission && (
+              <button
+                onClick={() => onDelete(resource)}
+                className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 text-red-400 hover:text-white border border-red-400 rounded-lg hover:bg-red-700 transition-colors"
+              >
+                <FiTrash2 size={16} />
+                <span>Delete</span>
+              </button>
+            )}
+            
+            {hasUpdatePermission && (
+              <button
+                onClick={() => onEdit(resource)}
+                className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors"
+              >
+                <FiEdit size={16} />
+                <span>Edit</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
-
-      {/* Delete Confirmation Modal */}
-      {showDeleteConfirm && resource && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Confirm Delete</h3>
-            <p className="text-gray-600 mb-6">
-              Are you sure you want to permanently delete the resource "{resource.title}"? This action cannot be undone and the resource will be permanently removed from the database.
-            </p>
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={handleCancelDelete}
-                disabled={deleteResourceMutation.isPending}
-                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleConfirmDelete}
-                disabled={deleteResourceMutation.isPending}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
-              >
-                {deleteResourceMutation.isPending ? 'Deleting...' : 'Permanently Delete'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </Sheet>
   );
 };

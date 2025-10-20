@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react'
-import { FiSearch, FiMail, FiGlobe, FiMessageCircle, FiPlus, FiEdit, FiTrash2 } from 'react-icons/fi'
+import { useState, useEffect, useRef } from 'react'
+import { useLocation } from 'react-router-dom'
+import { FiSearch, FiMail, FiMessageCircle, FiPlus, FiEdit, FiTrash2 } from 'react-icons/fi'
 import { usePermissions } from '../../hooks/usePermissions'
-import { useFaqsApi, useUserFaqsApi } from '../../hooks'
+import { useFaqsApi, useUserFaqsApi, useGetApi, useRealTimeUpdates } from '../../hooks'
 import CustomDropdown from '../../components/CustomDropdown'
 import SearchableDropdown from '../../components/SearchableDropdown'
 import CustomCheckbox from '../../components/CustomCheckbox'
@@ -11,51 +12,15 @@ import DateRangePicker from '../../components/DateRangePicker'
 import Modal from '../../components/Modal'
 import FAQForm from '../../forms/FAQForm'
 import DeleteConfirmationModal from '../../components/DeleteConfirmationModal'
-import ConfirmationModal from '../../components/ConfirmationModal'
-import { USER_FAQ_ENDPOINTS, FAQ_ENDPOINTS, API_CONFIG, getAuthHeaders } from '../../config/api'
+import { USER_FAQ_ENDPOINTS, FAQ_ENDPOINTS, API_CONFIG, getAuthHeaders, FAQ_EXPORT_ENDPOINT, USER_FAQ_EXPORT_ENDPOINT } from '../../config/api'
+import { Pagination } from '../../components'
 
-// Common countries list
-const COUNTRIES = [
-  'United States', 'Canada', 'United Kingdom', 'Germany', 'France', 'Italy', 'Spain',
-  'Netherlands', 'Belgium', 'Switzerland', 'Austria', 'Sweden', 'Norway', 'Denmark',
-  'Finland', 'Poland', 'Czech Republic', 'Hungary', 'Romania', 'Bulgaria', 'Greece',
-  'Portugal', 'Ireland', 'Iceland', 'Luxembourg', 'Malta', 'Cyprus', 'Estonia',
-  'Latvia', 'Lithuania', 'Slovenia', 'Slovakia', 'Croatia', 'Serbia', 'Montenegro',
-  'Bosnia and Herzegovina', 'Albania', 'North Macedonia', 'Kosovo', 'Moldova',
-  'Ukraine', 'Belarus', 'Russia', 'Georgia', 'Armenia', 'Azerbaijan', 'Turkey',
-  'Israel', 'Lebanon', 'Jordan', 'Syria', 'Iraq', 'Iran', 'Saudi Arabia', 'Kuwait',
-  'Qatar', 'Bahrain', 'Oman', 'United Arab Emirates', 'Yemen', 'Egypt', 'Libya',
-  'Tunisia', 'Algeria', 'Morocco', 'Sudan', 'South Sudan', 'Ethiopia', 'Eritrea',
-  'Djibouti', 'Somalia', 'Kenya', 'Uganda', 'Tanzania', 'Rwanda', 'Burundi',
-  'Democratic Republic of the Congo', 'Republic of the Congo', 'Gabon', 'Cameroon',
-  'Central African Republic', 'Chad', 'Niger', 'Mali', 'Burkina Faso', 'Senegal',
-  'Gambia', 'Guinea-Bissau', 'Guinea', 'Sierra Leone', 'Liberia', 'Ivory Coast',
-  'Ghana', 'Togo', 'Benin', 'Nigeria', 'Equatorial Guinea', 'São Tomé and Príncipe',
-  'Angola', 'Zambia', 'Malawi', 'Mozambique', 'Zimbabwe', 'Botswana', 'Namibia',
-  'South Africa', 'Lesotho', 'Eswatini', 'Madagascar', 'Mauritius', 'Seychelles',
-  'Comoros', 'Mayotte', 'Réunion', 'China', 'Japan', 'South Korea', 'North Korea',
-  'Mongolia', 'Taiwan', 'Hong Kong', 'Macau', 'Vietnam', 'Laos', 'Cambodia',
-  'Thailand', 'Myanmar', 'Malaysia', 'Singapore', 'Indonesia', 'Philippines',
-  'Brunei', 'East Timor', 'India', 'Pakistan', 'Bangladesh', 'Sri Lanka', 'Nepal',
-  'Bhutan', 'Maldives', 'Afghanistan', 'Kazakhstan', 'Uzbekistan', 'Turkmenistan',
-  'Tajikistan', 'Kyrgyzstan', 'Australia', 'New Zealand', 'Papua New Guinea',
-  'Fiji', 'Solomon Islands', 'Vanuatu', 'New Caledonia', 'Samoa', 'Tonga',
-  'Tuvalu', 'Kiribati', 'Nauru', 'Palau', 'Micronesia', 'Marshall Islands',
-  'Brazil', 'Argentina', 'Chile', 'Peru', 'Bolivia', 'Paraguay', 'Uruguay',
-  'Ecuador', 'Colombia', 'Venezuela', 'Guyana', 'Suriname', 'French Guiana',
-  'Mexico', 'Guatemala', 'Belize', 'El Salvador', 'Honduras', 'Nicaragua',
-  'Costa Rica', 'Panama', 'Cuba', 'Jamaica', 'Haiti', 'Dominican Republic',
-  'Puerto Rico', 'Trinidad and Tobago', 'Barbados', 'Grenada', 'Saint Vincent and the Grenadines',
-  'Saint Lucia', 'Dominica', 'Antigua and Barbuda', 'Saint Kitts and Nevis',
-  'Bahamas', 'Cayman Islands', 'Turks and Caicos Islands', 'British Virgin Islands',
-  'US Virgin Islands', 'Anguilla', 'Montserrat', 'Guadeloupe', 'Martinique',
-  'Aruba', 'Curaçao', 'Bonaire', 'Sint Eustatius', 'Saba', 'Sint Maarten'
-].sort()
 
 const FAQs = () => {
   // Hooks
   const { hasPermission } = usePermissions()
   const { showToast } = useToast()
+  const location = useLocation()
   
   // Check if user has read permission for FAQs
 
@@ -65,6 +30,7 @@ const FAQs = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [filters, setFilters] = useState({
     isActive: '',
+    faqType: '',
     email: '',
     country: '',
     firstName: '',
@@ -80,8 +46,6 @@ const FAQs = () => {
   })
   
   // Simple reply state
-  const [replyingTo, setReplyingTo] = useState<number | null>(null)
-  const [replyText, setReplyText] = useState('')
   const [isSubmittingReply, setIsSubmittingReply] = useState(false)
 
   // FAQ modal state
@@ -98,6 +62,7 @@ const FAQs = () => {
   const [isAddToFAQModalOpen, setIsAddToFAQModalOpen] = useState(false)
   const [userFaqToAdd, setUserFaqToAdd] = useState<UserFAQ | null>(null)
   const [isAddingToFAQ, setIsAddingToFAQ] = useState(false)
+  const [selectedFaqType, setSelectedFaqType] = useState<'Business' | 'Consumer'>('Business')
 
   // FAQ status toggle state
   const [togglingFAQId, setTogglingFAQId] = useState<number | null>(null)
@@ -112,6 +77,7 @@ const FAQs = () => {
     limit: pagination.itemsPerPage.toString(),
     ...(searchTerm && { search: searchTerm }),
     ...(filters.isActive && { isActive: filters.isActive }),
+    ...(filters.faqType && { faqType: filters.faqType }),
     ...(filters.startDate && { startDate: filters.startDate }),
     ...(filters.endDate && { endDate: filters.endDate }),
   })
@@ -121,7 +87,7 @@ const FAQs = () => {
     page: pagination.currentPage.toString(),
     limit: pagination.itemsPerPage.toString(),
     ...(searchTerm && { search: searchTerm }),
-    ...(filters.country && { country: filters.country }),
+    ...(filters.country && filters.country.trim() && { country: filters.country }),
     ...(filters.startDate && { startDate: filters.startDate }),
     ...(filters.endDate && { endDate: filters.endDate }),
   })
@@ -143,6 +109,42 @@ const FAQs = () => {
     }
   )
 
+  // Export CSV
+  const faqExportParams = new URLSearchParams({
+    ...(searchTerm && { search: searchTerm }),
+    ...(filters.isActive && { isActive: filters.isActive }),
+    ...(filters.faqType && { faqType: filters.faqType }),
+    ...(filters.startDate && { startDate: filters.startDate }),
+    ...(filters.endDate && { endDate: filters.endDate }),
+  })
+  const userFaqExportParams = new URLSearchParams({
+    ...(searchTerm && { search: searchTerm }),
+    ...(filters.email && { email: filters.email }),
+    ...(filters.country && filters.country.trim() && { country: filters.country }),
+    ...(filters.firstName && { firstName: filters.firstName }),
+    ...(filters.lastName && { lastName: filters.lastName }),
+    ...(filters.startDate && { startDate: filters.startDate }),
+    ...(filters.endDate && { endDate: filters.endDate }),
+  })
+  const exportFaqCsvQuery = useGetApi<Blob>(`${FAQ_EXPORT_ENDPOINT}?${faqExportParams.toString()}`, { requireAuth: true, enabled: false, responseType: 'blob', staleTime: 0 })
+  const exportUserFaqCsvQuery = useGetApi<Blob>(`${USER_FAQ_EXPORT_ENDPOINT}?${userFaqExportParams.toString()}`, { requireAuth: true, enabled: false, responseType: 'blob', staleTime: 0 })
+
+  const handleExport = async () => {
+    try {
+      const result = await (activeTab === 'FAQs' ? exportFaqCsvQuery.refetch() : exportUserFaqCsvQuery.refetch())
+      const blob = result.data as Blob
+      if (!blob) return
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${activeTab === 'FAQs' ? 'faqs' : 'user-faqs'}-${new Date().toISOString().slice(0,10)}.csv`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(url)
+    } catch {}
+  }
+
 
 
 
@@ -155,7 +157,11 @@ const FAQs = () => {
     answer: faq.answer || '',
   })) || []
 
-  const userFaqs = userFaqsResponse?.data?.data?.map((userFaq: UserFAQ) => ({
+  // State for managing user FAQs list with real-time updates
+  const [userFaqsList, setUserFaqsList] = useState<UserFAQ[]>([])
+  
+  // Compute user FAQs from API response
+  const userFaqsFromApi = userFaqsResponse?.data?.data?.map((userFaq: UserFAQ) => ({
     ...userFaq,
     firstName: userFaq.firstName || '',
     lastName: userFaq.lastName || '',
@@ -165,6 +171,53 @@ const FAQs = () => {
     question: userFaq.question || '',
     answer: userFaq.answer || '',
   })) || []
+
+  // Use real-time list if available and on User FAQs tab, otherwise use API data
+  const userFaqs = (activeTab === 'User FAQs' && userFaqsList.length > 0) ? userFaqsList : userFaqsFromApi
+
+  // Real-time updates hook
+  useRealTimeUpdates({
+    itemType: 'faq',
+    onNewItem: (newUserFaq: UserFAQ) => {
+      setUserFaqsList(prev => {
+        // Check if FAQ already exists to avoid duplicates
+        const exists = prev.some(userFaq => userFaq.id === newUserFaq.id)
+        
+        if (exists) {
+          return prev
+        }
+        
+        // Only add to list if we're on the User FAQs tab
+        if (activeTab !== 'User FAQs') {
+          return prev
+        }
+        
+        // Add new user FAQ to the beginning of the list
+        return [newUserFaq, ...prev]
+      })
+    },
+    currentPath: location.pathname
+  })
+
+  // Sync API data with state when API data changes (only for User FAQs tab)
+  useEffect(() => {
+    if (activeTab === 'User FAQs' && userFaqsFromApi.length > 0 && userFaqsList.length === 0) {
+      setUserFaqsList(userFaqsFromApi)
+    }
+  }, [activeTab, userFaqsFromApi, userFaqsList.length])
+
+  // Clear real-time list when switching away from User FAQs tab
+  useEffect(() => {
+    if (activeTab !== 'User FAQs') {
+      setUserFaqsList([])
+    }
+  }, [activeTab])
+
+  // Handle page navigation - reset real-time list when returning to page
+  useEffect(() => {
+    // When component mounts or location changes, reset the real-time list to allow API data to load
+    setUserFaqsList([])
+  }, [location.pathname])
 
   // Update pagination when data changes
   useEffect(() => {
@@ -187,6 +240,8 @@ const FAQs = () => {
   useEffect(() => {
     setPagination(prev => ({ ...prev, currentPage: 1 }))
   }, [activeTab])
+
+
 
   // Handlers
   const handleSearch = (term: string) => {
@@ -212,53 +267,41 @@ const FAQs = () => {
     setPagination(prev => ({ ...prev, currentPage: page }))
   }
 
-  const handleReplyClick = (userFaqId: number) => {
-    setReplyingTo(userFaqId)
-    setReplyText('')
-  }
+  // const handleSubmitReply = async (userFaq: UserFAQ, replyText: string) => {
+  //   if (!replyText.trim()) {
+  //     showToast('error', 'Please enter a reply')
+  //     return
+  //   }
 
-  const handleCancelReply = () => {
-    setReplyingTo(null)
-    setReplyText('')
-  }
+  //   setIsSubmittingReply(true)
+  //   try {
+  //     const payload = {
+  //       userName: `${userFaq.firstName} ${userFaq.lastName}`,
+  //       email: userFaq.email,
+  //       question: userFaq.question,
+  //       answer: replyText.trim(),
+  //     }
 
-  const handleSubmitReply = async (userFaq: UserFAQ) => {
-    if (!replyText.trim()) {
-      showToast('error', 'Please enter a reply')
-      return
-    }
+  //     const response = await fetch(`${API_CONFIG.baseURL}${USER_FAQ_ENDPOINTS.respond}`, {
+  //       method: 'POST',
+  //       headers: getAuthHeaders(),
+  //       body: JSON.stringify(payload),
+  //     })
 
-    setIsSubmittingReply(true)
-    try {
-      const payload = {
-        userName: `${userFaq.firstName} ${userFaq.lastName}`,
-        email: userFaq.email,
-        question: userFaq.question,
-        answer: replyText.trim(),
-      }
+  //     if (!response.ok) {
+  //       const errorData = await response.json()
+  //       throw new Error(errorData.message || 'Failed to send reply')
+  //     }
 
-      const response = await fetch(`${API_CONFIG.baseURL}${USER_FAQ_ENDPOINTS.respond}`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(payload),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || 'Failed to send reply')
-      }
-
-      showToast('success', 'Reply sent successfully!')
-      setReplyingTo(null)
-      setReplyText('')
-      refetchUserFaqs()
-    } catch (error) {
-      console.error('Error sending reply:', error)
-      showToast('error', error instanceof Error ? error.message : 'Failed to send reply')
-    } finally {
-      setIsSubmittingReply(false)
-    }
-  }
+  //     showToast('success', 'Reply sent successfully!')
+  //     refetchUserFaqs()
+  //   } catch (error) {
+  //     console.error('Error sending reply:', error)
+  //     showToast('error', error instanceof Error ? error.message : 'Failed to send reply')
+  //   } finally {
+  //     setIsSubmittingReply(false)
+  //   }
+  // }
 
   const handleAddToFaqs = (userFaq: UserFAQ) => {
     if (!userFaq.answer) {
@@ -267,6 +310,7 @@ const FAQs = () => {
     }
     
     setUserFaqToAdd(userFaq)
+    setSelectedFaqType('Business') // Reset to default
     setIsAddToFAQModalOpen(true)
   }
 
@@ -278,6 +322,7 @@ const FAQs = () => {
       const payload = {
         question: userFaqToAdd.question,
         answer: userFaqToAdd.answer,
+        faqType: selectedFaqType, // Use selected FAQ type
         isActive: false, // Set to inactive as requested
       }
 
@@ -307,6 +352,7 @@ const FAQs = () => {
   const handleCancelAddToFAQ = () => {
     setIsAddToFAQModalOpen(false)
     setUserFaqToAdd(null)
+    setSelectedFaqType('Business') // Reset to default
   }
 
   // Helper functions for FAQ status management
@@ -337,6 +383,7 @@ const FAQs = () => {
       const payload = {
         question: faq.question,
         answer: faq.answer,
+        faqType: faq.faqType,
         isActive: !Boolean(faq.isActive), // Toggle the status
       }
 
@@ -409,7 +456,7 @@ const FAQs = () => {
     setFaqToDelete(null)
   }
 
-  const handleFAQFormSubmit = async (formData: { question: string; answer: string; isActive?: boolean }) => {
+  const handleFAQFormSubmit = async (formData: { question: string; answer: string; faqType: string; isActive?: boolean }) => {
     setIsSubmittingFAQ(true)
     try {
       const isEditing = !!selectedFAQ
@@ -459,9 +506,9 @@ const FAQs = () => {
 
   // FAQ Card Component (Column Layout)
   const FAQCard = ({ faq }: { faq: FAQ }) => (
-    <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-6 mb-6 border border-[#0c684b]/20">
+    <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow px-6 pt-2 pb-6 border border-[#0c684b]/20">
       {/* Top Right: Status Toggle & Edit/Delete Actions */}
-      <div className="flex justify-between mb-4">
+      <div className="flex justify-between">
         <div className="flex items-center space-x-3">
           <CustomCheckbox
             checked={Boolean(faq.isActive)}
@@ -473,6 +520,7 @@ const FAQs = () => {
             {togglingFAQId === faq.id ? 'Updating...' : (Boolean(faq.isActive) ? 'Active' : 'Inactive')}
           </span>
         </div>
+        <div className='space-y-2'>
         <div className="flex items-center space-x-2">
           <button
             onClick={() => handleEditFAQ(faq)}
@@ -489,10 +537,16 @@ const FAQs = () => {
             <FiTrash2 size={16} />
           </button>
         </div>
+        <div className="flex items-center justify-between mb-2">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-[5px] text-xs font-medium bg-blue-100 text-blue-800">
+            {faq.faqType}
+          </span>
+        </div>
+        </div>
       </div>
 
-      {/* Top: Question */}
-      <div className="mb-4">
+      {/* Top: Question and FAQ Type */}
+      <div className="mb-4"> 
         <h3 className="text-lg font-semibold text-gray-900 leading-relaxed">
           {faq.question}
         </h3>
@@ -514,125 +568,183 @@ const FAQs = () => {
   )
 
   // User FAQ Card Component (Column Layout)
-  const UserFAQCard = ({ userFaq }: { userFaq: UserFAQ }) => (
-    <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-6 mb-6 border border-[#0c684b]/20">
-      {/* Top Right: Add To FAQs Button (only if answer exists) */}
-      <div className='flex justify-between'>      
-      {/* Middle: User details */}
-      <div className=" p-4 rounded-lg">
-        <div className="flex items-center space-x-3 mb-3">
-          {/* User Avatar */}
-          <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-            <span className="text-sm font-medium text-gray-600">
-              {userFaq.firstName.charAt(0)}{userFaq.lastName.charAt(0)}
-            </span>
-          </div>
-          
-          {/* User Info */}
-          <div className="flex-1">
-            <div className="flex items-center space-x-2 mb-1">
-              <h4 className="font-medium text-gray-900">
-                {userFaq.firstName} {userFaq.lastName}
-              </h4>
-              <span className="text-xs text-gray-500">
-                {new Date(userFaq.createdAt).toLocaleDateString()}
+  const UserFAQCard = ({ userFaq }: { userFaq: UserFAQ }) => {
+    const [isReplying, setIsReplying] = useState(false)
+    const [replyText, setReplyText] = useState('')
+    const replyTextareaRef = useRef<HTMLTextAreaElement>(null)
+
+    const handleReplyClick = () => {
+      setIsReplying(true)
+      setReplyText('')
+    }
+
+    const handleCancelReply = () => {
+      setIsReplying(false)
+      setReplyText('')
+    }
+
+    const handleSubmitReply = async () => {
+      if (!replyText.trim()) {
+        showToast('error', 'Please enter a reply')
+        return
+      }
+
+      setIsSubmittingReply(true)
+      try {
+        const payload = {
+          userName: `${userFaq.firstName} ${userFaq.lastName}`,
+          email: userFaq.email,
+          question: userFaq.question,
+          answer: replyText.trim(),
+        }
+
+        const response = await fetch(`${API_CONFIG.baseURL}${USER_FAQ_ENDPOINTS.respond}`, {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: JSON.stringify(payload),
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.message || 'Failed to send reply')
+        }
+
+        showToast('success', 'Reply sent successfully!')
+        setIsReplying(false)
+        setReplyText('')
+        refetchUserFaqs()
+      } catch (error) {
+        console.error('Error sending reply:', error)
+        showToast('error', error instanceof Error ? error.message : 'Failed to send reply')
+      } finally {
+        setIsSubmittingReply(false)
+      }
+    }
+
+    // Focus textarea when reply section opens
+    useEffect(() => {
+      if (isReplying && replyTextareaRef.current) {
+        replyTextareaRef.current.focus()
+      }
+    }, [isReplying])
+
+    return (
+      <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-6 mb-6 border border-[#0c684b]/20">
+        {/* Top Right: Add To FAQs Button (only if answer exists) */}
+        <div className='flex justify-between'>      
+        {/* Middle: User details */}
+        <div className=" p-4 rounded-lg">
+          <div className="flex items-center space-x-3 mb-3">
+            {/* User Avatar */}
+            <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+              <span className="text-sm font-medium text-gray-600">
+                {userFaq.firstName.charAt(0)}{userFaq.lastName.charAt(0)}
               </span>
             </div>
             
-            {/* Contact Details */}
-            <div className="flex items-center space-x-4 text-xs text-gray-500">
-              <div className="flex items-center space-x-1">
-                <FiMail className="w-3 h-3" />
-                <span>{userFaq.email}</span>
+            {/* User Info */}
+            <div className="flex-1">
+              <div className="flex items-center space-x-2 mb-1">
+                <h4 className="font-medium text-gray-900">
+                  {userFaq.firstName} {userFaq.lastName}
+                </h4>
+                <span className="text-xs text-gray-500">
+                  {new Date(userFaq.createdAt).toLocaleDateString()}
+                </span>
               </div>
-              <div className="flex items-center space-x-1">
-                <FiGlobe className="w-3 h-3" />
-                <span>{userFaq.country}</span>
+              
+              {/* Contact Details */}
+              <div className="flex items-center space-x-4 text-xs text-gray-500">
+                <div className="flex items-center space-x-1">
+                  <FiMail className="w-3 h-3" />
+                  <span>{userFaq.email}</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {userFaq.answer && (
-        <div className="flex justify-end ">
-          <button
-            onClick={() => handleAddToFaqs(userFaq)}
-            className="flex items-center space-x-1 h-8 px-2  bg-green-100 text-green-700 rounded-lg text-xs font-medium hover:bg-green-200 transition-colors"
-          >
-            <FiPlus className="w-3 h-3" />
-            <span>Add To FAQs</span>
-          </button>
-        </div>
-      )}
-      
-      </div>
-
-      {/* Top: Question asked by user */}
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 leading-relaxed">
-          {userFaq.question}
-        </h3>
-      </div>
-      
-      {/* Bottom: Admin answer or reply button */}
-      {userFaq.answer ? (
-        <div className=" border border-[#0c684b]/20 rounded-lg p-4">
-          <div className="flex items-center space-x-2 mb-2">
-            <FiMessageCircle className="w-4 h-4 text-green-600" />
-            <span className="text-sm font-medium text-green-700">Admin Response</span>
+        {userFaq.answer && (
+          <div className="flex justify-end ">
+            <button
+              onClick={() => handleAddToFaqs(userFaq)}
+              className="flex items-center space-x-1 h-8 px-2  bg-green-100 text-green-700 rounded-lg text-xs font-medium hover:bg-green-200 transition-colors"
+            >
+              <FiPlus className="w-3 h-3" />
+              <span>Add To FAQs</span>
+            </button>
           </div>
-          <p className="text-gray-700 text-sm leading-relaxed">
-            {userFaq.answer}
-          </p>
+        )}
+        
         </div>
-      ) : (
-        <div className="flex justify-start">
-          <button
-            onClick={() => handleReplyClick(userFaq.id)}
-            className="flex items-center space-x-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
-          >
-            <FiMessageCircle className="w-4 h-4" />
-            <span>Reply</span>
-          </button>
+
+        {/* Top: Question asked by user */}
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold text-gray-900 leading-relaxed">
+            {userFaq.question}
+          </h3>
         </div>
-      )}
-      
-      {/* Reply Input Section */}
-      {replyingTo === userFaq.id && (
-        <div className="border-t border-gray-200 pt-4 mt-4">
-          <textarea
-            value={replyText}
-            onChange={(e) => setReplyText(e.target.value)}
-            placeholder="Write your reply..."
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
-            rows={3}
-            maxLength={500}
-          />
-          <div className="flex items-center justify-between mt-2">
-            <span className="text-xs text-gray-500">
-              {500 - replyText.length} characters remaining
-            </span>
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={handleCancelReply}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors text-sm"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleSubmitReply(userFaq)}
-                disabled={!replyText.trim() || isSubmittingReply}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSubmittingReply ? 'Sending...' : 'Submit Reply'}
-              </button>
+        
+        {/* Bottom: Admin answer or reply button */}
+        {userFaq.answer ? (
+          <div className=" border border-[#0c684b]/20 rounded-lg p-4">
+            <div className="flex items-center space-x-2 mb-2">
+              <FiMessageCircle className="w-4 h-4 text-[#0c684b]" />
+              <span className="text-sm font-medium text-[#0c684b]">Admin Response</span>
+            </div>
+            <p className="text-gray-700 text-sm leading-relaxed">
+              {userFaq.answer}
+            </p>
+          </div>
+        ) : (
+          <div className="flex justify-start">
+            <button
+              onClick={handleReplyClick}
+              className="flex items-center space-x-2 px-6 py-3 bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+            >
+              <FiMessageCircle className="w-4 h-4" />
+              <span>Reply</span>
+            </button>
+          </div>
+        )}
+        
+        {/* Reply Input Section */}
+        {isReplying && (
+          <div className="border-t border-gray-200 pt-4 mt-4">
+            <textarea
+              ref={replyTextareaRef}
+              value={replyText}
+              onChange={(e) => setReplyText(e.target.value)}
+              placeholder="Write your reply..."
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+              rows={3}
+              maxLength={500}
+            />
+            <div className="flex items-center justify-between mt-2">
+              <span className="text-xs text-gray-500">
+                {500 - replyText.length} characters remaining
+              </span>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={handleCancelReply}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSubmitReply}
+                  disabled={!replyText.trim() || isSubmittingReply}
+                  className="px-4 py-2 bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSubmittingReply ? 'Sending...' : 'Submit Reply'}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
-  )
+        )}
+      </div>
+    )
+  }
 
   // Loading shimmer for cards
   const CardShimmer = () => (
@@ -655,7 +767,7 @@ const FAQs = () => {
 
   return (
     <div className="py-4">
-      <div className='bg-white rounded-lg shadow-lg overflow-hidden min-h-[calc(100vh-35px)] max-h-[calc(100vh-35px)] overflow-y-auto px-6 py-10'> 
+      <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] max-h-[calc(100vh-35px)] overflow-y-auto px-6 py-10'> 
          {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-semibold text-gray-900">FAQs</h1>
@@ -689,17 +801,17 @@ const FAQs = () => {
       </div>
 
       {/* Filters */}
-      <div className="mb-6">
-        <div className="flex items-center gap-4">
+      <div className='py-6'>
+        <div className="flex items-center gap-3">
           {/* Search */}
-          <div className="relative flex-1">
+          <div className="relative w-72">
             <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
             <input
               type="text"
               placeholder={activeTab === 'FAQs' ? 'Search FAQs...' : 'Search in name, email, or question'}
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
+              className="w-full pl-10 pr-3 py-[10px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-xs"
             />
           </div>
 
@@ -709,47 +821,57 @@ const FAQs = () => {
             endDate={filters.endDate}
             onDateRangeChange={handleDateFilterApply}
             placeholder="Select date range"
-            className="w-64"
+            includeTime={true}
+            className="w-[250px] text-xs"
           />
 
           {/* Status Filter (only for FAQs) */}
           {activeTab === 'FAQs' && (
-            <div className="w-48">
-              <CustomDropdown
-                placeholder="All Status"
-                value={filters.isActive}
-                onChange={(value) => handleFilterChange('isActive', value as string)}
-                options={[
-                  { value: '', label: 'All Status' },
-                  { value: 'true', label: 'Active' },
-                  { value: 'false', label: 'Inactive' },
-                ]}
-              />
-            </div>
+            <CustomDropdown
+              placeholder="All Status"
+              value={filters.isActive}
+              onChange={(value) => handleFilterChange('isActive', value as string)}
+              options={[
+                { value: '', label: 'All Status' },
+                { value: 'true', label: 'Active' },
+                { value: 'false', label: 'Inactive' },
+              ]}
+              className="w-[120px] text-xs"
+            />
           )}
 
-          {/* User FAQ specific filters */}
-          {activeTab === 'User FAQs' && (
-            <div className="w-48">
-              <SearchableDropdown
-                placeholder="Filter by country"
-                value={filters.country}
-                onChange={(value) => handleFilterChange('country', value)}
-                options={COUNTRIES.map(country => ({ value: country, label: country }))}
-              />
-            </div>
+          {/* FAQ Type Filter (only for FAQs) */}
+          {activeTab === 'FAQs' && (
+            <CustomDropdown
+              placeholder="All Types"
+              value={filters.faqType}
+              onChange={(value) => handleFilterChange('faqType', value as string)}
+              options={[
+                { value: '', label: 'All Types' },
+                { value: 'Business', label: 'Business' },
+                { value: 'Consumer', label: 'Consumer' },
+              ]}
+              className="w-[120px] text-xs"
+            />
           )}
 
-          {/* Add FAQ Button (only for FAQs tab) */}
-          {activeTab === 'FAQs' && hasPermission('FAQs', 'create') && (
+          <div className="ml-auto flex items-center gap-2">
             <button
-              onClick={handleAddFAQ}
-              className="flex items-center space-x-2 px-4 py-2 bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors"
+              onClick={handleExport}
+              className="px-10 py-[10px] text-xs border border-[#0c684b] text-[#0c684b] rounded-sm hover:bg-gray-50 transition-colors"
             >
-              <FiPlus size={16} />
-              <span>Add FAQ</span>
+              Export
             </button>
-          )}
+            {/* Add FAQ Button (only for FAQs tab) */}
+            {activeTab === 'FAQs' && hasPermission('FAQs', 'create') && (
+              <button
+                onClick={handleAddFAQ}
+                className="flex items-center space-x-2 px-10 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors"
+              >
+                <span>Add FAQ</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -782,24 +904,15 @@ const FAQs = () => {
 
       {/* Pagination */}
       {!getCurrentLoading() && pagination.totalPages > 1 && (
-        <div className="flex items-center justify-center mt-8 space-x-2">
-          <button
-            onClick={() => handlePageChange(pagination.currentPage - 1)}
-            disabled={pagination.currentPage <= 1}
-            className="px-3 py-2 text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Previous
-          </button>
-          <span className="px-3 py-2 text-gray-700">
-            Page {pagination.currentPage} of {pagination.totalPages}
-          </span>
-          <button
-            onClick={() => handlePageChange(pagination.currentPage + 1)}
-            disabled={pagination.currentPage >= pagination.totalPages}
-            className="px-3 py-2 text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Next
-          </button>
+        <div className="mt-8">
+          <Pagination
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            totalItems={pagination.totalItems}
+            itemsPerPage={pagination.itemsPerPage}
+            onPageChange={handlePageChange}
+            className="justify-center"
+          />
         </div>
       )}
 
@@ -809,15 +922,18 @@ const FAQs = () => {
           isOpen={isFAQModalOpen}
           onClose={handleFAQFormCancel}
           title={selectedFAQ ? 'Edit FAQ' : 'Add New FAQ'}
+          size="xl"
         >
-                  <FAQForm
-          faq={selectedFAQ}
-          onSubmit={handleFAQFormSubmit}
-          onCancel={handleFAQFormCancel}
-          isLoading={isSubmittingFAQ}
-          showActiveCheckbox={!!selectedFAQ} // Only show checkbox when editing
-          willBeInactive={!selectedFAQ && !shouldNewFAQBeActive()} // Show inactive message when creating and max active reached
-        />
+          <div className="h-[70vh] overflow-hidden">
+            <FAQForm
+              faq={selectedFAQ}
+              onSubmit={handleFAQFormSubmit}
+              onCancel={handleFAQFormCancel}
+              isLoading={isSubmittingFAQ}
+              showActiveCheckbox={false} // Never show checkbox when editing
+              willBeInactive={!selectedFAQ && !shouldNewFAQBeActive()} // Show inactive message when creating and max active reached
+            />
+          </div>
         </Modal>
       )}
 
@@ -832,18 +948,64 @@ const FAQs = () => {
         isLoading={isDeletingFAQ}
       />
 
-      {/* Add to FAQ Confirmation Modal */}
-      <ConfirmationModal
-        isOpen={isAddToFAQModalOpen}
-        onClose={handleCancelAddToFAQ}
-        onConfirm={handleConfirmAddToFAQ}
-        title="Add to FAQs"
-        message={`Are you sure you want to add this user question to the FAQ list? The FAQ will be created as inactive and you can activate it later.`}
-        confirmText="Add to FAQs"
-        cancelText="Cancel"
-        isLoading={isAddingToFAQ}
-        type="info"
-      />
+      {/* Add to FAQ Confirmation Modal with FAQ Type Selection */}
+      {isAddToFAQModalOpen && (
+        <Modal
+          isOpen={isAddToFAQModalOpen}
+          onClose={handleCancelAddToFAQ}
+          title="Add to FAQs"
+          size="lg"
+        >
+          <div className="flex flex-col h-[35vh]">
+            <div className="flex flex-col h-full">
+              {/* Modal content - scrollable */}
+              <div className="flex-1 overflow-y-auto space-y-4 p-2">
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <p className="text-sm text-gray-700">
+                    Are you sure you want to add this user question to the FAQ list? The FAQ will be created as inactive and you can activate it later.
+                  </p>
+                </div>
+
+                <div>
+                  <label htmlFor="faqTypeSelect" className="block text-sm font-medium text-gray-700 mb-2">
+                    Select FAQ Type *
+                  </label>
+                  <SearchableDropdown
+                    placeholder="Select FAQ type"
+                    value={selectedFaqType}
+                    onChange={(value) => setSelectedFaqType(value as 'Business' | 'Consumer')}
+                    options={[
+                      { value: 'Business', label: 'Business' },
+                      { value: 'Consumer', label: 'Consumer' },
+                    ]}
+                    allowCustomValue={false}
+                  />
+                </div>
+              </div>
+
+              {/* Form Actions - fixed bottom within modal content */}
+              <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200 mt-4 flex-shrink-0 bg-white">
+                <button
+                  type="button"
+                  onClick={handleCancelAddToFAQ}
+                  disabled={isAddingToFAQ}
+                  className="px-10 py-[10px] text-xs border border-[#0c684b] text-[#0c684b] rounded-sm hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmAddToFAQ}
+                  disabled={isAddingToFAQ}
+                  className="flex items-center space-x-2 px-10 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span>{isAddingToFAQ ? 'Adding...' : 'Add to FAQs'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </Modal>
+      )}
       </div>
      
     </div>

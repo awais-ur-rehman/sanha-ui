@@ -20,7 +20,19 @@ export const usePutApi = <T, R = any>(
       })
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        // Try to parse the error response body
+        let errorData
+        try {
+          errorData = await response.json()
+        } catch {
+          // If parsing fails, use generic error
+          errorData = { message: `HTTP error! status: ${response.status}` }
+        }
+
+        // Create error object with response data
+        const error = new Error(errorData.message || `HTTP error! status: ${response.status}`)
+          ; (error as any).response = { data: errorData }
+        throw error
       }
 
       return response.json()

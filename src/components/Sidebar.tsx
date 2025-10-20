@@ -12,7 +12,10 @@ import {
   FiCode,
   FiBookOpen,
   FiHelpCircle,
-  FiUsers
+  FiUsers,
+  FiMail,
+  FiMessageSquare,
+  FiSend
 } from 'react-icons/fi'
 import { 
   HiHome,
@@ -27,7 +30,10 @@ import {
   HiChevronRight,
   HiCode,
   HiQuestionMarkCircle,
-  HiUsers
+  HiUsers,
+  HiMail,
+  HiChatAlt2,
+  HiPaperAirplane
 } from 'react-icons/hi'
 import { useAuthStore, useUIStore } from '../store'
 import logo from '../assets/logo/sanhaLogo.png'
@@ -62,7 +68,7 @@ const Sidebar = () => {
   }
 
   const getIcon = (iconType: string, isActive: boolean) => {
-    const iconClass = "w-5 h-5"
+    const iconClass = "w-4 h-4 sm:w-5 sm:h-5 lg:w-4 lg:h-4 xl:w-5 xl:h-5"
     
     if (isActive) {
       switch (iconType) {
@@ -78,6 +84,10 @@ const Sidebar = () => {
           return <HiBookOpen className={iconClass} />
         case 'faqs':
           return <HiQuestionMarkCircle className={iconClass} />
+        case 'enquiries':
+          return <HiMail className={iconClass} />
+        case 'contact-us':
+          return <HiChatAlt2 className={iconClass} />
         case 'clients':
           return <HiUsers className={iconClass} />
         case 'products':
@@ -86,6 +96,8 @@ const Sidebar = () => {
           return <HiDocumentText className={iconClass} />
         case 'research':
           return <HiSearch className={iconClass} />
+        case 'newsletter':
+          return <HiPaperAirplane className={iconClass} />
         case 'settings':
           return <HiCog className={iconClass} />
         case 'logout':
@@ -107,6 +119,10 @@ const Sidebar = () => {
           return <FiBookOpen className={iconClass} />
         case 'faqs':
           return <FiHelpCircle className={iconClass} />
+        case 'enquiries':
+          return <FiMail className={iconClass} />
+        case 'contact-us':
+          return <FiMessageSquare className={iconClass} />
         case 'clients':
           return <FiUsers className={iconClass} />
         case 'products':
@@ -115,6 +131,8 @@ const Sidebar = () => {
           return <FiFileText className={iconClass} />
         case 'research':
           return <FiSearch className={iconClass} />
+        case 'newsletter':
+          return <FiSend className={iconClass} />
         case 'settings':
           return <FiSettings className={iconClass} />
         case 'logout':
@@ -177,6 +195,30 @@ const Sidebar = () => {
       path: ROUTES.FAQS,
       icon: getIcon('faqs', isActive(ROUTES.FAQS))
     },
+    {
+      id: 'enquiries',
+      title: 'Enquiries',
+      path: ROUTES.ENQUIRIES,
+      icon: getIcon('enquiries', isActive(ROUTES.ENQUIRIES))
+    },
+    {
+      id: 'reported-products',
+      title: 'Reported Products',
+      path: ROUTES.REPORTED_PRODUCTS,
+      icon: getIcon('enquiries', isActive(ROUTES.REPORTED_PRODUCTS))
+    },
+    {
+      id: 'contact-us',
+      title: 'Contact Us',
+      path: ROUTES.CONTACT_US,
+      icon: getIcon('contact-us', isActive(ROUTES.CONTACT_US))
+    },
+    {
+      id: 'newsletter',
+      title: 'Newsletter',
+      path: ROUTES.NEWSLETTER,
+      icon: getIcon('newsletter', isActive(ROUTES.NEWSLETTER))
+    },
   ]
 
   // Show all sidebar items (don't filter based on permissions)
@@ -214,16 +256,16 @@ const Sidebar = () => {
   }
 
   const SidebarContent = () => (
-    <div className="flex flex-col h-full bg-white rounded-xl">
+    <div className="flex flex-col h-full rounded-xl" style={{ backgroundColor: '#1f222a' }}>
       <div className='px-2'> 
         {/* Logo/Brand */}
-      <div className="p-4 border-b border-gray-200">
+      <div className="p-3 sm:p-4 border-b border-gray-600">
         <div className="flex items-center justify-center">
           <img 
             src={logo} 
             alt="Sanha Admin" 
             className={`transition-all duration-300 ${
-              isSidebarCollapsed ? 'w-14 h-6' : 'w-12 h-12'
+              isSidebarCollapsed ? 'w-12 h-5 sm:w-14 sm:h-6 lg:w-20 lg:h-5 xl:w-14 xl:h-6' : 'w-10 h-10 sm:w-12 sm:h-12 lg:w-10 lg:h-10 xl:w-12 xl:h-12'
             }`} 
           />
         </div>
@@ -233,31 +275,32 @@ const Sidebar = () => {
       {/* Toggle Button - Positioned absolutely */}
       <button
         onClick={toggleSidebar}
-        className={`absolute -right-3 w-8 h-8 bg-white rounded-full shadow-lg border border-gray-200 flex items-center justify-center transition-all duration-300 hover:shadow-xl hover:scale-110 z-10 ${isSidebarCollapsed ? 'top-12 ' : 'top-16'}`}
+        className={`absolute -right-2 sm:-right-3 w-6 h-6 sm:w-8 sm:h-8 rounded-full border border-gray-600 flex items-center justify-center transition-all duration-300 hover:scale-110 z-10 ${isSidebarCollapsed ? 'top-10 sm:top-12' : 'top-14 sm:top-16'}`}
+        style={{ backgroundColor: '#1f222a' }}
       >
         {isSidebarCollapsed ? (
-          <HiChevronRight className="w-5 h-5 text-gray-600" />
+          <HiChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-gray-300" />
         ) : (
-          <HiChevronLeft className="w-5 h-5 text-gray-600" />
+          <HiChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-gray-300" />
         )}
       </button>
 
       {/* Navigation Items */}
-      <nav className="flex-1 py-2 px-4">
+      <nav className="flex-1 mt-1 px-2 sm:px-4">
         {/* Top Items */}
-        <ul className="space-y-2">
+        <ul className="space-y-1">
           {topSidebarItems.map((item) => (
             <li key={item.id}>
               <button
                 onClick={() => handleItemClick(item)}
-                className={`w-full flex items-center text-xs py-3 rounded-lg transition-all duration-700 transform relative group ${
+                className={`w-full flex items-center text-xs py-[9px] lg:py-2.5 rounded-md transition-all duration-300 ease-in-out transform relative group ${
                   isSidebarCollapsed 
                     ? isActive(item.path)
                       ? 'justify-center px-1 text-[#0c684b] bg-transparent'
-                      : 'justify-center px-1 text-gray-900 bg-transparent hover:bg-gray-100'
+                      : 'justify-center px-1 text-gray-300 bg-transparent hover:bg-gray-700'
                     : isActive(item.path)
-                      ? 'justify-start gap-3  px-4 bg-[#0c684b] text-white shadow-lg scale-[1.02]'
-                      : 'justify-start gap-3 px-4 text-black/70 font-extralight  hover:bg-gray-100  hover:text-gray-900 bg-white'
+                      ? 'justify-start gap-2 sm:gap-3 lg:gap-2.5 px-2 sm:px-4 lg:px-3 bg-[#0c684b] text-white shadow-lg'
+                      : 'justify-start gap-2 sm:gap-3 lg:gap-2.5 px-2 sm:px-4 lg:px-3 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
                 }`}
               >
                 {item.icon}
@@ -275,23 +318,23 @@ const Sidebar = () => {
         </ul>
 
         {/* Management Section */}
-        <div className="mt-4">
+        <div className="mt-2">
           {!isSidebarCollapsed && (
-            <h1 className='text-[12px] font-semibold text-black/40 ms-4 mb-3'>Management</h1>
+            <h1 className='text-[10px] sm:text-[12px] lg:text-[11px] xl:text-[12px] font-semibold text-gray-400 ms-2 sm:ms-4 lg:ms-3 mb-2 sm:mb-3 lg:mb-2.5'>Management</h1>
           )}
-          <ul className="space-y-2">
+          <ul className="space-y-1">
             {managementSidebarItems.map((item) => (
               <li key={item.id}>
                 <button
                   onClick={() => handleItemClick(item)}
-                  className={`w-full flex items-center text-xs py-3 rounded-lg transition-all duration-700 transform relative group ${
+                  className={`w-full flex items-center text-xs py-[9px] rounded-md transition-all duration-300 ease-in-out transform relative group ${
                     isSidebarCollapsed 
-                      ? isActive(item.path)
-                        ? 'justify-center px-1 text-[#0c684b] bg-transparent'
-                        : 'justify-center px-1 text-gray-900 bg-transparent hover:bg-gray-100'
-                      : isActive(item.path)
-                        ? 'justify-start gap-3  px-4 bg-[#0c684b] text-white shadow-lg scale-[1.02]'
-                        : 'justify-start gap-3 px-4 text-black/70 font-extralight  hover:bg-gray-100  hover:text-gray-900 bg-white'
+                    ? isActive(item.path)
+                      ? 'justify-center px-1 text-[#0c684b] bg-transparent'
+                      : 'justify-center px-1 text-gray-300 bg-transparent hover:bg-gray-700'
+                    : isActive(item.path)
+                      ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
+                      : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
                   }`}
                 >
                   {item.icon}
@@ -311,23 +354,23 @@ const Sidebar = () => {
       </nav>
 
       {/* Bottom Items */}
-      <div className=" pt-4 px-2 py-4">
+      <div className="pt-3 sm:pt-4 px-2 sm:py-4">
       {!isSidebarCollapsed && (
-            <h1 className='text-[12px] font-semibold text-black/40 ms-4 mb-2'>System Settings</h1>
+            <h1 className='text-[10px] sm:text-[12px] font-semibold text-gray-400 ms-2 sm:ms-4 mb-2'>System Settings</h1>
           )}
-        <ul className="space-y-2">
+        <ul className="space-y-1">
           {bottomItems.map((item) => (
             <li key={item.id}>
               <button
                 onClick={() => handleItemClick(item)}
-                className={`w-full flex items-center py-3 rounded-lg text-xs transition-all duration-700 transform relative group ${
+                className={`w-full flex items-center py-[9px] rounded-md text-xs transition-all duration-300 ease-in-out transform relative group ${
                   isSidebarCollapsed 
                     ? isActive(item.path)
                       ? 'justify-center px-2 text-[#0c684b] bg-transparent'
-                      : 'justify-center px-2 text-gray-900 bg-transparent hover:bg-gray-100'
+                      : 'justify-center px-2 text-gray-300 bg-transparent hover:bg-gray-700'
                     : isActive(item.path)
-                      ? 'justify-start gap-3 px-4 bg-[#0c684b] text-white shadow-lg scale-[1.02]'
-                      : 'justify-start gap-3 px-4 text-gray-700 hover:bg-green-50 hover:text-green-700 bg-white'
+                      ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
+                      : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 hover:bg-gray-700 hover:text-green-400 bg-transparent'
                 }`}
               >
                 {item.icon}
@@ -360,15 +403,15 @@ const Sidebar = () => {
       {/* Mobile Menu Button */}
       <button
         onClick={toggleMobileMenu}
-        className="fixed top-4 left-4 z-50 p-2 bg-green-600 text-white rounded-lg lg:hidden"
+        className="fixed top-3 left-3 sm:top-4 sm:left-4 z-50 p-1.5 sm:p-2 bg-green-600 text-white rounded-lg lg:hidden"
       >
-        <FiMenu className="w-5 h-5" />
+        <FiMenu className="w-4 h-4 sm:w-5 sm:h-5" />
       </button>
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-4 left-4 h-[calc(100vh-2rem)] bg-white shadow-lg z-50 transition-all duration-300 rounded-xl ${
-          isSidebarCollapsed ? 'w-16' : 'w-64'
+        className={`fixed top-3 left-3 sm:top-4 sm:left-4 h-[calc(100vh-1.5rem)] sm:h-[calc(100vh-2rem)] z-50 transition-all duration-300 rounded-xl ${
+          isSidebarCollapsed ? 'w-12 sm:w-16' : 'w-48 sm:w-52'
         } ${
           isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
@@ -380,9 +423,9 @@ const Sidebar = () => {
       {isMobileMenuOpen && (
         <button
           onClick={() => setMobileMenuOpen(false)}
-          className="fixed top-4 right-4 z-50 p-2 bg-red-600 text-white rounded-lg lg:hidden"
+          className="fixed top-3 right-3 sm:top-4 sm:right-4 z-50 p-1.5 sm:p-2 bg-red-600 text-white rounded-lg lg:hidden"
         >
-          <FiX className="w-5 h-5" />
+          <FiX className="w-4 h-4 sm:w-5 sm:h-5" />
         </button>
       )}
     </>

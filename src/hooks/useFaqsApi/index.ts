@@ -1,7 +1,7 @@
 import { useGetApi } from '../useGetApi'
 import { usePostApi } from '../usePostApi'
 import { usePutApi } from '../usePutApi'
-import { type FAQ, type UserFAQ } from '../../types/entities'
+import { type FAQ, type UserFAQ, type FAQType } from '../../types/entities'
 
 export const useFaqsApi = (
   queryParams: string,
@@ -85,7 +85,7 @@ export const useCreateFaq = () => {
     message: string
     data: FAQ
     timestamp: string
-  }, { question: string; answer: string; isActive?: boolean }>('/faqs', {
+  }, { question: string; answer: string; faqType: FAQType; isActive?: boolean }>('/faqs', {
     requireAuth: true,
   })
 }
@@ -96,7 +96,7 @@ export const useUpdateFaq = () => {
     message: string
     data: FAQ
     timestamp: string
-  }, { question: string; answer: string; isActive?: boolean }>('/faqs', {
+  }, { question: string; answer: string; faqType: FAQType; isActive?: boolean }>('/faqs', {
     requireAuth: true,
   })
 }

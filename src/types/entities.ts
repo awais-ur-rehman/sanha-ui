@@ -231,10 +231,13 @@ export interface ResourceUpdateRequest {
 }
 
 // FAQ entity
+export type FAQType = 'Business' | 'Consumer';
+
 export interface FAQ {
   id: number;
   question: string;
   answer: string;
+  faqType: FAQType;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -243,12 +246,14 @@ export interface FAQ {
 export interface FAQCreateRequest {
   question: string;
   answer: string;
+  faqType: FAQType;
   isActive?: boolean;
 }
 
 export interface FAQUpdateRequest {
   question?: string;
   answer?: string;
+  faqType?: FAQType;
   isActive?: boolean;
 }
 
@@ -285,10 +290,20 @@ export interface UserFAQUpdateRequest {
 }
 
 // Client entity
+export type ClientStatus = 'Active' | 'On Hold' | 'Certificate on Hold' | 'Expired'
+
+export const CLIENT_STATUS = {
+  ACTIVE: 'Active',
+  ON_HOLD: 'On Hold',
+  CERTIFICATE_ON_HOLD: 'Certificate on Hold',
+  EXPIRED: 'Expired',
+} as const
+
 export interface Client {
   id: number;
   name: string;
   logoUrl: string;
+  description?: string;
   address: string[];
   phone: string[];
   email: string;
@@ -298,9 +313,10 @@ export interface Client {
   standard: string;
   category: string[];
   scope: string[];
-  clientCode: string;
+  clientCode: string[];
   certifiedSince: string;
   expiryDate: string;
+  status: ClientStatus;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -309,6 +325,7 @@ export interface Client {
 export interface ClientCreateRequest {
   name: string;
   logoUrl: string;
+  description?: string;
   address: string[];
   phone: string[];
   email: string;
@@ -318,15 +335,16 @@ export interface ClientCreateRequest {
   standard: string;
   category: string[];
   scope: string[];
-  clientCode: string;
+  clientCode: string[];
   certifiedSince: string;
   expiryDate: string;
-  isActive?: boolean;
+  status: ClientStatus;
 }
 
 export interface ClientUpdateRequest {
   name?: string;
   logoUrl?: string;
+  description?: string;
   address?: string[];
   phone?: string[];
   email?: string;
@@ -336,11 +354,11 @@ export interface ClientUpdateRequest {
   standard?: string;
   category?: string[];
   scope?: string[];
-  clientCode?: string;
+  clientCode?: string[];
   certifiedSince?: string;
   expiryDate?: string;
-  isActive?: boolean;
-} 
+  status?: ClientStatus;
+}
 
 // Client Name entity for dropdown
 export interface ClientName {
@@ -379,4 +397,94 @@ export interface ProductUpdateRequest {
   madeIn?: string;
   contains?: string[];
   isActive?: boolean;
+}
+
+// Enquiry entity
+export interface Enquiry {
+  id: number;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  email: string;
+  message: string;
+  state: 'Pending' | 'Accepted' | 'Rejected';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface EnquiryUpdateRequest {
+  state: 'Pending' | 'Accepted' | 'Rejected';
+}
+
+// Contact Us entity
+export interface ContactUs {
+  id: number;
+  type: 'General Inquiry' | 'Certification Inquiry (Businesses)' | 'Verification and Consumer Complaints' | 'Media and Press Inquiries' | 'Partnerships and Collaborations';
+  message: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  orgName?: string;
+  title?: string;
+  orgWebsite?: string;
+  replyMessage?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ContactUsReplyRequest {
+  id: number;
+  replyMessage: string;
+  isUpdatedResponse?: boolean;
+}
+
+// Report a Product
+export type ReportProductType = 'Incorrect Certification' | 'Suspicious Ingredients' | 'Expired Certificate' | 'Counterfeit Product' | 'Misleading Information' | 'Other'
+
+export type ReportStatus = 'Pending' | 'Resolved'
+
+export interface ReportProduct {
+  id: number;
+  reportType: ReportProductType;
+  otherReportType?: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  productName: string;
+  manufacturer: string;
+  productImage: string;
+  reportMessage: string;
+  purchaseLocation?: string;
+  status: ReportStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ReportProductRespondRequest {
+  id: number;
+  message: string;
+}
+
+// Newsletter entity
+export interface NewsletterSubscriber {
+  id: number
+  email: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface NewsletterSection {
+  heading: string
+  description: string
+  link?: string
+  linkText?: string
+  linkStyle: 'button' | 'link'
+}
+
+export interface NewsletterData {
+  mainHeading: string
+  sections: NewsletterSection[]
+  userEmail?: string
+  month?: string
+  year?: string
 }

@@ -68,7 +68,7 @@ const DateFilterModal: React.FC<DateFilterModalProps> = ({
               value={startDate}
               onChange={setStartDate}
               placeholder="Select start date"
-              max={endDate || undefined}
+              maxDate={endDate ? new Date(endDate) : new Date()}
             />
           </div>
 
@@ -81,7 +81,7 @@ const DateFilterModal: React.FC<DateFilterModalProps> = ({
               value={endDate}
               onChange={setEndDate}
               placeholder="Select end date"
-              min={startDate || undefined}
+              maxDate={new Date()}
             />
           </div>
 

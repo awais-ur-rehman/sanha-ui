@@ -39,7 +39,7 @@ const BookDetailSheet: React.FC<BookDetailSheetProps> = ({
     setLocalIsActive(checked);
     
     try {
-      // Call the API
+      // Call the API with the new state (checked value)
       await onToggleStatus({ ...book, isActive: checked });
     } catch (error) {
       // If API call fails, revert the local state
@@ -96,11 +96,13 @@ const BookDetailSheet: React.FC<BookDetailSheetProps> = ({
 
           {/* Description */}
           {book.description && (
-            <div className="flex-1">
+            <div>
               <h3 className="font-semibold text-gray-900 mb-2">Description</h3>
-              <p className="text-sm text-gray-600 leading-relaxed">
-                {book.description}
-              </p>
+              <div className='max-h-[140px] overflow-y-auto bg-gray-50 p-3 rounded-lg'>
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  {book.description}
+                </p>
+              </div>
             </div>
           )}
 
@@ -120,18 +122,8 @@ const BookDetailSheet: React.FC<BookDetailSheetProps> = ({
           )}
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-3 mt-6">
-          {hasUpdatePermission && (
-            <button
-              onClick={() => onEdit(book)}
-              className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors"
-            >
-              <FiEdit size={16} />
-              <span>Edit</span>
-            </button>
-          )}
-          
+        {/* Fixed Action Buttons */}
+        <div className="flex gap-3 mt-4 flex-shrink-0">
           {hasDeletePermission && (
             <button
               onClick={() => onDelete(book)}
@@ -139,6 +131,16 @@ const BookDetailSheet: React.FC<BookDetailSheetProps> = ({
             >
               <FiTrash2 size={16} />
               <span>Delete</span>
+            </button>
+          )}
+          
+          {hasUpdatePermission && (
+            <button
+              onClick={() => onEdit(book)}
+              className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors"
+            >
+              <FiEdit size={16} />
+              <span>Edit</span>
             </button>
           )}
         </div>

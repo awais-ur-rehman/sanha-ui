@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { FiEdit, FiTrash2, FiMail, FiPhone, FiGlobe, FiMapPin, FiCalendar } from 'react-icons/fi'
 import Sheet from './ui/sheet'
+import Tooltip from './Tooltip'
 import { Switch } from './ui/switch'
 import type { Client } from '../types/entities'
 
@@ -63,10 +64,10 @@ const ClientDetailSheet: React.FC<ClientDetailSheetProps> = ({
 
   return (
     <Sheet open={open} close={onClose} title={`Client Details - ${client.name}`}>
-      <div className="flex flex-col h-full p-6">
+      <div className="flex flex-col h-full p-6 text-sm">
         {/* Client Logo */}
         <div className="flex justify-center mb-6">
-          <div className="relative w-32 h-32 overflow-hidden rounded-lg border">
+          <div className="relative w-32 h-32 overflow-hidden rounded-lg">
             {client.logoUrl ? (
               <img
                 draggable={false}
@@ -88,89 +89,107 @@ const ClientDetailSheet: React.FC<ClientDetailSheetProps> = ({
 
         {/* Client Info */}
         <div className="flex flex-col gap-4 flex-1">
-          <div className="text-left">
-            <h2 className="font-semibold text-xl text-gray-900 mb-2">
-              {client.name}
-            </h2>
-            <p className="text-base text-gray-700 mb-1">
-              Client Code: {client.clientCode}
-            </p>
-            <p className="text-sm text-gray-600">
-              Standard: {client.standard}
-            </p>
+          {/* Title and Active Switch */}
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <h2 className="font-semibold text-lg text-gray-900 mb-2 truncate" title={client.name}>
+                {client.name}
+              </h2>
+              <div className="space-y-1">
+                <div className="text-gray-700">
+                  <span className="font-medium">Client Code:</span>{' '}
+                  <Tooltip content={(client.clientCode && client.clientCode.length>0)?client.clientCode.join(', '):'—'}>
+                    <span className="truncate inline-block max-w-[320px] align-bottom">
+                      {client.clientCode && client.clientCode.length > 0 ? client.clientCode.join(', ') : '—'}
+                    </span>
+                  </Tooltip>
+                </div>
+                <div className="text-gray-600">
+                  <span className="font-medium">Standard:</span>{' '}
+                  <Tooltip content={client.standard}>
+                    <span className="truncate inline-block max-w-[420px] align-bottom">{client.standard}</span>
+                  </Tooltip>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <span className="text-xs text-gray-600">{localIsActive ? 'Active' : 'Inactive'}</span>
+              <Switch checked={localIsActive} onCheckedChange={handleToggleChange} size="sm" />
+            </div>
           </div>
 
 
           {/* Categories */}
           {client.category.length > 0 && (
-            <div className="flex justify-start items-center space-x-2">
-              <h3 className="font-medium text-sm text-gray-900">Categories</h3>
-              <div className="flex flex-wrap gap-2">
-                {client.category.map((category, index) => (
-                  <span
-                    key={index}
-                    className="px-3 py-1 bg-gray-100 text-gray-800 text-sm rounded-full"
-                  >
-                    {category}
-                  </span>
+            <div>
+              <h3 className="font-medium text-sm text-gray-900 my-1">Categories</h3>
+              <div className="flex flex-wrap gap-1">
+                {(client.category.slice(0,3)).map((category, index) => (
+                  <span key={index} className="px-2 py-0.5 bg-gray-100 text-gray-800 text-xs rounded-full">{category}</span>
                 ))}
+                {client.category.length > 3 && (
+                  <Tooltip content={client.category.join(', ')}>
+                    <span className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs rounded-full cursor-default">
+                      +{client.category.length - 3} more
+                    </span>
+                  </Tooltip>
+                )}
               </div>
             </div>
           )}
 
           {/* Scopes */}
           {client.scope.length > 0 && (
-            <div className="flex justify-start items-center space-x-2">
-              <h3 className="font-medium text-sm text-gray-900">Certification Scopes</h3>
-              <div className="flex flex-wrap gap-2">
-                {client.scope.map((scope, index) => (
-                  <span
-                    key={index}
-                    className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
-                  >
-                    {scope}
-                  </span>
+            <div>
+              <h3 className="font-medium text-sm text-gray-900 mb-1">Certification Scopes</h3>
+              <div className="flex flex-wrap gap-1">
+                {(client.scope.slice(0,3)).map((scope, index) => (
+                  <span key={index} className="px-2 py-0.5 bg-gray-100 text-gray-800 text-xs rounded-full">{scope}</span>
                 ))}
+                {client.scope.length > 3 && (
+                  <Tooltip content={client.scope.join(', ')}>
+                    <span className="px-2 py-0.5 bg-gray-100 text-gray-800 text-xs rounded-full cursor-default">
+                      +{client.scope.length - 3} more
+                    </span>
+                  </Tooltip>
+                )}
               </div>
             </div>
           )}
 
           {/* Products */}
           {client.products.length > 0 && (
-            <div className="flex justify-start items-center space-x-2">
-              <h3 className="font-medium text-sm text-gray-900">Products</h3>
-              <div className="flex flex-wrap gap-2">
-                {client.products.map((product, index) => (
-                  <span
-                    key={index}
-                    className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full"
-                  >
-                    {product}
-                  </span>
+            <div>
+              <h3 className="font-medium text-sm text-gray-900 mb-1">Products</h3>
+              <div className="flex flex-wrap gap-1">
+                {(client.products.slice(0,3)).map((product, index) => (
+                  <span key={index} className="px-2 py-0.5 bg-gray-100 text-gray-800 text-xs rounded-full">{product}</span>
                 ))}
+                {client.products.length > 3 && (
+                  <Tooltip content={client.products.join(', ')}>
+                    <span className="px-2 py-0.5 bg-gray-100 text-gray-800 text-xs rounded-full cursor-default">
+                      +{client.products.length - 3} more
+                    </span>
+                  </Tooltip>
+                )}
               </div>
             </div>
           )}
 
-          {/* Status Toggle */}
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-700">Active Status</span>
-            <Switch
-              checked={localIsActive}
-              onCheckedChange={handleToggleChange}
-            />
-          </div>
+          {/* Status Toggle removed (shown near title) */}
 
           {/* Contact Information */}
           <div className="space-y-3">
             <h3 className="font-semibold text-gray-900">Contact Information</h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-start space-x-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex items-start space-x-3 min-w-0">
                 <FiMail className="text-gray-400 mt-1" size={16} />
                 <div>
                   <p className="text-sm font-medium text-gray-700">Email</p>
-                  <p className="text-sm text-gray-900">{client.email}</p>
+                    <Tooltip content={client.email}>
+                      <p className="text-sm text-gray-900 truncate max-w-[200px]">{client.email}</p>
+                    </Tooltip>
                 </div>
               </div>
 
@@ -185,48 +204,46 @@ const ClientDetailSheet: React.FC<ClientDetailSheetProps> = ({
               )}
 
               {client.website && (
-                <div className="flex items-start space-x-3">
+                <div className="flex items-start space-x-3 min-w-0">
                   <FiGlobe className="text-gray-400 mt-1" size={16} />
                   <div>
                     <p className="text-sm font-medium text-gray-700">Website</p>
-                    <a 
-                      href={client.website} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-sm text-[#0c684b] hover:underline"
-                    >
-                      {client.website}
-                    </a>
+                    <Tooltip content={client.website}>
+                      <a 
+                        href={client.website} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-sm text-[#0c684b] hover:underline truncate inline-block max-w-[140px]"
+                      >
+                        {client.website}
+                      </a>
+                    </Tooltip>
                   </div>
                 </div>
               )}
 
               {/* Phone Numbers */}
               {client.phone.length > 0 && (
-                <div className="flex items-start space-x-3">
+                <div className="flex items-start space-x-3 min-w-0">
                   <FiPhone className="text-gray-400 mt-1" size={16} />
                   <div>
                     <p className="text-sm font-medium text-gray-700">Phone Numbers</p>
-                    <div className="space-y-1">
-                      {client.phone.map((phone, index) => (
-                        <p key={index} className="text-sm text-gray-900">{phone}</p>
-                      ))}
-                    </div>
+                    <Tooltip content={client.phone.join(', ')}>
+                      <p className="text-sm text-gray-900 truncate max-w-[200px]">{client.phone[0]}</p>
+                    </Tooltip>
                   </div>
                 </div>
               )}
 
               {/* Addresses */}
               {client.address.length > 0 && (
-                <div className="flex items-start space-x-3">
+                <div className="flex items-start space-x-3 min-w-0">
                   <FiMapPin className="text-gray-400 mt-1" size={16} />
                   <div>
                     <p className="text-sm font-medium text-gray-700">Addresses</p>
-                    <div className="space-y-1">
-                      {client.address.map((address, index) => (
-                        <p key={index} className="text-sm text-gray-900">{address}</p>
-                      ))}
-                    </div>
+                    <Tooltip content={client.address.join(', ')}>
+                      <p className="text-sm text-gray-900 truncate max-w-[200px]">{client.address[0]}</p>
+                    </Tooltip>
                   </div>
                 </div>
               )}
@@ -266,18 +283,8 @@ const ClientDetailSheet: React.FC<ClientDetailSheetProps> = ({
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-3 mt-6">
-          {hasUpdatePermission && (
-            <button
-              onClick={() => onEdit(client)}
-              className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors"
-            >
-              <FiEdit size={16} />
-              <span>Edit</span>
-            </button>
-          )}
-          
+        {/* Fixed Action Buttons */}
+        <div className="flex gap-3 mt-4 flex-shrink-0">
           {hasDeletePermission && (
             <button
               onClick={() => onDelete(client)}
@@ -285,6 +292,16 @@ const ClientDetailSheet: React.FC<ClientDetailSheetProps> = ({
             >
               <FiTrash2 size={16} />
               <span>Delete</span>
+            </button>
+          )}
+          
+          {hasUpdatePermission && (
+            <button
+              onClick={() => onEdit(client)}
+              className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors"
+            >
+              <FiEdit size={16} />
+              <span>Edit</span>
             </button>
           )}
         </div>

@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useToast } from '../components/CustomToast/ToastContext'
-import CustomCheckbox from '../components/CustomCheckbox'
-import type { FAQ } from '../types/entities'
+import SearchableDropdown from '../components/SearchableDropdown'
+import type { FAQ, FAQType } from '../types/entities'
 
 interface FAQFormProps {
   faq?: FAQ | null
-  onSubmit: (formData: { question: string; answer: string; isActive?: boolean }) => Promise<void>
+  onSubmit: (formData: { question: string; answer: string; faqType: FAQType; isActive?: boolean }) => Promise<void>
   onCancel: () => void
   isLoading?: boolean
   showActiveCheckbox?: boolean
@@ -17,6 +17,7 @@ const FAQForm = ({ faq, onSubmit, onCancel, isLoading = false, showActiveCheckbo
   const [formData, setFormData] = useState({
     question: '',
     answer: '',
+    faqType: 'Business' as FAQType,
     isActive: true,
   })
 
@@ -25,6 +26,7 @@ const FAQForm = ({ faq, onSubmit, onCancel, isLoading = false, showActiveCheckbo
       setFormData({
         question: faq.question,
         answer: faq.answer,
+        faqType: faq.faqType,
         isActive: faq.isActive,
       })
     }
@@ -40,6 +42,11 @@ const FAQForm = ({ faq, onSubmit, onCancel, isLoading = false, showActiveCheckbo
     
     if (!formData.answer.trim()) {
       showToast('error', 'Please enter an answer')
+      return
+    }
+
+    if (!formData.faqType) {
+      showToast('error', 'Please select a FAQ type')
       return
     }
 
@@ -64,7 +71,10 @@ const FAQForm = ({ faq, onSubmit, onCancel, isLoading = false, showActiveCheckbo
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <div className="flex flex-col h-full max-h-[80vh]">
+      <form onSubmit={handleSubmit} className="flex flex-col h-full">
+        {/* Form content - scrollable */}
+        <div className="flex-1 overflow-y-auto space-y-4 p-2">
       {/* Question */}
       <div>
         <label htmlFor="question" className="block text-sm font-medium text-gray-700 mb-2">
@@ -97,45 +107,45 @@ const FAQForm = ({ faq, onSubmit, onCancel, isLoading = false, showActiveCheckbo
         />
       </div>
 
-      {/* Active Status */}
-      {showActiveCheckbox ? (
-        <div>
-          <CustomCheckbox
-            checked={Boolean(formData.isActive)}
-            onChange={(e) => handleInputChange('isActive', e.target.checked)}
-            label="Active"
-          />
-        </div>
-      ) : (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-          <p className="text-sm text-yellow-800">
-            {willBeInactive 
-              ? `This FAQ will be saved as inactive because there are already ${7} active FAQs.`
-              : 'This FAQ will be saved as active.'
-            }
-          </p>
-        </div>
-      )}
-
-      {/* Action Buttons */}
-      <div className="flex items-center justify-end space-x-3 pt-4">
-        <button
-          type="button"
-          onClick={onCancel}
-          disabled={isLoading}
-          className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors text-sm disabled:opacity-50"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="px-6 py-2 bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isLoading ? 'Saving...' : (faq ? 'Update FAQ' : 'Create FAQ')}
-        </button>
+      {/* FAQ Type */}
+      <div>
+        <label htmlFor="faqType" className="block text-sm font-medium text-gray-700 mb-2">
+          FAQ Type *
+        </label>
+        <SearchableDropdown
+          placeholder="Select FAQ type"
+          value={formData.faqType}
+          onChange={(value) => handleInputChange('faqType', value as FAQType)}
+          options={[
+            { value: 'Business', label: 'Business' },
+            { value: 'Consumer', label: 'Consumer' },
+          ]}
+          allowCustomValue={false}
+        />
       </div>
-    </form>
+
+        </div>
+
+        {/* Form Actions - fixed bottom within modal content */}
+        <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200 mt-4 flex-shrink-0 bg-white">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={isLoading}
+            className="px-10 py-[10px] text-xs border border-[#0c684b] text-[#0c684b] rounded-sm hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="flex items-center space-x-2 px-10 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span>{isLoading ? 'Saving...' : (faq ? 'Update FAQ' : 'Add FAQ')}</span>
+          </button>
+        </div>
+      </form>
+    </div>
   )
 }
 

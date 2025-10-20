@@ -146,7 +146,7 @@ export default function Sheet({
       <div
         className={cn(
           "fixed right-0 top-4 z-501 h-[calc(100vh-32px)] w-[calc(100vw-32px)] overflow-hidden outline-hidden md:w-[450px] lg:w-[500px] xl:w-[550px]",
-          "bg-white shadow-2xl rounded-l-3xl transition-all duration-300 ease-out",
+          "bg-white shadow-2xl rounded-l-lg transition-all duration-300 ease-out",
           className,
         )}
         style={{
@@ -156,7 +156,7 @@ export default function Sheet({
         <div className="relative h-full flex">
           {/* Grabbable Handle on Left Edge */}
           <div 
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 z-10"
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 z-10 pl-3"
             onMouseDown={handleDragStart}
           >
             <div className="h-16 w-2 bg-gray-300 rounded-full cursor-grab active:cursor-grabbing flex items-center justify-center hover:bg-gray-400 transition-colors select-none">
