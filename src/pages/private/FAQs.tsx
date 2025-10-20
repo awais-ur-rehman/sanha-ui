@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
-import { FiSearch, FiMail, FiGlobe, FiMessageCircle, FiPlus, FiEdit, FiTrash2 } from 'react-icons/fi'
+import { FiSearch, FiMail, FiMessageCircle, FiPlus, FiEdit, FiTrash2 } from 'react-icons/fi'
 import { usePermissions } from '../../hooks/usePermissions'
 import { useFaqsApi, useUserFaqsApi, useGetApi, useRealTimeUpdates } from '../../hooks'
 import CustomDropdown from '../../components/CustomDropdown'
@@ -15,43 +15,6 @@ import DeleteConfirmationModal from '../../components/DeleteConfirmationModal'
 import { USER_FAQ_ENDPOINTS, FAQ_ENDPOINTS, API_CONFIG, getAuthHeaders, FAQ_EXPORT_ENDPOINT, USER_FAQ_EXPORT_ENDPOINT } from '../../config/api'
 import { Pagination } from '../../components'
 
-// Common countries list
-const COUNTRIES = [
-  'United States', 'Canada', 'United Kingdom', 'Germany', 'France', 'Italy', 'Spain',
-  'Netherlands', 'Belgium', 'Switzerland', 'Austria', 'Sweden', 'Norway', 'Denmark',
-  'Finland', 'Poland', 'Czech Republic', 'Hungary', 'Romania', 'Bulgaria', 'Greece',
-  'Portugal', 'Ireland', 'Iceland', 'Luxembourg', 'Malta', 'Cyprus', 'Estonia',
-  'Latvia', 'Lithuania', 'Slovenia', 'Slovakia', 'Croatia', 'Serbia', 'Montenegro',
-  'Bosnia and Herzegovina', 'Albania', 'North Macedonia', 'Kosovo', 'Moldova',
-  'Ukraine', 'Belarus', 'Russia', 'Georgia', 'Armenia', 'Azerbaijan', 'Turkey',
-  'Israel', 'Lebanon', 'Jordan', 'Syria', 'Iraq', 'Iran', 'Saudi Arabia', 'Kuwait',
-  'Qatar', 'Bahrain', 'Oman', 'United Arab Emirates', 'Yemen', 'Egypt', 'Libya',
-  'Tunisia', 'Algeria', 'Morocco', 'Sudan', 'South Sudan', 'Ethiopia', 'Eritrea',
-  'Djibouti', 'Somalia', 'Kenya', 'Uganda', 'Tanzania', 'Rwanda', 'Burundi',
-  'Democratic Republic of the Congo', 'Republic of the Congo', 'Gabon', 'Cameroon',
-  'Central African Republic', 'Chad', 'Niger', 'Mali', 'Burkina Faso', 'Senegal',
-  'Gambia', 'Guinea-Bissau', 'Guinea', 'Sierra Leone', 'Liberia', 'Ivory Coast',
-  'Ghana', 'Togo', 'Benin', 'Nigeria', 'Equatorial Guinea', 'São Tomé and Príncipe',
-  'Angola', 'Zambia', 'Malawi', 'Mozambique', 'Zimbabwe', 'Botswana', 'Namibia',
-  'South Africa', 'Lesotho', 'Eswatini', 'Madagascar', 'Mauritius', 'Seychelles',
-  'Comoros', 'Mayotte', 'Réunion', 'China', 'Japan', 'South Korea', 'North Korea',
-  'Mongolia', 'Taiwan', 'Hong Kong', 'Macau', 'Vietnam', 'Laos', 'Cambodia',
-  'Thailand', 'Myanmar', 'Malaysia', 'Singapore', 'Indonesia', 'Philippines',
-  'Brunei', 'East Timor', 'India', 'Pakistan', 'Bangladesh', 'Sri Lanka', 'Nepal',
-  'Bhutan', 'Maldives', 'Afghanistan', 'Kazakhstan', 'Uzbekistan', 'Turkmenistan',
-  'Tajikistan', 'Kyrgyzstan', 'Australia', 'New Zealand', 'Papua New Guinea',
-  'Fiji', 'Solomon Islands', 'Vanuatu', 'New Caledonia', 'Samoa', 'Tonga',
-  'Tuvalu', 'Kiribati', 'Nauru', 'Palau', 'Micronesia', 'Marshall Islands',
-  'Brazil', 'Argentina', 'Chile', 'Peru', 'Bolivia', 'Paraguay', 'Uruguay',
-  'Ecuador', 'Colombia', 'Venezuela', 'Guyana', 'Suriname', 'French Guiana',
-  'Mexico', 'Guatemala', 'Belize', 'El Salvador', 'Honduras', 'Nicaragua',
-  'Costa Rica', 'Panama', 'Cuba', 'Jamaica', 'Haiti', 'Dominican Republic',
-  'Puerto Rico', 'Trinidad and Tobago', 'Barbados', 'Grenada', 'Saint Vincent and the Grenadines',
-  'Saint Lucia', 'Dominica', 'Antigua and Barbuda', 'Saint Kitts and Nevis',
-  'Bahamas', 'Cayman Islands', 'Turks and Caicos Islands', 'British Virgin Islands',
-  'US Virgin Islands', 'Anguilla', 'Montserrat', 'Guadeloupe', 'Martinique',
-  'Aruba', 'Curaçao', 'Bonaire', 'Sint Eustatius', 'Saba', 'Sint Maarten'
-].sort()
 
 const FAQs = () => {
   // Hooks

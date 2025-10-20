@@ -29,7 +29,7 @@ const schema = yup.object({
   ),
 })
 
-const RoleForm = ({ role, modules, onSubmit, onCancel, loading = false }: RoleFormProps) => {
+const RoleForm = ({ role, onSubmit, onCancel, loading = false }: RoleFormProps) => {
   const [availableModules, setAvailableModules] = useState<Module[]>([])
   const [fetchingModules, setFetchingModules] = useState(false)
 
@@ -114,7 +114,7 @@ const RoleForm = ({ role, modules, onSubmit, onCancel, loading = false }: RoleFo
           <ModulePermissionDropdown
             label="Select Modules *"
             modules={availableModules}
-            selectedModules={modulePermissions}
+            selectedModules={modulePermissions.filter(mp => mp.permissions && mp.permissions.length > 0) as any}
             onModulesChange={handleModulePermissionsChange}
             disabled={fetchingModules}
           />

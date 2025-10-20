@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { useToast } from '../components/CustomToast/ToastContext'
-import CustomCheckbox from '../components/CustomCheckbox'
 import SearchableDropdown from '../components/SearchableDropdown'
 import type { FAQ, FAQType } from '../types/entities'
 

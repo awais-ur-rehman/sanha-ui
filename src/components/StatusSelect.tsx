@@ -1,4 +1,3 @@
-import React from 'react'
 import CustomDropdown from './CustomDropdown'
 
 interface StatusSelectProps {
@@ -48,7 +47,7 @@ const StatusSelect = ({
       <CustomDropdown
         placeholder={placeholder}
         value={value}
-        onChange={onChange}
+        onChange={(val) => onChange(String(val))}
         options={statusOptions}
         disabled={disabled}
         className="w-full"

@@ -31,12 +31,12 @@ const ModulePermissionSelector = ({
   useEffect(() => {
     // Filter out already selected modules
     const selectedModuleIds = selectedModules.map(sm => sm.moduleId)
-    setAvailableModules(modules.filter(module => !selectedModuleIds.includes(module.id)))
+    setAvailableModules(modules.filter(module => module.id && !selectedModuleIds.includes(module.id)))
   }, [modules, selectedModules])
 
   const handleModuleSelect = (module: Module) => {
     const newModulePermission: ModulePermission = {
-      moduleId: module.id,
+      moduleId: module.id!,
       moduleName: module.name,
       permissions: ['read'] // Default to read permission
     }

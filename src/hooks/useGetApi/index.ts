@@ -31,7 +31,7 @@ export const useGetApi = <T>(
             }
 
             if (responseType === 'blob') {
-                // @ts-expect-error - cast for blob
+                // @ts-ignore - cast for blob
                 return (await response.blob()) as T
             }
             return response.json()

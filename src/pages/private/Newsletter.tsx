@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { FiSearch, FiPlus, FiTrash2, FiSend, FiUsers, FiEye, FiEdit } from 'react-icons/fi'
+import { FiSearch, FiPlus, FiTrash2, FiSend, FiEye, FiEdit } from 'react-icons/fi'
 import { useGetApi, usePostApi } from '../../hooks'
 import { useToast } from '../../components/CustomToast/ToastContext'
 import CustomInput from '../../components/CustomInput'
@@ -60,13 +60,13 @@ const Newsletter = () => {
     { requireAuth: true }
   )
 
-  const subscribers: NewsletterSubscriber[] = subscribersData?.data?.data || []
+  const subscribers: NewsletterSubscriber[] = (subscribersData as any)?.data?.data || []
 
   // Update pagination and list when data changes
   useEffect(() => {
-    if (subscribersData?.data?.pagination) {
-      const nextTotalPages = Number(subscribersData.data.pagination.totalPages) || 1
-      const nextTotalItems = Number(subscribersData.data.pagination.totalItems) || 0
+    if ((subscribersData as any)?.data?.pagination) {
+      const nextTotalPages = Number((subscribersData as any).data.pagination.totalPages) || 1
+      const nextTotalItems = Number((subscribersData as any).data.pagination.totalItems) || 0
       setPagination(prev => ({ ...prev, totalPages: nextTotalPages, totalItems: nextTotalItems }))
       setSubscribersList(prev => (pagination.currentPage === 1 ? subscribers : [...prev, ...subscribers]))
     }

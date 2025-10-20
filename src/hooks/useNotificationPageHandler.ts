@@ -41,7 +41,7 @@ export const useNotificationPageHandler = ({ onNewItem, itemType }: UseNotificat
   // Handle notification click event (when user is already on the same page)
   useEffect(() => {
     const handleNotificationItemReceived = (event: CustomEvent) => {
-      const { type, id, itemData } = event.detail
+      const { type, itemData } = event.detail
 
       // Check if this notification is for the current page type
       const typeMapping = {

@@ -317,6 +317,7 @@ export interface Client {
   certifiedSince: string;
   expiryDate: string;
   status: ClientStatus;
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
