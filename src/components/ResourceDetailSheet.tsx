@@ -104,8 +104,7 @@ const ResourceDetailSheet: React.FC<ResourceDetailSheetProps> = ({
             {/* Description */}
             {resource.description && (
               <div>
-                <h3 className="font-semibold text-gray-900 mb-2">Description</h3>
-                <div className='max-h-[290px] overflow-y-auto bg-gray-50 p-3 rounded-lg'>
+                <div className='max-h-[100px] overflow-y-auto bg-gray-50 p-3 rounded-lg'>
                   <p className="text-sm text-gray-600 leading-relaxed">
                     {resource.description}
                   </p>

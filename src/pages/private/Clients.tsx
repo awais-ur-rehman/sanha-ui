@@ -510,9 +510,6 @@ const Clients = () => {
         title={`Client Details - ${selectedClient?.name || ''}`}
         headerTitle={selectedClient?.name || ''}
         image={{ src: selectedClient?.logoUrl, alt: `${selectedClient?.name || ''} logo` }}
-        descriptionSections={selectedClient ? [
-          { title: 'Description', text: selectedClient.description || '', maxHeightClass: 'max-h-[3.2rem]' }
-        ] : []}
         sections={selectedClient ? [
           { title: 'Status', type: 'chips', items: [selectedClient.status] },
         ] : []}
