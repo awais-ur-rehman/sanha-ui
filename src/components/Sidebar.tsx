@@ -293,7 +293,7 @@ const Sidebar = () => {
             <li key={item.id}>
               <button
                 onClick={() => handleItemClick(item)}
-                className={`w-full flex items-center text-xs py-[9px] lg:py-2.5 rounded-md transition-all duration-300 ease-in-out transform relative group ${
+                className={`w-full flex items-center text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] py-[9px] lg:py-2.5 rounded-md transition-all duration-300 ease-in-out transform relative group ${
                   isSidebarCollapsed 
                     ? isActive(item.path)
                       ? 'justify-center px-1 text-[#0c684b] bg-transparent'
@@ -320,14 +320,14 @@ const Sidebar = () => {
         {/* Management Section */}
         <div className="mt-2">
           {!isSidebarCollapsed && (
-            <h1 className='text-[10px] sm:text-[12px] lg:text-[11px] xl:text-[12px] font-semibold text-gray-400 ms-2 sm:ms-4 lg:ms-3 mb-2 sm:mb-3 lg:mb-2.5'>Management</h1>
+            <h1 className='text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] font-semibold text-gray-400 ms-2 sm:ms-4 lg:ms-3 mb-2 sm:mb-3 lg:mb-2.5'>Management</h1>
           )}
           <ul className="space-y-1">
             {managementSidebarItems.map((item) => (
               <li key={item.id}>
                 <button
                   onClick={() => handleItemClick(item)}
-                  className={`w-full flex items-center text-xs py-[9px] rounded-md transition-all duration-300 ease-in-out transform relative group ${
+                  className={`w-full flex items-center text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] py-[9px] rounded-md transition-all duration-300 ease-in-out transform relative group ${
                     isSidebarCollapsed 
                     ? isActive(item.path)
                       ? 'justify-center px-1 text-[#0c684b] bg-transparent'
@@ -356,14 +356,14 @@ const Sidebar = () => {
       {/* Bottom Items */}
       <div className="pt-3 sm:pt-4 px-2 sm:py-4">
       {!isSidebarCollapsed && (
-            <h1 className='text-[10px] sm:text-[12px] font-semibold text-gray-400 ms-2 sm:ms-4 mb-2'>System Settings</h1>
+            <h1 className='text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] font-semibold text-gray-400 ms-2 sm:ms-4 mb-2'>System Settings</h1>
           )}
         <ul className="space-y-1">
           {bottomItems.map((item) => (
             <li key={item.id}>
               <button
                 onClick={() => handleItemClick(item)}
-                className={`w-full flex items-center py-[9px] rounded-md text-xs transition-all duration-300 ease-in-out transform relative group ${
+                className={`w-full flex items-center py-[9px] rounded-md text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] transition-all duration-300 ease-in-out transform relative group ${
                   isSidebarCollapsed 
                     ? isActive(item.path)
                       ? 'justify-center px-2 text-[#0c684b] bg-transparent'

@@ -497,7 +497,7 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
             control={control}
             render={({ field }) => (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px] font-medium text-gray-700 mb-1">
                   Title *
                 </label>
                 <input
@@ -507,7 +507,7 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
                 />
                 {errors.title && (
-                  <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
+                  <p className="mt-1 text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px] text-red-600">{errors.title.message}</p>
                 )}
               </div>
             )}
@@ -518,7 +518,7 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
             control={control}
             render={({ field }) => (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px] font-medium text-gray-700 mb-1">
                   Author *
                 </label>
                 <input
@@ -528,7 +528,7 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
                 />
                 {errors.authorName && (
-                  <p className="mt-1 text-sm text-red-600">{errors.authorName.message}</p>
+                  <p className="mt-1 text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px] text-red-600">{errors.authorName.message}</p>
                 )}
               </div>
             )}
@@ -541,7 +541,7 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
           control={control}
           render={({ field }) => (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px] font-medium text-gray-700 mb-1">
                 Description *
               </label>
               <textarea
@@ -552,10 +552,10 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent resize-none"
               />
               <div className="flex justify-end mt-1">
-                <span className="text-xs text-gray-400">{watchedDescription.length}/1000</span>
+                <span className="text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] text-gray-400">{watchedDescription.length}/1000</span>
               </div>
               {errors.description && (
-                <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
+                <p className="mt-1 text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px] text-red-600">{errors.description.message}</p>
               )}
             </div>
           )}
@@ -564,7 +564,7 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
         {/* Media URL or Image Upload */}
         {isMediaCategory ? (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px] font-medium text-gray-700 mb-1">
               {category === 'Videos' ? 'Video URL *' : 'Podcast URL *'}
             </label>
             <Controller
@@ -580,12 +580,12 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
               )}
             />
             {errors.imageUrl && (
-              <p className="mt-1 text-sm text-red-600">{errors.imageUrl.message}</p>
+              <p className="mt-1 text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px] text-red-600">{errors.imageUrl.message}</p>
             )}
           </div>
         ) : (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px] font-medium text-gray-700 mb-2">
               Resource Image *
             </label>
             <div className="space-y-2">
@@ -621,7 +621,7 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
                 />
                 <label
                   htmlFor="image-upload"
-                  className={`inline-flex items-center px-3 py-1.5 border border-gray-300 rounded text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0c684b] cursor-pointer ${
+                  className={`inline-flex items-center px-3 py-1.5 border border-gray-300 rounded text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0c684b] cursor-pointer ${
                     uploadingImage ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                 >
@@ -630,7 +630,7 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
                 </label>
               </div>
               {errors.imageUrl && (
-                <p className="mt-1 text-sm text-red-600">{errors.imageUrl.message}</p>
+                <p className="mt-1 text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px] text-red-600">{errors.imageUrl.message}</p>
               )}
             </div>
           </div>
@@ -638,7 +638,7 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
 
         {/* Resource Links & Files */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px] font-medium text-gray-700 mb-2">
             Resource Links & Files
           </label>
           <div className="space-y-3">
@@ -651,7 +651,7 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
                     value={row.url}
                     onChange={(e) => handleUrlChange(index, e.target.value)}
                     placeholder="Enter URL or upload a file"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px]"
                   />
                 </div>
 
@@ -667,7 +667,7 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
                   />
                   <label
                     htmlFor={`file-upload-${index}`}
-                    className={`inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#0c684b] cursor-pointer transition-colors ${
+                    className={`inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px] font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#0c684b] cursor-pointer transition-colors ${
                       uploadingDocuments ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
                   >
@@ -691,7 +691,7 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
             )}
 
             {uploadingDocuments && (
-              <p className="text-xs text-blue-600 text-center">Uploading...</p>
+              <p className="text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] text-blue-600 text-center">Uploading...</p>
             )}
           </div>
         </div>
