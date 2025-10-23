@@ -142,6 +142,15 @@ export const NEWSLETTER_ENDPOINTS = {
   getAllJobs: '/newsletter/jobs',
 }
 
+// Certification Standards Endpoints
+export const CERTIFICATION_STANDARD_ENDPOINTS = {
+  getAll: '/certification-standards',
+  getById: '/certification-standards',
+  create: '/certification-standards',
+  update: '/certification-standards',
+  delete: '/certification-standards',
+}
+
 // Export Endpoints for other modules
 export const CLIENT_EXPORT_ENDPOINT = '/clients/export/csv'
 export const ECODE_EXPORT_ENDPOINT = '/ecodes/export/csv'

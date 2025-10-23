@@ -2,12 +2,14 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { FiPlus, FiUpload, FiX } from 'react-icons/fi'
 import { useToast } from '../components/CustomToast/ToastContext'
-import { API_CONFIG, FILE_ENDPOINTS } from '../config/api'
+import { API_CONFIG, FILE_ENDPOINTS, CERTIFICATION_STANDARD_ENDPOINTS, getAuthHeaders } from '../config/api'
 import type { Client, ClientCreateRequest, ClientUpdateRequest } from '../types/entities'
 import { CLIENT_STATUS, type ClientStatus } from '../types/entities'
 import DatePicker from '../components/DatePicker'
 import CustomDropdown from '../components/CustomDropdown'
 import CustomTextarea from '../components/CustomTextarea'
+import SearchableDropdown from '../components/SearchableDropdown'
+import { useCertificationStandardsApi } from '../hooks'
 
 interface ClientFormProps {
   client?: Client
@@ -33,6 +35,9 @@ const ClientForm: React.FC<ClientFormProps> = ({
 
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const { showToast } = useToast()
+
+  // Fetch certification standards for dropdown
+  const { data: certificationStandardsResponse } = useCertificationStandardsApi()
 
   const {
     register,
@@ -168,7 +173,37 @@ const ClientForm: React.FC<ClientFormProps> = ({
     setter(prev => prev.map((item, i) => i === index ? value : item))
   }
 
-  const onSubmitForm = (data: ClientCreateRequest | ClientUpdateRequest) => {
+  const onSubmitForm = async (data: ClientCreateRequest | ClientUpdateRequest) => {
+    const standardValue = (data.standard ?? '').toString().trim()
+    
+    // Check if this is a new certification standard (not in the existing list)
+    const existingStandards = certificationStandardsResponse?.data || []
+    const isNewStandard = standardValue && !existingStandards.some(
+      std => std.name.toLowerCase() === standardValue.toLowerCase()
+    )
+
+    // If it's a new standard, create it first
+    if (isNewStandard) {
+      try {
+        const response = await fetch(`${API_CONFIG.baseURL}${CERTIFICATION_STANDARD_ENDPOINTS.create}`, {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: JSON.stringify({ name: standardValue }),
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.message || 'Failed to create certification standard')
+        }
+
+        showToast('success', 'New certification standard created successfully!')
+      } catch (error) {
+        console.error('Error creating certification standard:', error)
+        showToast('error', error instanceof Error ? error.message : 'Failed to create certification standard')
+        return // Don't proceed with client submission if standard creation failed
+      }
+    }
+
     const formData = {
       ...data,
       address: addresses.filter(addr => addr.trim() !== ''),
@@ -281,6 +316,12 @@ const ClientForm: React.FC<ClientFormProps> = ({
       </div>
     )
   }
+
+  // Convert certification standards to dropdown options
+  const certificationStandardOptions = certificationStandardsResponse?.data?.map(standard => ({
+    value: standard.name,
+    label: standard.name
+  })) || []
 
   return (
     <form onSubmit={handleSubmit(onSubmitForm)} className="flex flex-col h-full px-3 py-2">
@@ -504,11 +545,13 @@ const ClientForm: React.FC<ClientFormProps> = ({
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Certification Standard *
           </label>
-          <input
-            type="text"
-            {...register('standard', { required: 'Certification standard is required' })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
-            placeholder="ISO 9001, ISO 14001, etc."
+          <SearchableDropdown
+            options={certificationStandardOptions}
+            value={watch('standard') || ''}
+            onChange={(value) => setValue('standard', value)}
+            placeholder="Search or type certification standard (e.g., ISO 9001, ISO 14001)"
+            allowCustomValue={true}
+            maxDisplayed={5}
           />
           {errors.standard && (
             <p className="text-red-500 text-xs mt-1">{errors.standard.message}</p>
