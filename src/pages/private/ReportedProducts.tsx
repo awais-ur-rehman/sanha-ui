@@ -236,7 +236,7 @@ const ReportedProducts = () => {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <p className="text-gray-500 text-lg">You don't have permission to view reported products</p>
+          <p className="text-gray-500 text-[14px] md:text-[15px] lg:text-[15px] xl:text-[16px]">You don't have permission to view reported products</p>
         </div>
       </div>
     )
@@ -247,7 +247,7 @@ const ReportedProducts = () => {
       <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] px-6 py-10'>
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-semibold text-gray-900">Reported Products</h1>
+          <h1 className="text-[18px] md:text-[20px] lg:text-[20px] xl:text-[22px] font-semibold text-gray-900">Reported Products</h1>
           <p className="text-gray-600">View & manage reported products.</p>
         </div>
 

@@ -247,8 +247,8 @@ const Books = () => {
       <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] max-h-[calc(100vh-35px)] overflow-y-auto px-4 lg:px-6 py-6 lg:py-10'>
       {/* Header */}
 <div className="mb-4 lg:mb-6">
-        <h1 className="text-xl lg:text-2xl font-semibold text-gray-900">Books</h1>
-        <p className="text-sm lg:text-base text-gray-600">View & manage books.</p>
+        <h1 className="text-[16px] md:text-[18px] lg:text-[18px] xl:text-[20px] font-semibold text-gray-900">Books</h1>
+        <p className="text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px] text-gray-600">View & manage books.</p>
       </div>
 
       {/* Clean Filters */}
@@ -344,13 +344,13 @@ const Books = () => {
 
               {/* Book Info */}
               <div className="space-y-1">
-                <h3 className="font-medium text-sm lg:text-base text-gray-900 line-clamp-2 group-hover:text-[#0c684b] transition-colors">
+                <h3 className="font-medium text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px] text-gray-900 line-clamp-2 group-hover:text-[#0c684b] transition-colors">
                   {book.title || 'Untitled'}
                 </h3>
-                <p className="text-xs lg:text-sm text-gray-600">
+                <p className="text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] text-gray-600">
                   {book.author || 'Unknown Author'}
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] text-gray-500">
                   {book.publishedBy || 'Unknown Publisher'}
                 </p>
               </div>

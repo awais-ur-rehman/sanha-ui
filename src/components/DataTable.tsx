@@ -67,13 +67,13 @@ const DataTable = <T extends { id?: number }>({
               placeholder="Search..."
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent w-80"
+              className="px-3 py-2 text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent w-80"
             />
           </div>
           <div className="flex items-center space-x-2 lg:space-x-3">
             <button
               onClick={onAddClick}
-              className="flex items-center space-x-1 lg:space-x-2 px-3 lg:px-4 py-2 text-xs cursor-pointer bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors"
+              className="flex items-center space-x-1 lg:space-x-2 px-3 lg:px-4 py-2 text-[11px] md:text-[12px] lg:text-[12px] xl:text-[13px] cursor-pointer bg-[#0c684b] text-white rounded-lg hover:bg-green-700 transition-colors"
             >
               {addButtonIcon}
               <span>{addButtonText}</span>
@@ -101,7 +101,7 @@ const DataTable = <T extends { id?: number }>({
               {columns.map((column) => (
                 <th
                   key={column.key}
-                  className={`px-3 lg:px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${
+                  className={`px-3 lg:px-4 py-2 text-left text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] font-medium text-gray-500 uppercase tracking-wider ${
                     column.width || ''
                   }`}
                 >
@@ -109,7 +109,7 @@ const DataTable = <T extends { id?: number }>({
                 </th>
               ))}
               {actions && actions.length > 0 && (
-                <th className="px-3 lg:px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
+                <th className="px-3 lg:px-4 py-2 text-left text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] font-medium text-gray-500 uppercase tracking-wider w-20">
                   Actions
                 </th>
               )}
@@ -136,7 +136,7 @@ const DataTable = <T extends { id?: number }>({
                     />
                   </td>
                   {columns.map((column) => (
-                    <td key={column.key} className="px-3 lg:px-4 py-2 whitespace-nowrap text-sm text-black/80">
+                    <td key={column.key} className="px-3 lg:px-4 py-2 whitespace-nowrap text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px] text-black/80">
                       {column.render ? column.render(item, index) : (item as any)[column.key]}
                     </td>
                   ))}
@@ -172,7 +172,7 @@ const DataTable = <T extends { id?: number }>({
       {/* Table Footer */}
       <div className="px-4 lg:px-6 py-2 border-t border-gray-200">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-2 lg:space-y-0">
-          <div className="text-xs text-gray-500">
+          <div className="text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] text-gray-500">
             {selectedRows.length} of {data.length} row(s) selected
             {pagination && (
               <span className="ml-2">
@@ -193,7 +193,7 @@ const DataTable = <T extends { id?: number }>({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
-              <span className="text-xs text-gray-500">
+              <span className="text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] text-gray-500">
                 Page {pagination.currentPage} of {pagination.totalPages}
               </span>
               <button

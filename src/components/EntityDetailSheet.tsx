@@ -331,8 +331,7 @@ const EntityDetailSheet = <T,>({
           {descriptionSections.map((sec, idx) => (
             sec.text ? (
               <div key={`${sec.title}-${idx}`}>
-                <h3 className={`font-semibold text-gray-900 ${dense ? 'mb-1 text-sm' : 'mb-2'}`}>{sec.title}</h3>
-                <div className={`${sec.maxHeightClass || (dense ? 'max-h-[2.4rem]' : 'max-h-[3.2rem]')} overflow-y-auto bg-gray-50 ${dense ? 'p-2' : 'p-3'} rounded-lg`}>
+                <div className={`${sec.maxHeightClass || (dense ? 'max-h-[4rem]' : 'max-h-[5rem]')} overflow-y-auto bg-gray-50 ${dense ? 'p-2' : 'p-3'} rounded-lg`}>
                   <p className={`${dense ? 'text-xs leading-snug' : 'text-sm leading-relaxed'} text-gray-600`}>{sec.text}</p>
                 </div>
               </div>
@@ -373,10 +372,9 @@ const EntityDetailSheet = <T,>({
                   )}
                 </div>
               ) : section.title.toLowerCase().includes('description') ? (
-                <div className={`${dense ? 'max-h-[2.4rem] p-2' : 'max-h-[2.6rem] p-3'} overflow-y-auto bg-gray-50 rounded-lg`}>
+                <div className={`${dense ? 'max-h-[4rem] p-2' : 'max-h-[5rem] p-3'} overflow-y-auto bg-gray-50 rounded-lg`}>
                   {(section.items as SectionItem[])?.filter(item => item && item.label && item.value).map((item, i) => (
                     <div key={`${item.label}-${i}`} className="mb-2 last:mb-0">
-                      <p className={`${dense ? 'text-xs mb-0.5' : 'text-sm mb-1'} font-medium text-gray-700`}>{item.label}</p>
                       <p className={`${dense ? 'text-xs leading-snug' : 'text-sm leading-relaxed'} text-gray-900`}>{item.value || 'N/A'}</p>
                     </div>
                   ))}

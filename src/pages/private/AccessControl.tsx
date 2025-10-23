@@ -415,8 +415,8 @@ const AccessControl = () => {
       <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] p-3 lg:p-4 space-y-3 lg:space-y-4'>
        {/* Page Header */}
  <div>
-        <h1 className="text-lg lg:text-xl font-semibold text-gray-900">Roles and Permissions</h1>
-        <p className="text-xs lg:text-sm text-gray-600">View & manage permissions and roles.</p>
+        <h1 className="text-[14px] md:text-[16px] lg:text-[16px] xl:text-[18px] font-semibold text-gray-900">Roles and Permissions</h1>
+        <p className="text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] text-gray-600">View & manage permissions and roles.</p>
       </div>
 
       {/* Tab Navigation */}

@@ -93,7 +93,7 @@ const RoleForm = ({ role, onSubmit, onCancel, loading = false }: RoleFormProps) 
     <div className="flex flex-col h-full max-h-[80vh]">
       <form onSubmit={handleSubmit((data: any) => onSubmit(data))} className="flex flex-col h-full">
         {/* Form content - scrollable */}
-        <div className="flex-1 overflow-y-auto space-y-4 pr-2 text-sm">
+        <div className="flex-1 overflow-y-auto space-y-4 pr-2 text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px]">
           <div className="grid grid-cols-2 gap-4">
             <CustomInput
               label="Role Name *"
