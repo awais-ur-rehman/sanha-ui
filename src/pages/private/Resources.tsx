@@ -278,6 +278,18 @@ const Resources = () => {
     setSelectedResource(null)
   }
 
+  // Function to extract plain text from description (removes all HTML tags)
+  const extractPlainTextFromDescription = (htmlDescription: string): string => {
+    if (!htmlDescription) return ''
+    
+    // Create a temporary DOM element to parse HTML
+    const tempDiv = document.createElement('div')
+    tempDiv.innerHTML = htmlDescription
+    
+    // Return all plain text content without any HTML tags
+    return tempDiv.textContent || tempDiv.innerText || ''
+  }
+
   // Resource Card Component
   const ResourceCard = ({ resource }: { resource: Resource }) => (
     <div 
@@ -297,7 +309,11 @@ const Resources = () => {
       
       <div className="p-4">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="font-semibold text-gray-900 truncate flex-1 mr-2">
+          <h3 
+            className="font-semibold text-gray-900 truncate flex-1 mr-2"
+            dir={resource.textDirection || 'ltr'}
+            style={{ textAlign: resource.textDirection === 'RTL' ? 'right' : 'left' }}
+          >
             {resource.title}
           </h3>
           <span className={`px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${
@@ -311,8 +327,12 @@ const Resources = () => {
         <p className="text-sm text-gray-600 mb-2">
           By {resource.authorName}
         </p>
-        <p className="text-sm text-gray-500 line-clamp-2">
-          {resource.description}
+        <p 
+          className="text-sm text-gray-500 line-clamp-2"
+          dir={resource.textDirection || 'ltr'}
+          style={{ textAlign: resource.textDirection === 'RTL' ? 'right' : 'left' }}
+        >
+          {extractPlainTextFromDescription(resource.description)}
         </p>
         <div className="mt-3 flex items-center justify-between">
           <span className="text-xs text-gray-400">
@@ -504,7 +524,11 @@ const Resources = () => {
           {
             title: 'Description',
             items: [
-              { label: 'Description', value: selectedResource?.description || 'N/A' },
+              { 
+                label: 'Description', 
+                value: selectedResource?.description || 'N/A',
+                textDirection: selectedResource?.textDirection || 'ltr'
+              },
             ]
           },
         ]}

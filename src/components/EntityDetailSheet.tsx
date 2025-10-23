@@ -13,6 +13,7 @@ interface TextItem {
   link?: boolean
   tooltip?: string
   truncateWidth?: string
+  textDirection?: string
 }
 
 interface ChipSection {
@@ -262,7 +263,11 @@ const EntityDetailSheet = <T,>({
                       <span className="font-medium">{row.label}:</span>{' '}
                       {row.tooltip ? (
                         <Tooltip content={row.tooltip}>
-                          <span className={`truncate inline-block ${row.truncateWidth || 'max-w-[420px]'} align-bottom`}>
+                          <span 
+                            className={`truncate inline-block ${row.truncateWidth || 'max-w-[420px]'} align-bottom`}
+                            dir={row.textDirection || 'ltr'}
+                            style={{ textAlign: row.textDirection === 'RTL' ? 'right' : 'left' }}
+                          >
                             {row.link ? (
                               <a href={row.value} target="_blank" rel="noopener noreferrer" className="text-[#0c684b] hover:underline">
                                 {row.value}
@@ -273,11 +278,23 @@ const EntityDetailSheet = <T,>({
                           </span>
                         </Tooltip>
                       ) : row.link ? (
-                        <a href={row.value} target="_blank" rel="noopener noreferrer" className="text-[#0c684b] hover:underline">
+                        <a 
+                          href={row.value} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="text-[#0c684b] hover:underline"
+                          dir={row.textDirection || 'ltr'}
+                          style={{ textAlign: row.textDirection === 'RTL' ? 'right' : 'left' }}
+                        >
                           {row.value}
                         </a>
                       ) : (
-                        <span>{row.value}</span>
+                        <span 
+                          dir={row.textDirection || 'ltr'}
+                          style={{ textAlign: row.textDirection === 'RTL' ? 'right' : 'left' }}
+                        >
+                          {row.value}
+                        </span>
                       )}
                     </div>
                   ))}
@@ -372,10 +389,18 @@ const EntityDetailSheet = <T,>({
                   )}
                 </div>
               ) : section.title.toLowerCase().includes('description') ? (
-                <div className={`${dense ? 'max-h-[4rem] p-2' : 'max-h-[5rem] p-3'} overflow-y-auto bg-gray-50 rounded-lg`}>
+                <div className={`${dense ? 'max-h-[12rem] p-3' : 'max-h-[16rem] p-4'} overflow-y-auto bg-gray-50 rounded-lg`}>
                   {(section.items as SectionItem[])?.filter(item => item && item.label && item.value).map((item, i) => (
                     <div key={`${item.label}-${i}`} className="mb-2 last:mb-0">
-                      <p className={`${dense ? 'text-xs leading-snug' : 'text-sm leading-relaxed'} text-gray-900`}>{item.value || 'N/A'}</p>
+                      <div 
+                        className={`${dense ? 'text-xs leading-snug' : 'text-sm leading-relaxed'} text-gray-900 max-w-none rich-text-content`}
+                        dir={item.textDirection || 'ltr'}
+                        style={{ 
+                          textAlign: item.textDirection === 'RTL' ? 'right' : 'left',
+                          lineHeight: '1.6'
+                        }}
+                        dangerouslySetInnerHTML={{ __html: item.value || 'N/A' }}
+                      />
                     </div>
                   ))}
                   {(!section.items || (section.items as SectionItem[]).length === 0 || (section.items as SectionItem[]).every(item => !item || !item.label || !item.value)) && (
@@ -388,7 +413,13 @@ const EntityDetailSheet = <T,>({
                     <div key={`${item.label}-${i}`} className="flex items-start space-x-3">
                       <div>
                         <p className={`${dense ? 'text-xs' : 'text-sm'} font-medium text-gray-700`}>{item.label}</p>
-                        <p className={`${dense ? 'text-xs' : 'text-sm'} text-gray-900`}>{item.value || 'N/A'}</p>
+                        <p 
+                          className={`${dense ? 'text-xs' : 'text-sm'} text-gray-900`}
+                          dir={item.textDirection || 'ltr'}
+                          style={{ textAlign: item.textDirection === 'RTL' ? 'right' : 'left' }}
+                        >
+                          {item.value || 'N/A'}
+                        </p>
                       </div>
                     </div>
                   ))}
