@@ -405,6 +405,30 @@ export interface ProductUpdateRequest {
   isActive?: boolean;
 }
 
+// Halal Product entity
+export interface HalalProduct {
+  id: number;
+  name: string;
+  clientName: string;
+  imageUrl: string;
+  status: string;
+  types: string[];
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface HalalProductCreateRequest {
+  name: string;
+  clientId: number;
+  types: string[];
+}
+
+export interface HalalProductUpdateRequest {
+  types?: string[];
+  isActive?: boolean;
+}
+
 // Enquiry entity
 export interface Enquiry {
   id: number;

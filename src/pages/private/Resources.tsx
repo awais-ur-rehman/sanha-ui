@@ -182,10 +182,10 @@ const Resources = () => {
     setIsAddModalOpen(true)
   }
 
-  const handleToggleStatus = async (resource: Resource) => {
+  const handleToggleStatus = async (resource: Resource, newStatus?: boolean) => {
     try {
-      // Toggle the isActive status
-      const newStatus = !resource.isActive
+      // Use provided newStatus or toggle current status
+      const statusToSet = newStatus !== undefined ? newStatus : !resource.isActive
       
       const response = await fetch(`${API_CONFIG.baseURL}${RESOURCE_ENDPOINTS.update}/${resource.id}`, {
         method: 'PUT',
@@ -198,7 +198,7 @@ const Resources = () => {
           imageUrl: resource.imageUrl,
           listUrl: resource.listUrl,
           publishedDate: resource.publishedDate,
-          isActive: newStatus,
+          isActive: statusToSet,
         }),
       })
 
@@ -209,10 +209,10 @@ const Resources = () => {
 
       // Update selected resource if it's the same
       if (selectedResource?.id === resource.id) {
-        setSelectedResource(prev => prev ? { ...prev, isActive: newStatus } : null)
+        setSelectedResource(prev => prev ? { ...prev, isActive: statusToSet } : null)
       }
       
-      showToast('success', `Resource ${newStatus ? 'activated' : 'deactivated'} successfully!`)
+      showToast('success', `Resource ${statusToSet ? 'activated' : 'deactivated'} successfully!`)
       
       // Refetch resources to update the list
       refetch()
@@ -311,8 +311,6 @@ const Resources = () => {
         <div className="flex items-center justify-between mb-2">
           <h3 
             className="font-semibold text-gray-900 truncate flex-1 mr-2"
-            dir={resource.textDirection || 'ltr'}
-            style={{ textAlign: resource.textDirection === 'RTL' ? 'right' : 'left' }}
           >
             {resource.title}
           </h3>
@@ -329,8 +327,6 @@ const Resources = () => {
         </p>
         <p 
           className="text-sm text-gray-500 line-clamp-2"
-          dir={resource.textDirection || 'ltr'}
-          style={{ textAlign: resource.textDirection === 'RTL' ? 'right' : 'left' }}
         >
           {extractPlainTextFromDescription(resource.description)}
         </p>
@@ -506,7 +502,7 @@ const Resources = () => {
           checked: Boolean(selectedResource?.isActive),
           onChange: async (checked: boolean) => {
             if (!selectedResource) return
-            await handleToggleStatus({ ...selectedResource, isActive: checked })
+            await handleToggleStatus(selectedResource, checked)
           },
           enabled: hasPermission('Resources', 'update'),
           labelActive: 'Active',
@@ -526,8 +522,7 @@ const Resources = () => {
             items: [
               { 
                 label: 'Description', 
-                value: selectedResource?.description || 'N/A',
-                textDirection: selectedResource?.textDirection || 'ltr'
+                value: selectedResource?.description || 'N/A'
               },
             ]
           },

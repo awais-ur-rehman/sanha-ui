@@ -305,7 +305,7 @@ const Clients = () => {
           </div>
 
           {/* Status Filter */}
-          <div className="w-[220px]">
+          <div >
             <CustomDropdown
               options={[
                 { value: '', label: 'All Status' },
@@ -317,7 +317,7 @@ const Clients = () => {
               value={filters.status}
               onChange={handleStatusFilterChange}
               placeholder="Filter by status"
-              className="text-xs"
+              className="text-xs w-[180px]"
             />
           </div>
 

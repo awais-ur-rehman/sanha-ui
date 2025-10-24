@@ -1,9 +1,8 @@
 import { useState } from 'react'
-import { FiUpload, FiX, FiFile, FiImage } from 'react-icons/fi'
+import { FiX, FiImage } from 'react-icons/fi'
 import CustomInput from '../components/CustomInput'
 import CustomTextarea from '../components/CustomTextarea'
 import SearchableDropdown from '../components/SearchableDropdown'
-// import CustomCheckbox from '../components/CustomCheckbox'
 import { type Book, type BookCreateRequest, type BookUpdateRequest } from '../types/entities'
 import { API_CONFIG, FILE_ENDPOINTS } from '../config/api'
 import { useToast } from '../components'
@@ -65,7 +64,7 @@ const BookForm = ({ book, onSubmit, onCancel, loading = false }: BookFormProps) 
     }
   }
 
-  const handleFileUpload = async (file: File, type: 'image') => {
+  const handleFileUpload = async (file: File) => {
     const formData = new FormData()
     formData.append('files', file)
 
@@ -112,7 +111,7 @@ const BookForm = ({ book, onSubmit, onCancel, loading = false }: BookFormProps) 
     const file = event.target.files?.[0]
     if (file) {
       if (file.type.startsWith('image/')) {
-        handleFileUpload(file, 'image')
+        handleFileUpload(file)
       } else {
         showToast('error', 'Please select a valid image file')
       }

@@ -132,15 +132,15 @@ const Books = () => {
     setIsAddModalOpen(true)
   }
 
-  const handleToggleStatus = async (book: Book) => {
-    // Toggle the isActive status
-    const newStatus = !book.isActive
+  const handleToggleStatus = async (book: Book, newStatus?: boolean) => {
+    // Use provided newStatus or toggle current status
+    const statusToSet = newStatus !== undefined ? newStatus : !book.isActive
     
     const response = await fetch(`${API_CONFIG.baseURL}${BOOK_ENDPOINTS.update}/${book.id}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
       body: JSON.stringify({
-        isActive: newStatus,
+        isActive: statusToSet,
       }),
     })
 
@@ -151,10 +151,10 @@ const Books = () => {
 
     // Update selected book if it's the same
     if (selectedBook?.id === book.id) {
-      setSelectedBook(prev => prev ? { ...prev, isActive: newStatus } : null)
+      setSelectedBook(prev => prev ? { ...prev, isActive: statusToSet } : null)
     }
     
-    showToast('success', `Book ${newStatus ? 'activated' : 'deactivated'} successfully!`)
+    showToast('success', `Book ${statusToSet ? 'activated' : 'deactivated'} successfully!`)
     
     // Refetch books to update the list
     refetch()
@@ -395,7 +395,7 @@ const Books = () => {
           checked: Boolean(selectedBook?.isActive),
           onChange: async (checked: boolean) => {
             if (!selectedBook) return
-            await handleToggleStatus({ ...selectedBook, isActive: checked })
+            await handleToggleStatus(selectedBook, checked)
           },
           enabled: hasPermission('Books', 'update'),
           labelActive: 'Active',

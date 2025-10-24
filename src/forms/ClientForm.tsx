@@ -7,7 +7,6 @@ import type { Client, ClientCreateRequest, ClientUpdateRequest } from '../types/
 import { CLIENT_STATUS, type ClientStatus } from '../types/entities'
 import DatePicker from '../components/DatePicker'
 import CustomDropdown from '../components/CustomDropdown'
-import CustomTextarea from '../components/CustomTextarea'
 import SearchableDropdown from '../components/SearchableDropdown'
 import { useCertificationStandardsApi } from '../hooks'
 
@@ -65,7 +64,6 @@ const ClientForm: React.FC<ClientFormProps> = ({
     if (client) {
       setValue('name', client.name)
       setValue('logoUrl', client.logoUrl)
-      setValue('description', client.description as any)
       setValue('email', client.email)
       setValue('fax', client.fax)
       setValue('website', client.website)
@@ -415,6 +413,7 @@ const ClientForm: React.FC<ClientFormProps> = ({
             value={statusValue}
             onChange={(val) => setStatusValue(val as ClientStatus)}
             placeholder="Select status"
+            className="w-full"
           />
         </div>
       </div>
@@ -455,17 +454,6 @@ const ClientForm: React.FC<ClientFormProps> = ({
         </div>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Description
-        </label>
-        <CustomTextarea
-          rows={4}
-          maxLength={1000}
-          placeholder="Enter a brief description of the client"
-          {...register('description')}
-        />
-      </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">

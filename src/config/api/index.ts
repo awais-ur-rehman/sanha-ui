@@ -119,6 +119,16 @@ export const NON_HALAL_PRODUCT_ENDPOINTS = {
   exportCsv: '/non-halal-products/export/csv',
 }
 
+export const HALAL_PRODUCT_ENDPOINTS = {
+  getAll: '/products',
+  getById: '/products',
+  create: '/products',
+  update: '/products',
+  delete: '/products',
+  getClients: '/clients',
+  exportCsv: '/products/export/csv',
+}
+
 // Enquiry Endpoints
 export const ENQUIRY_ENDPOINTS = {
   getAll: '/enquiries',

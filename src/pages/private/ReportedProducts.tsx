@@ -31,6 +31,7 @@ const ReportedProducts = () => {
     totalItems: 0,
     itemsPerPage: 10,
   })
+  const [refreshKey, setRefreshKey] = useState(0)
 
   const queryParams = new URLSearchParams({
     page: pagination.currentPage.toString(),
@@ -40,11 +41,16 @@ const ReportedProducts = () => {
     ...(filters.reportType && { reportType: filters.reportType }),
     ...(filters.startDate && { startDate: filters.startDate }),
     ...(filters.endDate && { endDate: filters.endDate }),
+    // Add refresh key to force refetch when location changes
+    _refresh: refreshKey.toString()
   })
 
   const { data, isLoading, refetch } = useGetApi<any>(
     `${REPORTED_PRODUCT_ENDPOINTS.getAll}?${queryParams}`,
-    { requireAuth: true, staleTime: 0 }
+    { 
+      requireAuth: true, 
+      staleTime: 0
+    }
   )
 
   const exportParams = new URLSearchParams({
@@ -89,6 +95,8 @@ const ReportedProducts = () => {
   const [isReplyingPanel, setIsReplyingPanel] = useState(false)
   const [panelReplyText, setPanelReplyText] = useState('')
   const panelReplyTextareaRef = useRef<HTMLTextAreaElement>(null)
+  const [showImageOverlay, setShowImageOverlay] = useState(false)
+  const [overlayImageUrl, setOverlayImageUrl] = useState('')
 
   useEffect(() => { 
     setItems([])
@@ -141,26 +149,6 @@ const ReportedProducts = () => {
     }
   }, [location.state, items])
 
-  useEffect(() => {
-    if (data?.data?.pagination) {
-      const nextTotalPages = Number(data.data.pagination.totalPages) || 1
-      const nextTotalItems = Number(data.data.pagination.total) || 0
-      setPagination(prev => ({ ...prev, totalPages: nextTotalPages, totalItems: nextTotalItems }))
-
-      // Keep tab-specific list cached; merge/dedupe for current tab only
-      const base = pagination.currentPage === 1 ? [] : tabCache[activeTab].list
-      const merged = [...base, ...pageItems]
-      const uniqueById = Array.from(new Map(merged.map(e => [e.id, e])).values())
-      setItems(uniqueById)
-      setTabCache(cache => ({
-        ...cache,
-        [activeTab]: {
-          list: uniqueById,
-          pagination: { currentPage: pagination.currentPage, totalPages: nextTotalPages, totalItems: nextTotalItems },
-        },
-      }))
-    }
-  }, [data, pageItems, pagination.currentPage, activeTab])
 
   useEffect(() => {
     if (items.length === 0) setSelected(null)
@@ -216,6 +204,45 @@ const ReportedProducts = () => {
       setPagination(prev => ({ ...prev, currentPage: prev.currentPage + 1 }))
     }
   }
+
+  const handleImageClick = (imageUrl: string) => {
+    setOverlayImageUrl(imageUrl)
+    setShowImageOverlay(true)
+  }
+
+  const handleCloseImageOverlay = () => {
+    setShowImageOverlay(false)
+    setOverlayImageUrl('')
+  }
+
+  // Handle page navigation - reset data when returning to page
+  useEffect(() => {
+    // When component mounts or location changes, reset the items to allow API data to load
+    setItems([])
+    setTabCache({
+      pending: { list: [], pagination: { currentPage: 1, totalPages: 1, totalItems: 0 } },
+      resolved: { list: [], pagination: { currentPage: 1, totalPages: 1, totalItems: 0 } },
+    })
+    setSelected(null)
+    // Force refetch when returning to the page by incrementing refresh key
+    setRefreshKey(prev => prev + 1)
+  }, [location.pathname])
+
+  // Handle tab changes - force refetch when switching between pending/resolved tabs
+  useEffect(() => {
+    // Force refetch when switching tabs by incrementing refresh key
+    setRefreshKey(prev => prev + 1)
+  }, [activeTab])
+
+  // Update pagination and items when data changes (similar to ContactUs)
+  useEffect(() => {
+    if (data?.data?.pagination) {
+      const nextTotalPages = Number(data.data.pagination.totalPages) || 1
+      const nextTotalItems = Number(data.data.pagination.total) || 0
+      setPagination(prev => ({ ...prev, totalPages: nextTotalPages, totalItems: nextTotalItems }))
+      setItems(prev => (pagination.currentPage === 1 ? pageItems : [...prev, ...pageItems]))
+    }
+  }, [data, pageItems, pagination.currentPage])
 
   // Hydrate from cache on tab change
   useEffect(() => {
@@ -288,7 +315,7 @@ const ReportedProducts = () => {
               />
             </div>
 
-            <div className='w-[220px]'>
+            <div>
               {/* Type Filter */}
             <CustomDropdown
               options={[
@@ -303,7 +330,7 @@ const ReportedProducts = () => {
               value={filters.reportType}
               onChange={handleTypeFilterChange}
               placeholder="Filter by type"
-              className="text-xs"
+              className="text-xs w-[180px]"
             />
             </div>
 
@@ -432,13 +459,14 @@ const ReportedProducts = () => {
                       </div>
 
                       {/* Right Side - Product Image */}
-                      <div className="w-48 flex-shrink-0">
+                      <div className="w-48 flex-shrink-0 flex items-start">
                         {selected.productImage ? (
                           <div className="relative">
                             <img
                               src={selected.productImage}
                               alt={`${selected.productName} - Product Image`}
-                              className="w-full h-full rounded-lg object-contain"
+                              className="w-full h-48 rounded-lg object-contain border border-gray-200 shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
+                              onClick={() => handleImageClick(selected.productImage)}
                               onError={(e) => {
                                 // Fallback to placeholder if image fails to load
                                 const target = e.target as HTMLImageElement;
@@ -524,6 +552,39 @@ const ReportedProducts = () => {
           </div>
         </div>
       </div>
+
+      {/* Image Overlay Modal */}
+      {showImageOverlay && (
+        <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50" onClick={handleCloseImageOverlay}>
+          <div className="relative max-w-4xl max-h-[90vh] p-4" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={handleCloseImageOverlay}
+              className="absolute top-2 right-2 z-10 bg-white bg-opacity-90 hover:bg-opacity-100 rounded-full p-2 transition-all"
+            >
+              <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <img
+              src={overlayImageUrl}
+              alt="Product Image - Full View"
+              className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                const fallback = target.nextElementSibling as HTMLElement;
+                if (fallback) fallback.style.display = 'flex';
+              }}
+            />
+            <div className="hidden absolute inset-0 bg-gray-100 rounded-lg flex items-center justify-center">
+              <div className="text-center">
+                <FiImage className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500">Image could not be loaded</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

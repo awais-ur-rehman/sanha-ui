@@ -168,13 +168,6 @@ const NonHalalProducts = () => {
     setPagination(prev => ({ ...prev, currentPage: 1 }))
   }
 
-  const handleStatusFilterChange = (value: string | number) => {
-    setFilters(prev => ({ 
-      ...prev, 
-      status: value.toString() 
-    }))
-    setPagination(prev => ({ ...prev, currentPage: 1 }))
-  }
 
   const handleIsActiveFilterChange = (value: string | number) => {
     setFilters(prev => ({ 
@@ -207,14 +200,13 @@ const NonHalalProducts = () => {
     setIsDeleteModalOpen(true)
   }
 
-  const handleToggleStatus = async (product: Product) => {
+  const handleToggleStatus = async (product: Product, newStatus?: boolean) => {
     try {
-      console.log('Current product.isActive:', product.isActive, 'Type:', typeof product.isActive)
+      // Use provided newStatus or current product status
+      const statusToSet = newStatus !== undefined ? newStatus : product.isActive
       
-      // Use the isActive value that was passed from the detail sheet
-      // The detail sheet already toggled the value, so we use it directly
       const payload = {
-        isActive: product.isActive, // Use the passed value directly
+        isActive: statusToSet,
       }
       
       console.log('Sending payload:', payload)
@@ -399,7 +391,7 @@ const NonHalalProducts = () => {
                 {
                   key: 'status',
                   header: 'Status',
-                  render: (product: Product) => (
+                  render: () => (
                     <div className="flex items-center justify-center px-2 max-w-20 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
                       <span>Non-Halal</span>
                     </div>
@@ -491,7 +483,7 @@ const NonHalalProducts = () => {
             checked: Boolean(selectedProduct?.isActive),
             onChange: async (checked: boolean) => {
               if (!selectedProduct) return
-              await handleToggleStatus({ ...selectedProduct, isActive: checked })
+              await handleToggleStatus(selectedProduct, checked)
             },
             enabled: hasUpdatePermission,
             labelActive: 'Active',

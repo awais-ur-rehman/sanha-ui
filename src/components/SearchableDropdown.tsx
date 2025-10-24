@@ -54,8 +54,13 @@ const SearchableDropdown = forwardRef<HTMLDivElement, SearchableDropdownProps>(
     }, [])
 
     useEffect(() => {
-      setInputValue(value || '')
-    }, [value])
+      if (value) {
+        const selectedOption = options.find(option => option.value.toString() === value.toString())
+        setInputValue(selectedOption ? selectedOption.label : value.toString())
+      } else {
+        setInputValue('')
+      }
+    }, [value, options])
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const newValue = e.target.value
