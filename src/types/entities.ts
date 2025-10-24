@@ -488,3 +488,19 @@ export interface NewsletterData {
   month?: string
   year?: string
 }
+
+// Certification Standard entity
+export interface CertificationStandard {
+  id: number
+  name: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CertificationStandardCreateRequest {
+  name: string
+}
+
+export interface CertificationStandardUpdateRequest {
+  name?: string
+}

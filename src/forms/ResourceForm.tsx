@@ -6,6 +6,7 @@ import { FiUpload, FiX, FiImage, FiPlus } from 'react-icons/fi';
 import { useToast } from '../components/CustomToast/ToastContext';
 import { API_CONFIG, FILE_ENDPOINTS } from '../config/api';
 import type { Resource } from '../types/entities';
+import RichTextModal from '../components/RichTextModal';
 
 interface ResourceFormProps {
   resource?: Resource | null;
@@ -15,10 +16,12 @@ interface ResourceFormProps {
   isLoading?: boolean;
 }
 
-const schema = yup.object({
+const createSchema = (category: string) => yup.object({
   authorName: yup.string().required('Author name is required'),
   title: yup.string().required('Title is required'),
-  description: yup.string().required('Description is required'),
+  description: (category === 'Articles' || category === 'Policies' || category === 'Guides') 
+    ? yup.string().optional() 
+    : yup.string().required('Description is required'),
   imageUrl: yup.string().url('Please enter a valid URL').required('Image URL is required'),
 }).required();
 
@@ -32,6 +35,8 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
 
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingDocuments, setUploadingDocuments] = useState(false);
+  const [showRichTextModal, setShowRichTextModal] = useState(false);
+  const [formData, setFormData] = useState<any>(null);
 
 
 
@@ -47,7 +52,7 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
     setValue,
     watch,
   } = useForm({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(createSchema(category)),
     defaultValues: {
       authorName: resource?.authorName || '',
       title: resource?.title || '',
@@ -57,7 +62,6 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
   });
 
   const watchedImageUrl = watch('imageUrl');
-  const watchedDescription = (watch('description') as string) || '';
   const isMediaCategory = category === 'Videos' || category === 'Podcast';
 
   // Update form values when resource changes (for edit mode)
@@ -482,7 +486,21 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
       formData.publishedDate = currentDate;
     }
 
-    onSubmit(formData);
+    // For rich text categories, show modal for description
+    if (category === 'Articles' || category === 'Policies' || category === 'Guides') {
+      setFormData(formData);
+      setShowRichTextModal(true);
+    } else {
+      onSubmit(formData);
+    }
+  };
+
+  const handleRichTextSave = (description: string) => {
+    const finalData = {
+      ...formData,
+      description
+    };
+    onSubmit(finalData);
   };
 
   return (
@@ -535,31 +553,29 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
           />
         </div>
 
-        {/* Description */}
-        <Controller
-          name="description"
-          control={control}
-          render={({ field }) => (
-            <div>
-              <label className="block text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px] font-medium text-gray-700 mb-1">
-                Description *
-              </label>
-              <textarea
-                {...field}
-                rows={7}
-                placeholder="Enter resource description"
-                maxLength={1000}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent resize-none"
-              />
-              <div className="flex justify-end mt-1">
-                <span className="text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] text-gray-400">{watchedDescription.length}/1000</span>
+        {/* Description - Only show for non-rich text categories */}
+        {!(category === 'Articles' || category === 'Policies' || category === 'Guides') && (
+          <Controller
+            name="description"
+            control={control}
+            render={({ field }) => (
+              <div>
+                <label className="block text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px] font-medium text-gray-700 mb-1">
+                  Description *
+                </label>
+                <textarea
+                  {...field}
+                  rows={7}
+                  placeholder="Enter resource description"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent resize-none"
+                />
+                {errors.description && (
+                  <p className="mt-1 text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px] text-red-600">{errors.description.message}</p>
+                )}
               </div>
-              {errors.description && (
-                <p className="mt-1 text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px] text-red-600">{errors.description.message}</p>
-              )}
-            </div>
-          )}
-        />
+            )}
+          />
+        )}
 
         {/* Media URL or Image Upload */}
         {isMediaCategory ? (
@@ -589,46 +605,80 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
               Resource Image *
             </label>
             <div className="space-y-2">
-              {watchedImageUrl ? (
-                <div className="relative inline-block">
-                  <img 
-                    src={watchedImageUrl} 
-                    alt="Resource image" 
-                    className="w-16 h-20 object-cover rounded border"
-                  />
-                  <button
-                    type="button"
-                    onClick={removeImage}
-                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 hover:bg-red-600"
-                  >
-                    <FiX size={10} />
-                  </button>
-                </div>
-              ) : (
-                <div className="w-16 h-20 border-2 border-dashed border-gray-300 rounded flex items-center justify-center">
-                  <FiImage className="text-gray-400" size={16} />
-                </div>
-              )}
+              <input
+                type="file"
+                accept=".jpg,.jpeg,.png,.gif,.bmp,.webp,.svg"
+                onChange={handleImageChange}
+                className="hidden"
+                id="image-upload"
+                disabled={uploadingImage}
+              />
               
-              <div>
-                <input
-                  type="file"
-                  accept=".jpg,.jpeg,.png,.gif,.bmp,.webp,.svg"
-                  onChange={handleImageChange}
-                  className="hidden"
-                  id="image-upload"
-                  disabled={uploadingImage}
-                />
-                <label
-                  htmlFor="image-upload"
-                  className={`inline-flex items-center px-3 py-1.5 border border-gray-300 rounded text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0c684b] cursor-pointer ${
-                    uploadingImage ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
-                >
-                  <FiUpload className="mr-1" size={12} />
-                  {uploadingImage ? 'Uploading...' : 'Upload Image'}
-                </label>
-              </div>
+              {(category === 'Articles' || category === 'Policies' || category === 'Guides') ? (
+                // Rich text categories: Show either uploaded image OR gallery icon div
+                watchedImageUrl ? (
+                  <div className="relative w-full border-2 border-dashed p-4 border-gray-300 rounded-lg h-[220px] flex items-center justify-center">
+                    <img 
+                      src={watchedImageUrl} 
+                      alt="Resource image" 
+                      className="h-full w-full object-cover rounded"
+                    />
+                    <button
+                      type="button"
+                      onClick={removeImage}
+                      className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                    >
+                      <FiX size={12} />
+                    </button>
+                  </div>
+                ) : (
+                  <label
+                    htmlFor="image-upload"
+                    className={`block w-full border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:border-[#0c684b] hover:bg-gray-50 transition-colors h-[220px] flex flex-col items-center justify-center ${
+                      uploadingImage ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                  >
+                    <FiImage className="mx-auto mb-3 text-gray-400" size={32} />
+                    <p className="text-sm text-gray-600">
+                      {uploadingImage ? 'Uploading...' : 'Upload Image'}
+                    </p>
+                  </label>
+                )
+              ) : (
+                // Other categories: Show image preview + upload button
+                <>
+                  {watchedImageUrl ? (
+                    <div className="relative inline-block">
+                      <img 
+                        src={watchedImageUrl} 
+                        alt="Resource image" 
+                        className="w-16 h-20 object-cover rounded border"
+                      />
+                      <button
+                        type="button"
+                        onClick={removeImage}
+                        className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 hover:bg-red-600"
+                      >
+                        <FiX size={10} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-16 h-20 border-2 border-dashed border-gray-300 rounded flex items-center justify-center">
+                      <FiImage className="text-gray-400" size={16} />
+                    </div>
+                  )}
+                  
+                  <label
+                    htmlFor="image-upload"
+                    className={`inline-flex items-center px-3 py-1.5 border border-gray-300 rounded text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0c684b] cursor-pointer ${
+                      uploadingImage ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                  >
+                    <FiUpload className="mr-1" size={12} />
+                    {uploadingImage ? 'Uploading...' : 'Upload Image'}
+                  </label>
+                </>
+              )}
               {errors.imageUrl && (
                 <p className="mt-1 text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px] text-red-600">{errors.imageUrl.message}</p>
               )}
@@ -636,65 +686,67 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
           </div>
         )}
 
-        {/* Resource Links & Files */}
-        <div>
-          <label className="block text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px] font-medium text-gray-700 mb-2">
-            Resource Links & Files
-          </label>
-          <div className="space-y-3">
-            {resourceRows.map((row, index) => (
-              <div key={index} className="flex items-center gap-2">
-                {/* URL Input */}
-                <div className="flex-1">
-                  <input
-                    type="url"
-                    value={row.url}
-                    onChange={(e) => handleUrlChange(index, e.target.value)}
-                    placeholder="Enter URL or upload a file"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px]"
-                  />
-                </div>
+        {/* Resource Links & Files - Only show for non-media categories */}
+        {!isMediaCategory && (
+          <div>
+            <label className="block text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px] font-medium text-gray-700 mb-2">
+              Resource Links & Files
+            </label>
+            <div className="space-y-3">
+              {resourceRows.map((row, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  {/* URL Input */}
+                  <div className="flex-1">
+                    <input
+                      type="url"
+                      value={row.url}
+                      onChange={(e) => handleUrlChange(index, e.target.value)}
+                      placeholder="Enter URL or upload a file"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px]"
+                    />
+                  </div>
 
-                {/* Upload Button */}
-                <div className="flex items-center gap-2">
-                  <input
-                    type="file"
-                    accept=".pdf,.doc,.docx,.txt,.mp4,.avi,.mov,.wmv,.flv,.webm,.mkv,.mp3,.wav,.flac,.aac,.ogg,.wma"
-                    onChange={(e) => handleFileChangeForRow(e, index)}
-                    className="hidden"
-                    id={`file-upload-${index}`}
-                    disabled={uploadingDocuments}
-                  />
-                  <label
-                    htmlFor={`file-upload-${index}`}
-                    className={`inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px] font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#0c684b] cursor-pointer transition-colors ${
-                      uploadingDocuments ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
+                  {/* Upload Button */}
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="file"
+                      accept=".pdf,.doc,.docx,.txt,.mp4,.avi,.mov,.wmv,.flv,.webm,.mkv,.mp3,.wav,.flac,.aac,.ogg,.wma"
+                      onChange={(e) => handleFileChangeForRow(e, index)}
+                      className="hidden"
+                      id={`file-upload-${index}`}
+                      disabled={uploadingDocuments}
+                    />
+                    <label
+                      htmlFor={`file-upload-${index}`}
+                      className={`inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px] font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#0c684b] cursor-pointer transition-colors ${
+                        uploadingDocuments ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
+                    >
+                      <FiUpload size={16} />
+                    </label>
+                  </div>
+                </div>
+              ))}
+
+              {/* Add Row Button */}
+              {resourceRows.length < 3 && (
+                <div className="flex justify-end pe-1">
+                  <button
+                    type="button"
+                    onClick={handleAddRow}
+                    className="inline-flex items-center justify-center w-8 h-8 border border-[#0c684b] rounded-full text-gray-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#0c684b] transition-colors"
                   >
-                    <FiUpload size={16} />
-                  </label>
+                    <FiPlus size={16} color='#0c684b' />
+                  </button>
                 </div>
-              </div>
-            ))}
+              )}
 
-            {/* Add Row Button */}
-            {resourceRows.length < 3 && (
-              <div className="flex justify-end pe-1">
-                <button
-                  type="button"
-                  onClick={handleAddRow}
-                  className="inline-flex items-center justify-center w-8 h-8 border border-[#0c684b] rounded-full text-gray-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#0c684b] transition-colors"
-                >
-                  <FiPlus size={16} color='#0c684b' />
-                </button>
-              </div>
-            )}
-
-            {uploadingDocuments && (
-              <p className="text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] text-blue-600 text-center">Uploading...</p>
-            )}
+              {uploadingDocuments && (
+                <p className="text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] text-blue-600 text-center">Uploading...</p>
+              )}
+            </div>
           </div>
-        </div>
+        )}
         </div>
 
         {/* Form Actions - fixed bottom within modal content */}
@@ -714,11 +766,22 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
           >
             <span>{isLoading 
               ? (resource ? 'Updating...' : 'Creating...') 
-              : (resource ? 'Update Resource' : 'Add Resource')
+              : (category === 'Articles' || category === 'Policies' || category === 'Guides') ? 'Next' : 
+                  (resource ? 'Update Resource' : 'Add Resource')
             }</span>
           </button>
         </div>
       </form>
+
+      {/* Rich Text Modal for Articles, Policies, and Guides */}
+      <RichTextModal
+        isOpen={showRichTextModal}
+        onClose={() => setShowRichTextModal(false)}
+        onSave={handleRichTextSave}
+        initialContent={resource?.description || ""}
+        title={resource ? "Edit Description" : "Add Description"}
+        buttonText={resource ? "Edit Resource" : "Add Resource"}
+      />
     </div>
   );
 };
