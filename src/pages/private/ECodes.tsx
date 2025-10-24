@@ -215,10 +215,10 @@ const ECodes = () => {
     setIsAddModalOpen(false)
   }
 
-  const handleToggleStatus = async (ecode: ECode) => {
+  const handleToggleStatus = async (ecode: ECode, newStatus?: boolean) => {
     try {
-      // Toggle the isActive status
-      const newStatus = !ecode.isActive
+      // Use provided newStatus or toggle current status
+      const statusToSet = newStatus !== undefined ? newStatus : !ecode.isActive
       
       // Prepare the complete E-Code data for update
       const updateData = {
@@ -230,7 +230,7 @@ const ECodes = () => {
         source: ecode.source || [],
         healthInfo: ecode.healthInfo || [],
         uses: ecode.uses || [],
-        isActive: newStatus,
+        isActive: statusToSet,
       }
 
       const response = await fetch(`${API_CONFIG.baseURL}${ECODE_ENDPOINTS.update}/${ecode.id}`, {
@@ -241,14 +241,14 @@ const ECodes = () => {
 
       if (!response.ok) {
         // Special handling for 404 error when deactivating
-        if (response.status === 404 && !newStatus) {
+        if (response.status === 404 && !statusToSet) {
           // The E-Code was successfully deactivated but the API can't find it to return
           // This is likely a backend issue where inactive records are filtered out
           console.log('E-Code deactivated successfully but API returned 404 (backend filtering issue)')
           
           // Update selected ecode if it's the same
           if (selectedECode?.id === ecode.id) {
-            setSelectedECode(prev => prev ? { ...prev, isActive: newStatus } : null)
+            setSelectedECode(prev => prev ? { ...prev, isActive: statusToSet } : null)
           }
           
           showToast('success', 'E-Code deactivated successfully!')
@@ -264,10 +264,10 @@ const ECodes = () => {
 
       // Update selected ecode if it's the same
       if (selectedECode?.id === ecode.id) {
-        setSelectedECode(prev => prev ? { ...prev, isActive: newStatus } : null)
+        setSelectedECode(prev => prev ? { ...prev, isActive: statusToSet } : null)
       }
       
-      showToast('success', `E-Code ${newStatus ? 'activated' : 'deactivated'} successfully!`)
+      showToast('success', `E-Code ${statusToSet ? 'activated' : 'deactivated'} successfully!`)
       
       // Refetch ecodes to update the list
       refetch()
@@ -441,7 +441,7 @@ const ECodes = () => {
           checked: Boolean(selectedECode?.isActive),
           onChange: async (checked: boolean) => {
             if (!selectedECode) return
-            await handleToggleStatus({ ...selectedECode, isActive: checked })
+            await handleToggleStatus(selectedECode, checked)
           },
           enabled: hasPermission('E-Codes', 'update'),
           labelActive: 'Active',

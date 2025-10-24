@@ -5,7 +5,8 @@ export interface Book {
   title: string
   author: string
   description: string
-  url?: string
+  url: string
+  amazonUrl: string
   publishedBy: string
   contentLanguage: string
   isActive: boolean
@@ -18,7 +19,8 @@ export interface BookCreateRequest {
   title: string
   author: string
   description: string
-  url?: string
+  url: string
+  amazonUrl: string
   publishedBy: string
   contentLanguage: string
 }
@@ -29,6 +31,7 @@ export interface BookUpdateRequest {
   author?: string
   description?: string
   url?: string
+  amazonUrl?: string
   publishedBy?: string
   contentLanguage?: string
   isActive?: boolean
@@ -375,6 +378,7 @@ export interface Product {
   image: string;
   madeIn: string;
   contains: string[];
+  evidences?: string[];
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -387,6 +391,7 @@ export interface ProductCreateRequest {
   image: string;
   madeIn: string;
   contains: string[];
+  evidences?: string[];
 }
 
 export interface ProductUpdateRequest {
@@ -396,6 +401,31 @@ export interface ProductUpdateRequest {
   image?: string;
   madeIn?: string;
   contains?: string[];
+  evidences?: string[];
+  isActive?: boolean;
+}
+
+// Halal Product entity
+export interface HalalProduct {
+  id: number;
+  name: string;
+  clientName: string;
+  imageUrl: string;
+  status: string;
+  types: string[];
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface HalalProductCreateRequest {
+  name: string;
+  clientId: number;
+  types: string[];
+}
+
+export interface HalalProductUpdateRequest {
+  types?: string[];
   isActive?: boolean;
 }
 

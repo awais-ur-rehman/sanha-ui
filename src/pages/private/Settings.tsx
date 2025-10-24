@@ -20,6 +20,7 @@ const Settings = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [activeSection, setActiveSection] = useState('')
 
   const { data: standardsResponse, isLoading: loading, refetch } = useGetApi<any>(
     CERTIFICATION_STANDARD_ENDPOINTS.getAll,
@@ -110,43 +111,97 @@ const Settings = () => {
   return (
     <div className="py-4">
       <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] px-6 py-10'>
-        <div className="mb-6">
+        {/* Header */}
+        <div className="mb-8">
           <h1 className="text-2xl font-semibold text-gray-900">Settings</h1>
           <p className="text-gray-600">Manage certification standards and portal configuration</p>
         </div>
 
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Certification Standards</h2>
-          
-          <div className='py-6'>
-            <div className="flex items-center gap-3">
-              <div className="relative w-72">
-                <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-                <input
-                  type="text"
-                  placeholder="Search certification standards..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-3 py-[10px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-xs"
-                />
-              </div>
-
-              <div className="ml-auto flex items-center gap-2">
-                {hasPermission('Settings', 'create') && (
-                  <button
-                    onClick={handleAddStandard}
-                    disabled={isSubmitting}
-                    className="flex items-center space-x-2 px-10 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <FiPlus size={16} />
-                    <span>Add Standard</span>
-                  </button>
-                )}
-              </div>
+        {/* Main Content with Side Menu */}
+        <div className="flex gap-8">
+          {/* Side Menu */}
+          <div className="w-64 flex-shrink-0 border-r border-gray-200 pr-8">
+            <div className="mb-4">
+              <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Manage</h3>
             </div>
+            <nav className="space-y-2">
+              <button
+                onClick={() => setActiveSection('certificates')}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
+                  activeSection === 'certificates'
+                    ? 'bg-[#0c684b] text-white'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                Certification
+              </button>
+            </nav>
           </div>
 
-          <div className="max-w-3xl">
+          {/* Main Content Area */}
+          <div className="flex-1">
+            {activeSection === '' && (
+              <div className="flex flex-col items-center justify-center h-96">
+                <svg 
+                  className="w-16 h-16 text-gray-400 mb-4" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={1.5} 
+                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" 
+                  />
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={1.5} 
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" 
+                  />
+                </svg>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Welcome to Settings</h3>
+                <p className="text-gray-500 text-center max-w-md">
+                  Select an option from the menu to get started with managing your portal configuration.
+                </p>
+              </div>
+            )}
+            
+            {activeSection === 'certificates' && (
+              <div>
+                <div className="mb-6">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Certification Standards</h2>
+          
+                  <div className='py-6'>
+                    <div className="flex items-center gap-3">
+                      <div className="relative w-72">
+                        <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                        <input
+                          type="text"
+                          placeholder="Search certification standards..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          className="w-full pl-10 pr-3 py-[10px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-xs"
+                        />
+                      </div>
+                      
+                      <div className="ml-auto">
+                        {hasPermission('Settings', 'create') && (
+                          <button
+                            onClick={handleAddStandard}
+                            disabled={isSubmitting}
+                            className="flex items-center space-x-2 px-10 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <FiPlus size={16} />
+                            <span>Add Standard</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+          <div className="w-full">
             {loading || filteredStandards.length === 0 ? (
               <div className="bg-white rounded-lg border border-gray-200">
                 {loading ? (
@@ -221,6 +276,10 @@ const Settings = () => {
                   }
                 ]}
               />
+            )}
+          </div>
+                </div>
+              </div>
             )}
           </div>
         </div>

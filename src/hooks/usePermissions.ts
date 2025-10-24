@@ -5,7 +5,6 @@ export const usePermissions = () => {
 
   const hasPermission = (moduleName: string, permission: string): boolean => {
     if (!user || !user.rolePermissions) {
-      console.log('No user or rolePermissions found:', { user, rolePermissions: user?.rolePermissions })
       return false
     }
 
@@ -14,15 +13,7 @@ export const usePermissions = () => {
     )
 
     const hasPerm = modulePermission?.permissions.includes(permission) || false
-    
-    // Debug logging
-    console.log('Permission check:', {
-      moduleName,
-      permission,
-      modulePermission,
-      hasPerm,
-      allPermissions: user.rolePermissions
-    })
+
 
     return hasPerm
   }

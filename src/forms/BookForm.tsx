@@ -1,9 +1,8 @@
 import { useState } from 'react'
-import { FiUpload, FiX, FiFile, FiImage } from 'react-icons/fi'
+import { FiX, FiImage } from 'react-icons/fi'
 import CustomInput from '../components/CustomInput'
 import CustomTextarea from '../components/CustomTextarea'
 import SearchableDropdown from '../components/SearchableDropdown'
-// import CustomCheckbox from '../components/CustomCheckbox'
 import { type Book, type BookCreateRequest, type BookUpdateRequest } from '../types/entities'
 import { API_CONFIG, FILE_ENDPOINTS } from '../config/api'
 import { useToast } from '../components'
@@ -22,6 +21,7 @@ const BookForm = ({ book, onSubmit, onCancel, loading = false }: BookFormProps) 
     author: book?.author || '',
     description: book?.description || '',
     url: book?.url || '',
+    amazonUrl: book?.amazonUrl || '',
     publishedBy: book?.publishedBy || '',
     contentLanguage: book?.contentLanguage || 'English',
     isActive: book?.isActive ?? true,
@@ -29,7 +29,6 @@ const BookForm = ({ book, onSubmit, onCancel, loading = false }: BookFormProps) 
 
 
   const [uploadingImage, setUploadingImage] = useState(false)
-  const [uploadingPdf, setUploadingPdf] = useState(false)
 
   const { showToast } = useToast()
 
@@ -46,6 +45,8 @@ const BookForm = ({ book, onSubmit, onCancel, loading = false }: BookFormProps) 
       formData.title &&
       formData.author &&
       formData.description &&
+      formData.url &&
+      formData.amazonUrl &&
       formData.publishedBy &&
       formData.contentLanguage
     )
@@ -63,18 +64,14 @@ const BookForm = ({ book, onSubmit, onCancel, loading = false }: BookFormProps) 
     }
   }
 
-  const handleFileUpload = async (file: File, type: 'image' | 'pdf') => {
+  const handleFileUpload = async (file: File) => {
     const formData = new FormData()
     formData.append('files', file)
 
     try {
-      if (type === 'image') {
-        setUploadingImage(true)
-      } else {
-        setUploadingPdf(true)
-      }
+      setUploadingImage(true)
 
-      const fileType = type === 'image' ? 'images' : 'documents'
+      const fileType = 'images'
       
       // For file uploads, only include Authorization header, let browser set Content-Type
       const token = localStorage.getItem('token')
@@ -97,25 +94,16 @@ const BookForm = ({ book, onSubmit, onCancel, loading = false }: BookFormProps) 
       
       if (result.success) {
         const fileUrl = result.data.files[0].url
-        if (type === 'image') {
-          setFormData(prev => ({ ...prev, imageUrl: fileUrl }))
-          showToast('success', 'Image uploaded successfully')
-        } else {
-          setFormData(prev => ({ ...prev, url: fileUrl }))
-          showToast('success', 'PDF uploaded successfully')
-        }
+        setFormData(prev => ({ ...prev, imageUrl: fileUrl }))
+        showToast('success', 'Image uploaded successfully')
       } else {
         throw new Error(result.message || 'Upload failed')
       }
     } catch (error) {
       console.error('Upload error:', error)
-      showToast('error', `Failed to upload ${type === 'image' ? 'image' : 'PDF'}`)
+      showToast('error', 'Failed to upload image')
     } finally {
-      if (type === 'image') {
-        setUploadingImage(false)
-      } else {
-        setUploadingPdf(false)
-      }
+      setUploadingImage(false)
     }
   }
 
@@ -123,30 +111,18 @@ const BookForm = ({ book, onSubmit, onCancel, loading = false }: BookFormProps) 
     const file = event.target.files?.[0]
     if (file) {
       if (file.type.startsWith('image/')) {
-
-        handleFileUpload(file, 'image')
+        handleFileUpload(file)
       } else {
         showToast('error', 'Please select a valid image file')
       }
     }
   }
 
-  const handlePdfChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      if (file.type === 'application/pdf') {
-
-        handleFileUpload(file, 'pdf')
-      } else {
-        showToast('error', 'Please select a valid PDF file')
-      }
-    }
-  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!formData.title || !formData.author || !formData.description || !formData.publishedBy || !formData.contentLanguage) {
+    if (!formData.title || !formData.author || !formData.description || !formData.publishedBy || !formData.contentLanguage || !formData.url || !formData.amazonUrl) {
       showToast('error', 'Please fill in all required fields')
       return
     }
@@ -164,10 +140,6 @@ const BookForm = ({ book, onSubmit, onCancel, loading = false }: BookFormProps) 
     setFormData(prev => ({ ...prev, imageUrl: '' }))
   }
 
-  const removePdf = () => {
-
-    setFormData(prev => ({ ...prev, url: '' }))
-  }
 
   return (
     <div className="flex flex-col h-full max-h-[80vh]">
@@ -202,7 +174,7 @@ const BookForm = ({ book, onSubmit, onCancel, loading = false }: BookFormProps) 
         required
       />
 
-      {/* Publisher and Language - Parallel */}
+      {/* Publisher and Content Language - Parallel */}
       <div className="grid grid-cols-2 gap-4">
         <CustomInput
           label="Publisher *"
@@ -221,102 +193,67 @@ const BookForm = ({ book, onSubmit, onCancel, loading = false }: BookFormProps) 
         />
       </div>
 
-
-
-      {/* Image URL and PDF URL - Parallel */}
+      {/* Amazon URL and Archive URL - Parallel */}
       <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Book Cover Image *
-          </label>
-          <div className="space-y-2">
-            {formData.imageUrl ? (
-              <div className="relative inline-block">
-                <img 
-                  src={formData.imageUrl} 
-                  alt="Book cover" 
-                  className="w-16 h-20 object-cover rounded border"
-                />
-                <button
-                  type="button"
-                  onClick={removeImage}
-                  className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 hover:bg-red-600"
-                >
-                  <FiX size={10} />
-                </button>
-              </div>
-            ) : (
-              <div className="w-16 h-20 border-2 border-dashed border-gray-300 rounded flex items-center justify-center">
-                <FiImage className="text-gray-400" size={16} />
-              </div>
-            )}
-            
-            <div>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="hidden"
-                id="image-upload"
-                disabled={uploadingImage}
-              />
-              <label
-                htmlFor="image-upload"
-                className={`inline-flex items-center px-3 py-1.5 border border-gray-300 rounded text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer ${
-                  uploadingImage ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-              >
-                <FiUpload className="mr-1" size={12} />
-                {uploadingImage ? 'Uploading...' : 'Upload Image'}
-              </label>
-            </div>
-          </div>
-        </div>
+        <CustomInput
+          label="Amazon URL *"
+          value={formData.amazonUrl}
+          onChange={(value) => handleInputChange('amazonUrl', value)}
+          placeholder="Enter Amazon URL for the book"
+          required
+        />
+        <CustomInput
+          label="Archive URL *"
+          value={formData.url}
+          onChange={(value) => handleInputChange('url', value)}
+          placeholder="Enter Archive.org URL"
+          required
+        />
+      </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            PDF File
-          </label>
-          <div className="space-y-2">
-            {formData.url ? (
-              <div className="flex items-center space-x-2 bg-green-50 px-2 py-1 rounded text-xs w-fit">
-                <FiFile className="text-green-600" size={12} />
-                <span className="text-green-700">PDF uploaded</span>
-                <button
-                  type="button"
-                  onClick={removePdf}
-                  className="text-red-500 hover:text-red-700 bg-red-200 rounded-full p-1"
-                >
-                  <FiX size={12} />
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-2 bg-gray-50 px-2 py-1 rounded text-xs w-fit">
-                <FiFile className="text-gray-400" size={12} />
-                <span className="text-gray-500">No PDF</span>
-              </div>
-            )}
-            
-            <div>
-              <input
-                type="file"
-                accept=".pdf"
-                onChange={handlePdfChange}
-                className="hidden"
-                id="pdf-upload"
-                disabled={uploadingPdf}
+      {/* Book Cover Image - Full Width */}
+      <div>
+        <label className="block text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px] font-medium text-gray-700 mb-2">
+          Book Cover Image *
+        </label>
+        <div className="space-y-2">
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            className="hidden"
+            id="image-upload"
+            disabled={uploadingImage}
+          />
+          
+          {formData.imageUrl ? (
+            <div className="relative w-full border-2 border-dashed p-4 border-gray-300 rounded-lg h-[220px] flex items-center justify-center">
+              <img 
+                src={formData.imageUrl} 
+                alt="Book cover" 
+                className="h-full w-full object-cover rounded"
               />
-              <label
-                htmlFor="pdf-upload"
-                className={`inline-flex items-center px-3 py-1.5 border border-gray-300 rounded text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer ${
-                  uploadingPdf ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
+              <button
+                type="button"
+                onClick={removeImage}
+                className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
               >
-                <FiUpload className="mr-1" size={12} />
-                {uploadingPdf ? 'Uploading...' : 'Upload PDF'}
-              </label>
+                <FiX size={12} />
+              </button>
             </div>
-          </div>
+          ) : (
+            <label
+              htmlFor="image-upload"
+              className={`block w-full border-2 border-dashed border-gray-300 rounded-lg text-center cursor-pointer hover:border-[#0c684b] hover:bg-gray-50 transition-colors h-[220px] flex flex-col items-center justify-center ${
+                uploadingImage ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+            >
+              <FiImage className="mx-auto mb-3 text-gray-400" size={32} />
+              <p className="text-sm text-gray-600">
+                {uploadingImage ? 'Uploading...' : 'Upload Image'}
+              </p>
+            </label>
+          )}
         </div>
       </div>
         </div>
@@ -332,7 +269,7 @@ const BookForm = ({ book, onSubmit, onCancel, loading = false }: BookFormProps) 
           </button>
           <button
             type="submit"
-            disabled={loading || uploadingImage || uploadingPdf || !isFormValid()}
+            disabled={loading || uploadingImage || !isFormValid()}
             className="flex items-center space-x-2 px-10 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span>{loading ? 'Saving...' : book ? 'Update Book' : 'Add Book'}</span>

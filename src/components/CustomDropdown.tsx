@@ -50,7 +50,7 @@ const CustomDropdown = forwardRef<HTMLDivElement, CustomDropdownProps>(
             onClick={() => !disabled && setIsOpen(!isOpen)}
             disabled={disabled}
             className={`
-               w-full
+               
                px-3 py-[10px] border border-gray-300 rounded-md 
               focus:outline-none focus:ring-1 focus:ring-[#0c684b] focus:border-[#0c684b]
               transition-colors duration-200 bg-white text-left 

@@ -39,6 +39,11 @@ interface LinkSection {
   maxHeightClass?: string
 }
 
+interface EvidenceSection {
+  title: string
+  evidences: string[]
+}
+
 interface DateItem {
   label: string
   date: string
@@ -74,6 +79,7 @@ interface FooterActions<T> {
 interface SectionItem {
   label: string
   value: string
+  textDirection?: string
 }
 
 interface Section {
@@ -119,6 +125,8 @@ export interface EntityDetailSheetProps<T> {
   dateGrid?: DateItem[]
   dateGridTitle?: string
   linkSection?: LinkSection
+  additionalLinkSection?: LinkSection
+  evidenceSection?: EvidenceSection
   footerActions?: FooterActions<T>
 }
 
@@ -168,6 +176,8 @@ const EntityDetailSheet = <T,>({
   dateGrid = [],
   dateGridTitle = 'Certification Information',
   linkSection,
+  additionalLinkSection,
+  evidenceSection,
   footerActions,
 }: EntityDetailSheetProps<T>) => {
   const [localChecked, setLocalChecked] = useState<boolean>(Boolean(statusToggle?.checked))
@@ -510,6 +520,51 @@ const EntityDetailSheet = <T,>({
                       onClick={(e) => e.stopPropagation()}
                     >
                       {link.url}
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {additionalLinkSection && additionalLinkSection.links && additionalLinkSection.links.length > 0 && (
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-2">{additionalLinkSection.title}</h3>
+              <div className={`space-y-2 bg-gray-50 p-2 rounded-lg overflow-y-auto ${additionalLinkSection.maxHeightClass || 'max-h-[120px] min-h-[60px]'}`}>
+                {additionalLinkSection.links.map((link, idx) => (
+                  <div key={`${link.url}-${idx}`} className="flex items-center gap-2 p-2">
+                    {link.typeTag && (
+                      <span className="text-xs px-2 py-1 bg-gray-200 rounded text-gray-700">{link.typeTag}</span>
+                    )}
+                    <a
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-[#0c684b] hover:text-green-700 flex-1 truncate"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {link.url}
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {evidenceSection && evidenceSection.evidences && evidenceSection.evidences.length > 0 && (
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-2">{evidenceSection.title}</h3>
+              <div className="space-y-2">
+                {evidenceSection.evidences.map((evidence, idx) => (
+                  <div key={`evidence-${idx}`} className="flex items-center">
+                    <a
+                      href={evidence}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm font-medium text-green-700 hover:text-green-800 underline cursor-pointer"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      Evidence {idx + 1}
                     </a>
                   </div>
                 ))}

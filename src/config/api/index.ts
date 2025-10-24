@@ -108,6 +108,27 @@ export const PRODUCT_ENDPOINTS = {
   getByName: '/products/name',
 }
 
+// Non-Halal Product Endpoints
+export const NON_HALAL_PRODUCT_ENDPOINTS = {
+  getAll: '/non-halal-products',
+  getById: '/non-halal-products',
+  create: '/non-halal-products',
+  update: '/non-halal-products',
+  delete: '/non-halal-products',
+  getManufacturers: '/non-halal-products/manufacturers',
+  exportCsv: '/non-halal-products/export/csv',
+}
+
+export const HALAL_PRODUCT_ENDPOINTS = {
+  getAll: '/products',
+  getById: '/products',
+  create: '/products',
+  update: '/products',
+  delete: '/products',
+  getClients: '/clients',
+  exportCsv: '/products/export/csv',
+}
+
 // Enquiry Endpoints
 export const ENQUIRY_ENDPOINTS = {
   getAll: '/enquiries',

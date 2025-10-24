@@ -1,4 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom'
+import { useState } from 'react'
 import { 
   FiMenu, 
   FiX, 
@@ -15,7 +16,9 @@ import {
   FiUsers,
   FiMail,
   FiMessageSquare,
-  FiSend
+  FiSend,
+  FiChevronDown,
+  FiChevronRight
 } from 'react-icons/fi'
 import { 
   HiHome,
@@ -51,6 +54,7 @@ const Sidebar = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const { logout } = useAuthStore()
+  const [expandedItems, setExpandedItems] = useState<string[]>([])
 
   const { 
     isSidebarCollapsed, 
@@ -169,7 +173,7 @@ const Sidebar = () => {
       id: 'products',
       title: 'Products',
       path: ROUTES.PRODUCTS,
-      icon: getIcon('products', isActive(ROUTES.PRODUCTS))
+      icon: getIcon('products', isActive(ROUTES.PRODUCTS) || isActive(ROUTES.HALAL_PRODUCTS) || isActive(ROUTES.NON_HALAL_PRODUCTS))
     },
     {
       id: 'e-codes',
@@ -221,6 +225,22 @@ const Sidebar = () => {
     },
   ]
 
+  // Sub-items for Products
+  const productSubItems: SidebarItem[] = [
+    {
+      id: 'halal-products',
+      title: 'Halal',
+      path: ROUTES.HALAL_PRODUCTS,
+      icon: getIcon('products', isActive(ROUTES.HALAL_PRODUCTS))
+    },
+    {
+      id: 'non-halal-products',
+      title: 'Non-Halal',
+      path: ROUTES.NON_HALAL_PRODUCTS,
+      icon: getIcon('products', isActive(ROUTES.NON_HALAL_PRODUCTS))
+    }
+  ]
+
   // Show all sidebar items (don't filter based on permissions)
 
 
@@ -253,6 +273,14 @@ const Sidebar = () => {
     if (isMobileMenuOpen) {
       setMobileMenuOpen(false)
     }
+  }
+
+  const toggleExpanded = (itemId: string) => {
+    setExpandedItems(prev => 
+      prev.includes(itemId) 
+        ? prev.filter(id => id !== itemId)
+        : [...prev, itemId]
+    )
   }
 
   const SidebarContent = () => (
@@ -325,28 +353,89 @@ const Sidebar = () => {
           <ul className="space-y-1">
             {managementSidebarItems.map((item) => (
               <li key={item.id}>
-                <button
-                  onClick={() => handleItemClick(item)}
-                  className={`w-full flex items-center text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] py-[9px] rounded-md transition-all duration-300 ease-in-out transform relative group ${
-                    isSidebarCollapsed 
-                    ? isActive(item.path)
-                      ? 'justify-center px-1 text-[#0c684b] bg-transparent'
-                      : 'justify-center px-1 text-gray-300 bg-transparent hover:bg-gray-700'
-                    : isActive(item.path)
-                      ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
-                      : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
-                  }`}
-                >
-                  {item.icon}
-                  {!isSidebarCollapsed && <span className="font-medium">{item.title}</span>}
-                  
-                  {/* Tooltip for collapsed state */}
-                  {isSidebarCollapsed && (
-                    <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 pointer-events-none">
-                      {item.title}
-                    </div>
-                  )}
-                </button>
+                {item.id === 'products' ? (
+                  <div>
+                    {/* Products with expandable submenu */}
+                    <button
+                      onClick={() => toggleExpanded('products')}
+                      className={`w-full flex items-center text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] py-[9px] rounded-md transition-all duration-300 ease-in-out transform relative group ${
+                        isSidebarCollapsed 
+                        ? isActive(item.path) || isActive(ROUTES.HALAL_PRODUCTS) || isActive(ROUTES.NON_HALAL_PRODUCTS)
+                          ? 'justify-center px-1 text-[#0c684b] bg-transparent'
+                          : 'justify-center px-1 text-gray-300 bg-transparent hover:bg-gray-700'
+                        : isActive(item.path) || isActive(ROUTES.HALAL_PRODUCTS) || isActive(ROUTES.NON_HALAL_PRODUCTS)
+                          ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
+                          : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
+                      }`}
+                    >
+                      {item.icon}
+                      {!isSidebarCollapsed && (
+                        <>
+                          <span className="font-medium">{item.title}</span>
+                          <div className="ml-auto">
+                            {expandedItems.includes('products') ? (
+                              <FiChevronDown className="w-3 h-3" />
+                            ) : (
+                              <FiChevronRight className="w-3 h-3" />
+                            )}
+                          </div>
+                        </>
+                      )}
+                      
+                      {/* Tooltip for collapsed state */}
+                      {isSidebarCollapsed && (
+                        <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 pointer-events-none">
+                          {item.title}
+                        </div>
+                      )}
+                    </button>
+                    
+                    {/* Sub-items for Products */}
+                    {!isSidebarCollapsed && expandedItems.includes('products') && (
+                      <ul className="ml-4 mt-1 space-y-1">
+                        {productSubItems.map((subItem) => (
+                          <li key={subItem.id}>
+                            <button
+                              onClick={() => handleItemClick(subItem)}
+                              className={`w-full flex items-center text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] py-[6px] rounded-md transition-all duration-300 ease-in-out transform relative group ${
+                                isActive(subItem.path)
+                                  ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
+                                  : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
+                              }`}
+                            >
+                              {subItem.icon}
+                              <span className="font-medium">{subItem.title}</span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ) : (
+                  /* Regular items without submenu */
+                  <button
+                    onClick={() => handleItemClick(item)}
+                    className={`w-full flex items-center text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] py-[9px] rounded-md transition-all duration-300 ease-in-out transform relative group ${
+                      isSidebarCollapsed 
+                      ? isActive(item.path)
+                        ? 'justify-center px-1 text-[#0c684b] bg-transparent'
+                        : 'justify-center px-1 text-gray-300 bg-transparent hover:bg-gray-700'
+                      : isActive(item.path)
+                        ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
+                        : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
+                    }`}
+                  >
+                    {item.icon}
+                    {!isSidebarCollapsed && <span className="font-medium">{item.title}</span>}
+                    
+                    {/* Tooltip for collapsed state */}
+                    {isSidebarCollapsed && (
+                      <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 pointer-events-none">
+                        {item.title}
+                      </div>
+                    )}
+                  </button>
+                )}
               </li>
             ))}
           </ul>
