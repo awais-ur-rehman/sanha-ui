@@ -5,7 +5,8 @@ export interface Book {
   title: string
   author: string
   description: string
-  url?: string
+  url: string
+  amazonUrl: string
   publishedBy: string
   contentLanguage: string
   isActive: boolean
@@ -18,7 +19,8 @@ export interface BookCreateRequest {
   title: string
   author: string
   description: string
-  url?: string
+  url: string
+  amazonUrl: string
   publishedBy: string
   contentLanguage: string
 }
@@ -29,6 +31,7 @@ export interface BookUpdateRequest {
   author?: string
   description?: string
   url?: string
+  amazonUrl?: string
   publishedBy?: string
   contentLanguage?: string
   isActive?: boolean

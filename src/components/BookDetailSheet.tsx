@@ -119,6 +119,21 @@ const BookDetailSheet: React.FC<BookDetailSheetProps> = ({
               </a>
             </div>
           )}
+
+          {/* Amazon URL */}
+          {book.amazonUrl && (
+            <div className="mb-4">
+              <h3 className="font-semibold text-gray-900 mb-2">Amazon Link</h3>
+              <a
+                href={book.amazonUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:text-blue-700 text-sm break-all underline"
+              >
+                View on Amazon
+              </a>
+            </div>
+          )}
         </div>
 
         {/* Fixed Action Buttons */}

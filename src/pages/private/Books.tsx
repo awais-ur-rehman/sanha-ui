@@ -93,6 +93,7 @@ const Books = () => {
     publishedBy: book.publishedBy || '',
     contentLanguage: book.contentLanguage || '',
     url: book.url || '',
+    amazonUrl: book.amazonUrl || '',
   })) || []
 
   // Update pagination when data changes
@@ -329,7 +330,7 @@ const Books = () => {
                 <img
                   src={book.imageUrl || '/placeholder-book.jpg'}
                   alt={book.title}
-                  className="w-full object-cover rounded-lg"
+                  className="w-full h-48 object-cover rounded-lg"
                   onError={(e) => {
                     e.currentTarget.src = '/placeholder-book.jpg'
                   }}
