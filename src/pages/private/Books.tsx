@@ -418,10 +418,10 @@ const Books = () => {
           },
         ]}
         linkSection={selectedBook?.url ? {
-          title: 'PDF Link',
+          title: 'Archive Link',
           links: [{
             url: selectedBook.url,
-            typeTag: 'PDF'
+            typeTag: 'Archive'
           }],
           maxHeightClass: 'max-h-[60px] min-h-[40px]'
         } : undefined}

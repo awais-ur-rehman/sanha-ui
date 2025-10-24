@@ -105,17 +105,17 @@ const BookDetailSheet: React.FC<BookDetailSheetProps> = ({
             </div>
           )}
 
-          {/* PDF URL */}
+          {/* Archive URL */}
           {book.url && (
             <div className="mb-4">
-              <h3 className="font-semibold text-gray-900 mb-2">PDF Link</h3>
+              <h3 className="font-semibold text-gray-900 mb-2">Archive Link</h3>
               <a
                 href={book.url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-green-600 hover:text-green-700 text-sm break-all underline"
               >
-                View PDF
+                View Archive
               </a>
             </div>
           )}
