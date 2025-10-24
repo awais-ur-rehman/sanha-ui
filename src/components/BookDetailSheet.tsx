@@ -120,7 +120,7 @@ const BookDetailSheet: React.FC<BookDetailSheetProps> = ({
             </div>
           )}
 
-          {/* Amazon URL */}
+          {/* Amazon URL - Below Archive */}
           {book.amazonUrl && (
             <div className="mb-4">
               <h3 className="font-semibold text-gray-900 mb-2">Amazon Link</h3>

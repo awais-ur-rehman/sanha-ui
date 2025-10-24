@@ -119,6 +119,7 @@ export interface EntityDetailSheetProps<T> {
   dateGrid?: DateItem[]
   dateGridTitle?: string
   linkSection?: LinkSection
+  additionalLinkSection?: LinkSection
   footerActions?: FooterActions<T>
 }
 
@@ -168,6 +169,7 @@ const EntityDetailSheet = <T,>({
   dateGrid = [],
   dateGridTitle = 'Certification Information',
   linkSection,
+  additionalLinkSection,
   footerActions,
 }: EntityDetailSheetProps<T>) => {
   const [localChecked, setLocalChecked] = useState<boolean>(Boolean(statusToggle?.checked))
@@ -498,6 +500,30 @@ const EntityDetailSheet = <T,>({
               <h3 className="font-semibold text-gray-900 mb-2">{linkSection.title}</h3>
               <div className={`space-y-2 bg-gray-50 p-2 rounded-lg overflow-y-auto ${linkSection.maxHeightClass || 'max-h-[120px] min-h-[60px]'}`}>
                 {linkSection.links.map((link, idx) => (
+                  <div key={`${link.url}-${idx}`} className="flex items-center gap-2 p-2">
+                    {link.typeTag && (
+                      <span className="text-xs px-2 py-1 bg-gray-200 rounded text-gray-700">{link.typeTag}</span>
+                    )}
+                    <a
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-[#0c684b] hover:text-green-700 flex-1 truncate"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {link.url}
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {additionalLinkSection && additionalLinkSection.links && additionalLinkSection.links.length > 0 && (
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-2">{additionalLinkSection.title}</h3>
+              <div className={`space-y-2 bg-gray-50 p-2 rounded-lg overflow-y-auto ${additionalLinkSection.maxHeightClass || 'max-h-[120px] min-h-[60px]'}`}>
+                {additionalLinkSection.links.map((link, idx) => (
                   <div key={`${link.url}-${idx}`} className="flex items-center gap-2 p-2">
                     {link.typeTag && (
                       <span className="text-xs px-2 py-1 bg-gray-200 rounded text-gray-700">{link.typeTag}</span>

@@ -425,6 +425,14 @@ const Books = () => {
           }],
           maxHeightClass: 'max-h-[60px] min-h-[40px]'
         } : undefined}
+        additionalLinkSection={selectedBook?.amazonUrl ? {
+          title: 'Amazon Link',
+          links: [{
+            url: selectedBook.amazonUrl,
+            typeTag: 'Amazon'
+          }],
+          maxHeightClass: 'max-h-[60px] min-h-[40px]'
+        } : undefined}
       />
 
       {/* Add/Edit Book Modal */}
