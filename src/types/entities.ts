@@ -378,6 +378,7 @@ export interface Product {
   image: string;
   madeIn: string;
   contains: string[];
+  evidences?: string[];
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -390,6 +391,7 @@ export interface ProductCreateRequest {
   image: string;
   madeIn: string;
   contains: string[];
+  evidences?: string[];
 }
 
 export interface ProductUpdateRequest {
@@ -399,6 +401,7 @@ export interface ProductUpdateRequest {
   image?: string;
   madeIn?: string;
   contains?: string[];
+  evidences?: string[];
   isActive?: boolean;
 }
 

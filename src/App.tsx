@@ -16,6 +16,8 @@ import Resources from './pages/private/Resources'
 import FAQs from './pages/private/FAQs'
 import Clients from './pages/private/Clients'
 import Products from './pages/private/Products'
+import HalalProducts from './pages/private/HalalProducts'
+import NonHalalProducts from './pages/private/NonHalalProducts'
 import News from './pages/private/News'
 import Research from './pages/private/Research'
 import Settings from './pages/private/Settings'
@@ -126,6 +128,26 @@ function App() {
               <PermissionRoute moduleName="Products">
                 <MainLayout>
                   <Products />
+                </MainLayout>
+              </PermissionRoute>
+            }
+          />
+          <Route
+            path={ROUTES.HALAL_PRODUCTS}
+            element={
+              <PermissionRoute moduleName="Products">
+                <MainLayout>
+                  <HalalProducts />
+                </MainLayout>
+              </PermissionRoute>
+            }
+          />
+          <Route
+            path={ROUTES.NON_HALAL_PRODUCTS}
+            element={
+              <PermissionRoute moduleName="Products">
+                <MainLayout>
+                  <NonHalalProducts />
                 </MainLayout>
               </PermissionRoute>
             }

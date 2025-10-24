@@ -39,6 +39,11 @@ interface LinkSection {
   maxHeightClass?: string
 }
 
+interface EvidenceSection {
+  title: string
+  evidences: string[]
+}
+
 interface DateItem {
   label: string
   date: string
@@ -74,6 +79,7 @@ interface FooterActions<T> {
 interface SectionItem {
   label: string
   value: string
+  textDirection?: string
 }
 
 interface Section {
@@ -120,6 +126,7 @@ export interface EntityDetailSheetProps<T> {
   dateGridTitle?: string
   linkSection?: LinkSection
   additionalLinkSection?: LinkSection
+  evidenceSection?: EvidenceSection
   footerActions?: FooterActions<T>
 }
 
@@ -170,6 +177,7 @@ const EntityDetailSheet = <T,>({
   dateGridTitle = 'Certification Information',
   linkSection,
   additionalLinkSection,
+  evidenceSection,
   footerActions,
 }: EntityDetailSheetProps<T>) => {
   const [localChecked, setLocalChecked] = useState<boolean>(Boolean(statusToggle?.checked))
@@ -536,6 +544,27 @@ const EntityDetailSheet = <T,>({
                       onClick={(e) => e.stopPropagation()}
                     >
                       {link.url}
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {evidenceSection && evidenceSection.evidences && evidenceSection.evidences.length > 0 && (
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-2">{evidenceSection.title}</h3>
+              <div className="space-y-2">
+                {evidenceSection.evidences.map((evidence, idx) => (
+                  <div key={`evidence-${idx}`} className="flex items-center">
+                    <a
+                      href={evidence}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm font-medium text-green-700 hover:text-green-800 underline cursor-pointer"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      Evidence {idx + 1}
                     </a>
                   </div>
                 ))}

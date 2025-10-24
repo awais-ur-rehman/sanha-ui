@@ -29,6 +29,8 @@ export const ROUTES = {
     FAQS: '/faqs',
     CLIENTS: '/clients',
     PRODUCTS: '/products',
+    HALAL_PRODUCTS: '/products/halal',
+    NON_HALAL_PRODUCTS: '/products/non-halal',
     ENQUIRIES: '/enquiries',
     CONTACT_US: '/contact-us',
     REPORTED_PRODUCTS: '/reported-products',
