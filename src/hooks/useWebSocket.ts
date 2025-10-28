@@ -160,6 +160,14 @@ export const useWebSocket = (): UseWebSocketReturn => {
                         notification: notification
                     }
                 }))
+            } else if (event.type === 'BULK_IMPORT_PROGRESS') {
+                window.dispatchEvent(new CustomEvent('bulkImportProgress', {
+                    detail: event.data
+                }))
+            } else if (event.type === 'BULK_IMPORT_COMPLETED') {
+                window.dispatchEvent(new CustomEvent('bulkImportCompleted', {
+                    detail: event.data
+                }))
             }
         })
 

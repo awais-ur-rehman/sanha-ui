@@ -1,8 +1,8 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
-import { FiSearch, FiMapPin, FiCheckCircle, FiXCircle } from 'react-icons/fi'
+import { FiSearch, FiMapPin, FiCheckCircle, FiXCircle, FiUpload } from 'react-icons/fi'
 import { usePermissions } from '../../hooks/usePermissions'
-import { useGetApi, usePostApi, usePutApi, useDeleteApi } from '../../hooks'
+import { useGetApi, usePostApi, usePutApi, useDeleteApi, useBulkImport } from '../../hooks'
 import { useToast } from '../../components/CustomToast/ToastContext'
 import { HALAL_PRODUCT_ENDPOINTS, API_CONFIG } from '../../config/api'
 import type { HalalProduct, HalalProductCreateRequest, HalalProductUpdateRequest } from '../../types/entities'
@@ -11,6 +11,7 @@ import HalalProductForm from '../../forms/HalalProductForm'
 import EntityDetailSheet from '../../components/EntityDetailSheet'
 import CustomDropdown from '../../components/CustomDropdown'
 import DeleteConfirmationModal from '../../components/DeleteConfirmationModal'
+import BulkImportModal from '../../components/BulkImportModal'
 import { Pagination } from '../../components'
 import StyledTable from '../../components/StyledTable'
 
@@ -28,6 +29,8 @@ const HalalProducts = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [filters, setFilters] = useState({
     isActive: '',
@@ -37,6 +40,17 @@ const HalalProducts = () => {
     totalPages: 1,
     totalItems: 0,
     itemsPerPage: 10,
+  })
+
+  // Bulk import
+  const { importState, startImport, reset: resetImport } = useBulkImport({
+    endpoint: HALAL_PRODUCT_ENDPOINTS.bulkImport,
+    onSuccess: () => {
+      showToast('success', 'Products imported successfully!')
+    },
+    onError: (error) => {
+      showToast('error', error)
+    }
   })
 
   // Permissions
@@ -59,7 +73,7 @@ const HalalProducts = () => {
 
   const createProductMutation = usePostApi<HalalProductCreateRequest, any>(
     HALAL_PRODUCT_ENDPOINTS.create,
-    { 
+    {
       requireAuth: true,
       onSuccess: () => {
         showToast('success', 'Halal product created successfully!')
@@ -74,7 +88,7 @@ const HalalProducts = () => {
 
   const updateProductMutation = usePutApi<HalalProductUpdateRequest, any>(
     `${HALAL_PRODUCT_ENDPOINTS.update}/${selectedProduct?.id}`,
-    { 
+    {
       requireAuth: true,
       onSuccess: () => {
         showToast('success', 'Halal product updated successfully!')
@@ -91,7 +105,7 @@ const HalalProducts = () => {
 
   const deleteProductMutation = useDeleteApi<any>(
     `${HALAL_PRODUCT_ENDPOINTS.delete}/${selectedProduct?.id}`,
-    { 
+    {
       requireAuth: true,
       onSuccess: () => {
         showToast('success', 'Halal product deleted successfully!')
@@ -206,9 +220,9 @@ const HalalProducts = () => {
       const updateData = {
         isActive: newStatus !== undefined ? newStatus : !product.isActive
       }
-      
+
       await updateProductMutation.mutateAsync(updateData)
-      
+
       // Refetch data to update the UI
       refetch()
     } catch (error) {
@@ -249,6 +263,41 @@ const HalalProducts = () => {
       showToast('error', 'Failed to export CSV')
     }
   }
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    if (!file.name.endsWith('.csv')) {
+      showToast('error', 'Please select a CSV file')
+      return
+    }
+
+    setIsImportModalOpen(true)
+    await startImport(file)
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
+  const handleCloseImportModal = () => {
+    if (importState.status === 'completed' || importState.status === 'failed') {
+      refetch()
+    }
+    setIsImportModalOpen(false)
+    resetImport()
+  }
+
+  useEffect(() => {
+    if (importState.isImporting) {
+      setIsImportModalOpen(true)
+    }
+  }, [importState.isImporting])
 
   // Check permissions
   const hasReadPermission = hasPermission('Products', 'read')
@@ -310,12 +359,29 @@ const HalalProducts = () => {
                 Export
               </button>
               {hasCreatePermission && (
-                <button
-                  onClick={handleAddProduct}
-                  className="flex items-center space-x-2 px-10 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors"
-                >
-                  <span>Add Product</span>
-                </button>
+                <>
+                  <button
+                    onClick={handleImportClick}
+                    disabled={importState.isImporting}
+                    className="flex items-center space-x-2 px-10 py-[10px] text-xs border border-[#0c684b] text-[#0c684b] rounded-sm hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <FiUpload size={14} />
+                    <span>Import CSV</span>
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".csv"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                  <button
+                    onClick={handleAddProduct}
+                    className="flex items-center space-x-2 px-10 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors"
+                  >
+                    <span>Add Product</span>
+                  </button>
+                </>
               )}
             </div>
           </div>
@@ -354,9 +420,9 @@ const HalalProducts = () => {
                       {product.imageUrl && (
                         <img
                           src={product.imageUrl}
-                            alt={`${product.name} image`}
-                            className="w-10 h-10 rounded-lg object-cover mr-3"
-                            onError={(e) => { const t = e.target as HTMLImageElement; t.style.display = 'none' }}
+                          alt={`${product.name} image`}
+                          className="w-10 h-10 rounded-lg object-cover mr-3"
+                          onError={(e) => { const t = e.target as HTMLImageElement; t.style.display = 'none' }}
                         />
                       )}
                       <div>
@@ -406,7 +472,7 @@ const HalalProducts = () => {
                           return 'bg-gray-100 text-gray-800'
                       }
                     }
-                    
+
                     return (
                       <div className={`flex items-center justify-center px-2 max-w-32 py-1 rounded-full text-xs font-medium ${getStatusColor(product.status)}`}>
                         <span>{product.status || 'Unknown'}</span>
@@ -519,6 +585,14 @@ const HalalProducts = () => {
             hasUpdatePermission,
             hasDeletePermission,
           }}
+        />
+
+        {/* Bulk Import Modal */}
+        <BulkImportModal
+          isOpen={isImportModalOpen}
+          onClose={handleCloseImportModal}
+          importState={importState}
+          entityType="Products"
         />
       </div>
     </div>

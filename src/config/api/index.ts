@@ -58,6 +58,7 @@ export const ECODE_ENDPOINTS = {
   create: '/ecodes',
   update: '/ecodes',
   delete: '/ecodes',
+  bulkImport: '/ecodes/bulk-import',
 }
 
 // Resources Endpoints
@@ -127,6 +128,7 @@ export const HALAL_PRODUCT_ENDPOINTS = {
   delete: '/products',
   getClients: '/clients',
   exportCsv: '/products/export/csv',
+  bulkImport: '/products/bulk-import',
 }
 
 // Enquiry Endpoints

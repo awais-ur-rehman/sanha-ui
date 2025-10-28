@@ -6,5 +6,6 @@ export * from './ui'
 export * from './dashboard'
 export * from './entities'
 export * from './api'
+export * from './bulkImport'
 
 
