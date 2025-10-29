@@ -128,10 +128,10 @@ const ProductListForm: React.FC<ProductListFormProps> = ({
         setNewProduct(updatedNewProduct)
     }
 
-    // Add new product to the list
+    // Add new product to the list (at the beginning)
     const addNewProduct = () => {
         if (newProduct.name.trim() || newProduct.description.trim()) {
-            const updatedProducts = [...products, { ...newProduct }]
+            const updatedProducts = [{ ...newProduct }, ...products]
             setProducts(updatedProducts)
             setValue('products', updatedProducts)
             setNewProduct({ name: '', description: '' }) // Reset new product form
@@ -262,43 +262,9 @@ const ProductListForm: React.FC<ProductListFormProps> = ({
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
-                                        {/* Existing Products */}
-                                        {products.map((product, index) => (
-                                            <tr key={index} className="hover:bg-gray-50">
-                                                <td className="px-6 py-2 whitespace-nowrap">
-                                                    <CustomInput
-                                                        value={product.name}
-                                                        onChange={(e) => handleProductChange(index, 'name', e.target.value)}
-                                                        placeholder="Enter product name"
-                                                        className="border-0 p-0 focus:ring-0 focus:border-0"
-                                                        error={errors.products?.[index]?.name?.message}
-                                                    />
-                                                </td>
-                                                <td className="px-6 py-2">
-                                                    <CustomTextarea
-                                                        value={product.description}
-                                                        onChange={(e) => handleProductChange(index, 'description', e.target.value)}
-                                                        placeholder="Enter product description"
-                                                        rows={2}
-                                                        className="border-0 p-0 focus:ring-0 text-start palceholder:text-start focus:border-0 resize-none"
-                                                        error={errors.products?.[index]?.description?.message}
-                                                    />
-                                                </td>
-                                                <td className="px-6 py-2 whitespace-nowrap text-start text-sm font-medium">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removeProduct(index)}
-                                                        className="text-red-600 hover:text-red-900 text-sm"
-                                                    >
-                                                        Remove
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))}
-
                                         {/* New Product Row - Only show when showNewProductRow is true */}
                                         {showNewProductRow && (
-                                            <tr>
+                                            <tr className="bg-green-50">
                                                 <td className="px-6 py-2 whitespace-nowrap">
                                                     <CustomInput
                                                         value={newProduct.name}
@@ -336,6 +302,40 @@ const ProductListForm: React.FC<ProductListFormProps> = ({
                                                 </td>
                                             </tr>
                                         )}
+
+                                        {/* Existing Products */}
+                                        {products.map((product, index) => (
+                                            <tr key={index} className="hover:bg-gray-50">
+                                                <td className="px-6 py-2 whitespace-nowrap">
+                                                    <CustomInput
+                                                        value={product.name}
+                                                        onChange={(e) => handleProductChange(index, 'name', e.target.value)}
+                                                        placeholder="Enter product name"
+                                                        className="border-0 p-0 focus:ring-0 focus:border-0"
+                                                        error={errors.products?.[index]?.name?.message}
+                                                    />
+                                                </td>
+                                                <td className="px-6 py-2">
+                                                    <CustomTextarea
+                                                        value={product.description}
+                                                        onChange={(e) => handleProductChange(index, 'description', e.target.value)}
+                                                        placeholder="Enter product description"
+                                                        rows={2}
+                                                        className="border-0 p-0 focus:ring-0 text-start palceholder:text-start focus:border-0 resize-none"
+                                                        error={errors.products?.[index]?.description?.message}
+                                                    />
+                                                </td>
+                                                <td className="px-6 py-2 whitespace-nowrap text-start text-sm font-medium">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeProduct(index)}
+                                                        className="text-red-600 hover:text-red-900 text-sm"
+                                                    >
+                                                        Remove
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
                                     </tbody>
                                 </table>
                             </div>
