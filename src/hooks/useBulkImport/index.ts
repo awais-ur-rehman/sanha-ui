@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
-import { API_CONFIG, getAuthHeaders } from '../../config/api'
+import { API_CONFIG } from '../../config/api'
 import type { BulkImportState } from '../../types'
 
 interface UseBulkImportOptions {
