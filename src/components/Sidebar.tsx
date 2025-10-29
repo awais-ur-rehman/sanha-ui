@@ -1,13 +1,13 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useState } from 'react'
-import { 
-  FiMenu, 
-  FiX, 
-  FiShield, 
-  FiBook, 
-  FiFileText, 
-  FiSearch, 
-  FiSettings, 
+import {
+  FiMenu,
+  FiX,
+  FiShield,
+  FiBook,
+  FiFileText,
+  FiSearch,
+  FiSettings,
   FiLogOut,
   FiHome,
   FiCode,
@@ -20,7 +20,7 @@ import {
   FiChevronDown,
   FiChevronRight
 } from 'react-icons/fi'
-import { 
+import {
   HiHome,
   HiShieldCheck,
   HiBookOpen,
@@ -56,12 +56,12 @@ const Sidebar = () => {
   const { logout } = useAuthStore()
   const [expandedItems, setExpandedItems] = useState<string[]>([])
 
-  const { 
-    isSidebarCollapsed, 
-    isMobileMenuOpen, 
-    toggleSidebar, 
-    toggleMobileMenu, 
-    setMobileMenuOpen 
+  const {
+    isSidebarCollapsed,
+    isMobileMenuOpen,
+    toggleSidebar,
+    toggleMobileMenu,
+    setMobileMenuOpen
   } = useUIStore()
 
   const isActive = (path: string) => {
@@ -73,7 +73,7 @@ const Sidebar = () => {
 
   const getIcon = (iconType: string, isActive: boolean) => {
     const iconClass = "w-4 h-4 sm:w-5 sm:h-5 lg:w-4 lg:h-4 xl:w-5 xl:h-5"
-    
+
     if (isActive) {
       switch (iconType) {
         case 'dashboard':
@@ -173,7 +173,13 @@ const Sidebar = () => {
       id: 'products',
       title: 'Products',
       path: ROUTES.PRODUCTS,
-      icon: getIcon('products', isActive(ROUTES.PRODUCTS) || isActive(ROUTES.HALAL_PRODUCTS) || isActive(ROUTES.NON_HALAL_PRODUCTS))
+      icon: getIcon('products', isActive(ROUTES.PRODUCTS) || isActive(ROUTES.HALAL_PRODUCTS) || isActive(ROUTES.NON_HALAL_PRODUCTS) || isActive(ROUTES.PRODUCTS_REPORTED))
+    },
+    {
+      id: 'certification',
+      title: 'Certification',
+      path: ROUTES.CERTIFICATION,
+      icon: getIcon('access-control', isActive(ROUTES.CERTIFICATION) || isActive(ROUTES.CERTIFICATION_ENQUIRIES) || isActive(ROUTES.CERTIFICATION_APPLICATIONS))
     },
     {
       id: 'e-codes',
@@ -198,18 +204,6 @@ const Sidebar = () => {
       title: 'FAQs',
       path: ROUTES.FAQS,
       icon: getIcon('faqs', isActive(ROUTES.FAQS))
-    },
-    {
-      id: 'enquiries',
-      title: 'Enquiries',
-      path: ROUTES.ENQUIRIES,
-      icon: getIcon('enquiries', isActive(ROUTES.ENQUIRIES))
-    },
-    {
-      id: 'reported-products',
-      title: 'Reported Products',
-      path: ROUTES.REPORTED_PRODUCTS,
-      icon: getIcon('enquiries', isActive(ROUTES.REPORTED_PRODUCTS))
     },
     {
       id: 'contact-us',
@@ -238,6 +232,28 @@ const Sidebar = () => {
       title: 'Non-Halal',
       path: ROUTES.NON_HALAL_PRODUCTS,
       icon: getIcon('products', isActive(ROUTES.NON_HALAL_PRODUCTS))
+    },
+    {
+      id: 'reported-products',
+      title: 'Reported',
+      path: ROUTES.PRODUCTS_REPORTED,
+      icon: getIcon('products', isActive(ROUTES.PRODUCTS_REPORTED))
+    }
+  ]
+
+  // Sub-items for Certification
+  const certificationSubItems: SidebarItem[] = [
+    {
+      id: 'certification-enquiries',
+      title: 'Enquiries',
+      path: ROUTES.CERTIFICATION_ENQUIRIES,
+      icon: getIcon('enquiries', isActive(ROUTES.CERTIFICATION_ENQUIRIES))
+    },
+    {
+      id: 'certification-applications',
+      title: 'Applications',
+      path: ROUTES.CERTIFICATION_APPLICATIONS,
+      icon: getIcon('resources', isActive(ROUTES.CERTIFICATION_APPLICATIONS))
     }
   ]
 
@@ -268,7 +284,7 @@ const Sidebar = () => {
     } else {
       navigate(item.path)
     }
-    
+
     // Close mobile menu after navigation
     if (isMobileMenuOpen) {
       setMobileMenuOpen(false)
@@ -276,8 +292,8 @@ const Sidebar = () => {
   }
 
   const toggleExpanded = (itemId: string) => {
-    setExpandedItems(prev => 
-      prev.includes(itemId) 
+    setExpandedItems(prev =>
+      prev.includes(itemId)
         ? prev.filter(id => id !== itemId)
         : [...prev, itemId]
     )
@@ -285,19 +301,18 @@ const Sidebar = () => {
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full rounded-xl" style={{ backgroundColor: '#1f222a' }}>
-      <div className='px-2'> 
+      <div className='px-2'>
         {/* Logo/Brand */}
-      <div className="p-3 sm:p-4 border-b border-gray-600">
-        <div className="flex items-center justify-center">
-          <img 
-            src={logo} 
-            alt="Sanha Admin" 
-            className={`transition-all duration-300 ${
-              isSidebarCollapsed ? 'w-12 h-5 sm:w-14 sm:h-6 lg:w-20 lg:h-5 xl:w-14 xl:h-6' : 'w-10 h-10 sm:w-12 sm:h-12 lg:w-10 lg:h-10 xl:w-12 xl:h-12'
-            }`} 
-          />
+        <div className="p-3 sm:p-4 border-b border-gray-600">
+          <div className="flex items-center justify-center">
+            <img
+              src={logo}
+              alt="Sanha Admin"
+              className={`transition-all duration-300 ${isSidebarCollapsed ? 'w-12 h-5 sm:w-14 sm:h-6 lg:w-20 lg:h-5 xl:w-14 xl:h-6' : 'w-10 h-10 sm:w-12 sm:h-12 lg:w-10 lg:h-10 xl:w-12 xl:h-12'
+                }`}
+            />
+          </div>
         </div>
-      </div>
       </div>
 
       {/* Toggle Button - Positioned absolutely */}
@@ -321,19 +336,18 @@ const Sidebar = () => {
             <li key={item.id}>
               <button
                 onClick={() => handleItemClick(item)}
-                className={`w-full flex items-center text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] py-[9px] lg:py-2.5 rounded-md transition-all duration-300 ease-in-out transform relative group ${
-                  isSidebarCollapsed 
+                className={`w-full flex items-center text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] py-[9px] lg:py-2.5 rounded-md transition-all duration-300 ease-in-out transform relative group ${isSidebarCollapsed
                     ? isActive(item.path)
                       ? 'justify-center px-1 text-[#0c684b] bg-transparent'
                       : 'justify-center px-1 text-gray-300 bg-transparent hover:bg-gray-700'
                     : isActive(item.path)
                       ? 'justify-start gap-2 sm:gap-3 lg:gap-2.5 px-2 sm:px-4 lg:px-3 bg-[#0c684b] text-white shadow-lg'
                       : 'justify-start gap-2 sm:gap-3 lg:gap-2.5 px-2 sm:px-4 lg:px-3 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
-                }`}
+                  }`}
               >
                 {item.icon}
                 {!isSidebarCollapsed && <span className="font-medium">{item.title}</span>}
-                
+
                 {/* Tooltip for collapsed state */}
                 {isSidebarCollapsed && (
                   <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 pointer-events-none">
@@ -358,15 +372,14 @@ const Sidebar = () => {
                     {/* Products with expandable submenu */}
                     <button
                       onClick={() => toggleExpanded('products')}
-                      className={`w-full flex items-center text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] py-[9px] rounded-md transition-all duration-300 ease-in-out transform relative group ${
-                        isSidebarCollapsed 
-                        ? isActive(item.path) || isActive(ROUTES.HALAL_PRODUCTS) || isActive(ROUTES.NON_HALAL_PRODUCTS)
-                          ? 'justify-center px-1 text-[#0c684b] bg-transparent'
-                          : 'justify-center px-1 text-gray-300 bg-transparent hover:bg-gray-700'
-                        : isActive(item.path) || isActive(ROUTES.HALAL_PRODUCTS) || isActive(ROUTES.NON_HALAL_PRODUCTS)
-                          ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
-                          : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
-                      }`}
+                      className={`w-full flex items-center text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] py-[9px] rounded-md transition-all duration-300 ease-in-out transform relative group ${isSidebarCollapsed
+                          ? isActive(item.path) || isActive(ROUTES.HALAL_PRODUCTS) || isActive(ROUTES.NON_HALAL_PRODUCTS)
+                            ? 'justify-center px-1 text-[#0c684b] bg-transparent'
+                            : 'justify-center px-1 text-gray-300 bg-transparent hover:bg-gray-700'
+                          : isActive(item.path) || isActive(ROUTES.HALAL_PRODUCTS) || isActive(ROUTES.NON_HALAL_PRODUCTS)
+                            ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
+                            : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
+                        }`}
                     >
                       {item.icon}
                       {!isSidebarCollapsed && (
@@ -381,7 +394,7 @@ const Sidebar = () => {
                           </div>
                         </>
                       )}
-                      
+
                       {/* Tooltip for collapsed state */}
                       {isSidebarCollapsed && (
                         <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 pointer-events-none">
@@ -389,7 +402,7 @@ const Sidebar = () => {
                         </div>
                       )}
                     </button>
-                    
+
                     {/* Sub-items for Products */}
                     {!isSidebarCollapsed && expandedItems.includes('products') && (
                       <ul className="ml-4 mt-1 space-y-1">
@@ -397,11 +410,65 @@ const Sidebar = () => {
                           <li key={subItem.id}>
                             <button
                               onClick={() => handleItemClick(subItem)}
-                              className={`w-full flex items-center text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] py-[6px] rounded-md transition-all duration-300 ease-in-out transform relative group ${
-                                isActive(subItem.path)
+                              className={`w-full flex items-center text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] py-[6px] rounded-md transition-all duration-300 ease-in-out transform relative group ${isActive(subItem.path)
                                   ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
                                   : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
-                              }`}
+                                }`}
+                            >
+                              {subItem.icon}
+                              <span className="font-medium">{subItem.title}</span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ) : item.id === 'certification' ? (
+                  <div>
+                    {/* Certification with expandable submenu */}
+                    <button
+                      onClick={() => toggleExpanded('certification')}
+                      className={`w-full flex items-center text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] py-[9px] rounded-md transition-all duration-300 ease-in-out transform relative group ${isSidebarCollapsed
+                          ? isActive(item.path) || isActive(ROUTES.CERTIFICATION_ENQUIRIES) || isActive(ROUTES.CERTIFICATION_APPLICATIONS)
+                            ? 'justify-center px-1 text-[#0c684b] bg-transparent'
+                            : 'justify-center px-1 text-gray-300 bg-transparent hover:bg-gray-700'
+                          : isActive(item.path) || isActive(ROUTES.CERTIFICATION_ENQUIRIES) || isActive(ROUTES.CERTIFICATION_APPLICATIONS)
+                            ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
+                            : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
+                        }`}
+                    >
+                      {item.icon}
+                      {!isSidebarCollapsed && (
+                        <>
+                          <span className="font-medium">{item.title}</span>
+                          <div className="ml-auto">
+                            {expandedItems.includes('certification') ? (
+                              <FiChevronDown className="w-3 h-3" />
+                            ) : (
+                              <FiChevronRight className="w-3 h-3" />
+                            )}
+                          </div>
+                        </>
+                      )}
+
+                      {/* Tooltip for collapsed state */}
+                      {isSidebarCollapsed && (
+                        <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 pointer-events-none">
+                          {item.title}
+                        </div>
+                      )}
+                    </button>
+                    {/* Sub-items for Certification */}
+                    {!isSidebarCollapsed && expandedItems.includes('certification') && (
+                      <ul className="ml-4 mt-1 space-y-1">
+                        {certificationSubItems.map((subItem) => (
+                          <li key={subItem.id}>
+                            <button
+                              onClick={() => handleItemClick(subItem)}
+                              className={`w-full flex items-center text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] py-[6px] rounded-md transition-all duration-300 ease-in-out transform relative group ${isActive(subItem.path)
+                                  ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
+                                  : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
+                                }`}
                             >
                               {subItem.icon}
                               <span className="font-medium">{subItem.title}</span>
@@ -415,19 +482,18 @@ const Sidebar = () => {
                   /* Regular items without submenu */
                   <button
                     onClick={() => handleItemClick(item)}
-                    className={`w-full flex items-center text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] py-[9px] rounded-md transition-all duration-300 ease-in-out transform relative group ${
-                      isSidebarCollapsed 
-                      ? isActive(item.path)
-                        ? 'justify-center px-1 text-[#0c684b] bg-transparent'
-                        : 'justify-center px-1 text-gray-300 bg-transparent hover:bg-gray-700'
-                      : isActive(item.path)
-                        ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
-                        : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
-                    }`}
+                    className={`w-full flex items-center text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] py-[9px] rounded-md transition-all duration-300 ease-in-out transform relative group ${isSidebarCollapsed
+                        ? isActive(item.path)
+                          ? 'justify-center px-1 text-[#0c684b] bg-transparent'
+                          : 'justify-center px-1 text-gray-300 bg-transparent hover:bg-gray-700'
+                        : isActive(item.path)
+                          ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
+                          : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
+                      }`}
                   >
                     {item.icon}
                     {!isSidebarCollapsed && <span className="font-medium">{item.title}</span>}
-                    
+
                     {/* Tooltip for collapsed state */}
                     {isSidebarCollapsed && (
                       <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 pointer-events-none">
@@ -444,27 +510,26 @@ const Sidebar = () => {
 
       {/* Bottom Items */}
       <div className="pt-3 sm:pt-4 px-2 sm:py-4">
-      {!isSidebarCollapsed && (
-            <h1 className='text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] font-semibold text-gray-400 ms-2 sm:ms-4 mb-2'>System Settings</h1>
-          )}
+        {!isSidebarCollapsed && (
+          <h1 className='text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] font-semibold text-gray-400 ms-2 sm:ms-4 mb-2'>System Settings</h1>
+        )}
         <ul className="space-y-1">
           {bottomItems.map((item) => (
             <li key={item.id}>
               <button
                 onClick={() => handleItemClick(item)}
-                className={`w-full flex items-center py-[9px] rounded-md text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] transition-all duration-300 ease-in-out transform relative group ${
-                  isSidebarCollapsed 
+                className={`w-full flex items-center py-[9px] rounded-md text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] transition-all duration-300 ease-in-out transform relative group ${isSidebarCollapsed
                     ? isActive(item.path)
                       ? 'justify-center px-2 text-[#0c684b] bg-transparent'
                       : 'justify-center px-2 text-gray-300 bg-transparent hover:bg-gray-700'
                     : isActive(item.path)
                       ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
                       : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 hover:bg-gray-700 hover:text-green-400 bg-transparent'
-                }`}
+                  }`}
               >
                 {item.icon}
                 {!isSidebarCollapsed && <span className="font-medium">{item.title}</span>}
-                
+
                 {/* Tooltip for collapsed state */}
                 {isSidebarCollapsed && (
                   <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 pointer-events-none">
@@ -483,7 +548,7 @@ const Sidebar = () => {
     <>
       {/* Mobile Overlay */}
       {isMobileMenuOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
           onClick={() => setMobileMenuOpen(false)}
         />
@@ -499,11 +564,9 @@ const Sidebar = () => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-3 left-3 sm:top-4 sm:left-4 h-[calc(100vh-1.5rem)] sm:h-[calc(100vh-2rem)] z-50 transition-all duration-300 rounded-xl ${
-          isSidebarCollapsed ? 'w-12 sm:w-16' : 'w-48 sm:w-52'
-        } ${
-          isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-        }`}
+        className={`fixed top-3 left-3 sm:top-4 sm:left-4 h-[calc(100vh-1.5rem)] sm:h-[calc(100vh-2rem)] z-50 transition-all duration-300 rounded-xl ${isSidebarCollapsed ? 'w-12 sm:w-16' : 'w-48 sm:w-52'
+          } ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+          }`}
       >
         <SidebarContent />
       </aside>

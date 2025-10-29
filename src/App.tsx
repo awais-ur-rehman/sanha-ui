@@ -27,6 +27,9 @@ import ReportedProducts from './pages/private/ReportedProducts'
 import Newsletter from './pages/private/Newsletter'
 import { ROUTES } from './config/routes'
 import { useAuthStore } from './store'
+import ComingSoon from './components/ComingSoon'
+import Applications from './pages/private/Applications'
+import ApplicationDetail from './pages/private/ApplicationDetail'
 
 function App() {
   const { initializeAuth } = useAuthStore()
@@ -39,194 +42,235 @@ function App() {
     <ToastProvider>
       <NotificationProvider>
         <Router>
-                        <Routes>
-                  {/* Public Routes */}
-                  <Route path={ROUTES.LOGIN} element={<Login />} />
-                  
-                  {/* Protected Routes */}
-                  <Route
-                    path={ROUTES.ACCESS_RESTRICTED}
-                    element={
-                      <ProtectedRoute>
-                        <AccessRestricted />
-                      </ProtectedRoute>
-                    }
-                  />
-          <Route
-            path={ROUTES.DASHBOARD}
-            element={
-              <PermissionRoute moduleName="Dashboard">
-                <MainLayout>
-                  <Dashboard />
-                </MainLayout>
-              </PermissionRoute>
-            }
-          />
-          <Route
-            path={ROUTES.ACCESS_CONTROL}
-            element={
-              <PermissionRoute moduleName="Access Control">
-                <MainLayout>
-                  <AccessControl />
-                </MainLayout>
-              </PermissionRoute>
-            }
-          />
-          <Route
-            path={ROUTES.BOOKS}
-            element={
-              <PermissionRoute moduleName="Books">
-                <MainLayout>
-                  <Books />
-                </MainLayout>
-              </PermissionRoute>
-            }
-          />
-          <Route
-            path={ROUTES.E_CODES}
-            element={
-              <PermissionRoute moduleName="E-Codes">
-                <MainLayout>
-                  <ECodes />
-                </MainLayout>
-              </PermissionRoute>
-            }
-          />
-          <Route
-            path={ROUTES.RESOURCES}
-            element={
-              <PermissionRoute moduleName="Resources">
-                <MainLayout>
-                  <Resources />
-                </MainLayout>
-              </PermissionRoute>
-            }
-          />
-          <Route
-            path={ROUTES.FAQS}
-            element={
-              <PermissionRoute moduleName="FAQs">
-                <MainLayout>
-                  <FAQs />
-                </MainLayout>
-              </PermissionRoute>
-            }
-          />
-          <Route
-            path={ROUTES.CLIENTS}
-            element={
-              <PermissionRoute moduleName="Clients">
-                <MainLayout>
-                  <Clients />
-                </MainLayout>
-              </PermissionRoute>
-            }
-          />
-          <Route
-            path={ROUTES.PRODUCTS}
-            element={
-              <PermissionRoute moduleName="Products">
-                <MainLayout>
-                  <Products />
-                </MainLayout>
-              </PermissionRoute>
-            }
-          />
-          <Route
-            path={ROUTES.HALAL_PRODUCTS}
-            element={
-              <PermissionRoute moduleName="Products">
-                <MainLayout>
-                  <HalalProducts />
-                </MainLayout>
-              </PermissionRoute>
-            }
-          />
-          <Route
-            path={ROUTES.NON_HALAL_PRODUCTS}
-            element={
-              <PermissionRoute moduleName="Products">
-                <MainLayout>
-                  <NonHalalProducts />
-                </MainLayout>
-              </PermissionRoute>
-            }
-          />
-          <Route
-            path={ROUTES.ENQUIRIES}
-            element={
-              <PermissionRoute moduleName="Enquiry">
-                <MainLayout>
-                  <Enquiries />
-                </MainLayout>
-              </PermissionRoute>
-            }
-          />
-          <Route
-            path={ROUTES.CONTACT_US}
-            element={
-              <PermissionRoute moduleName="Contact Us">
-                <MainLayout>
-                  <ContactUs />
-                </MainLayout>
-              </PermissionRoute>
-            }
-          />
-          <Route
-            path={ROUTES.REPORTED_PRODUCTS}
-            element={
-              <PermissionRoute moduleName="Reported Products">
-                <MainLayout>
-                  <ReportedProducts />
-                </MainLayout>
-              </PermissionRoute>
-            }
-          />
-          <Route
-            path={ROUTES.NEWSLETTER}
-            element={
-              <PermissionRoute moduleName="Newsletter">
-                <MainLayout>
-                  <Newsletter />
-                </MainLayout>
-              </PermissionRoute>
-            }
-          />
-          <Route
-            path={ROUTES.NEWS}
-            element={
-              <PermissionRoute moduleName="News">
-                <MainLayout>
-                  <News />
-                </MainLayout>
-              </PermissionRoute>
-            }
-          />
-          <Route
-            path={ROUTES.RESEARCH}
-            element={
-              <PermissionRoute moduleName="Research">
-                <MainLayout>
-                  <Research />
-                </MainLayout>
-              </PermissionRoute>
-            }
-          />
-          <Route
-            path={ROUTES.SETTINGS}
-            element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <Settings />
-                </MainLayout>
-              </ProtectedRoute>
-            }
-          />
-          
-          {/* Default redirect */}
-          <Route path="/" element={<Navigate to={ROUTES.LOGIN} replace />} />
-          <Route path="*" element={<Navigate to={ROUTES.LOGIN} replace />} />
-        </Routes>
+          <Routes>
+            {/* Public Routes */}
+            <Route path={ROUTES.LOGIN} element={<Login />} />
+
+            {/* Protected Routes */}
+            <Route
+              path={ROUTES.ACCESS_RESTRICTED}
+              element={
+                <ProtectedRoute>
+                  <AccessRestricted />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path={ROUTES.DASHBOARD}
+              element={
+                <PermissionRoute moduleName="Dashboard">
+                  <MainLayout>
+                    <Dashboard />
+                  </MainLayout>
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path={ROUTES.ACCESS_CONTROL}
+              element={
+                <PermissionRoute moduleName="Access Control">
+                  <MainLayout>
+                    <AccessControl />
+                  </MainLayout>
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path={ROUTES.BOOKS}
+              element={
+                <PermissionRoute moduleName="Books">
+                  <MainLayout>
+                    <Books />
+                  </MainLayout>
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path={ROUTES.E_CODES}
+              element={
+                <PermissionRoute moduleName="E-Codes">
+                  <MainLayout>
+                    <ECodes />
+                  </MainLayout>
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path={ROUTES.RESOURCES}
+              element={
+                <PermissionRoute moduleName="Resources">
+                  <MainLayout>
+                    <Resources />
+                  </MainLayout>
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path={ROUTES.FAQS}
+              element={
+                <PermissionRoute moduleName="FAQs">
+                  <MainLayout>
+                    <FAQs />
+                  </MainLayout>
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path={ROUTES.CLIENTS}
+              element={
+                <PermissionRoute moduleName="Clients">
+                  <MainLayout>
+                    <Clients />
+                  </MainLayout>
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path={ROUTES.PRODUCTS}
+              element={
+                <PermissionRoute moduleName="Products">
+                  <MainLayout>
+                    <Products />
+                  </MainLayout>
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path={ROUTES.HALAL_PRODUCTS}
+              element={
+                <PermissionRoute moduleName="Products">
+                  <MainLayout>
+                    <HalalProducts />
+                  </MainLayout>
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path={ROUTES.NON_HALAL_PRODUCTS}
+              element={
+                <PermissionRoute moduleName="Products">
+                  <MainLayout>
+                    <NonHalalProducts />
+                  </MainLayout>
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path={ROUTES.PRODUCTS_REPORTED}
+              element={
+                <PermissionRoute moduleName="Products">
+                  <MainLayout>
+                    <ReportedProducts />
+                  </MainLayout>
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path={ROUTES.ENQUIRIES}
+              element={
+                <PermissionRoute moduleName="Enquiry">
+                  <MainLayout>
+                    <Enquiries />
+                  </MainLayout>
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path={ROUTES.CERTIFICATION_ENQUIRIES}
+              element={
+                <PermissionRoute moduleName="Certification">
+                  <MainLayout>
+                    <Enquiries />
+                  </MainLayout>
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path={ROUTES.CERTIFICATION_APPLICATIONS}
+              element={
+                <PermissionRoute moduleName="Certification">
+                  <MainLayout>
+                    <Applications />
+                  </MainLayout>
+                </PermissionRoute>
+              }
+            />
+            <Route path={ROUTES.CERTIFICATION} element={<Navigate to={ROUTES.CERTIFICATION_ENQUIRIES} replace />} />
+            <Route
+              path={ROUTES.APPLICATION_DETAIL}
+              element={
+                <PermissionRoute moduleName="Certification">
+                  <MainLayout>
+                    <ApplicationDetail />
+                  </MainLayout>
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path={ROUTES.CONTACT_US}
+              element={
+                <PermissionRoute moduleName="Contact Us">
+                  <MainLayout>
+                    <ContactUs />
+                  </MainLayout>
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path={ROUTES.REPORTED_PRODUCTS}
+              element={
+                <PermissionRoute moduleName="Reported Products">
+                  <MainLayout>
+                    <ReportedProducts />
+                  </MainLayout>
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path={ROUTES.NEWSLETTER}
+              element={
+                <PermissionRoute moduleName="Newsletter">
+                  <MainLayout>
+                    <Newsletter />
+                  </MainLayout>
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path={ROUTES.NEWS}
+              element={
+                <PermissionRoute moduleName="News">
+                  <MainLayout>
+                    <News />
+                  </MainLayout>
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path={ROUTES.RESEARCH}
+              element={
+                <PermissionRoute moduleName="Research">
+                  <MainLayout>
+                    <Research />
+                  </MainLayout>
+                </PermissionRoute>
+              }
+            />
+            <Route
+              path={ROUTES.SETTINGS}
+              element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <Settings />
+                  </MainLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Default redirect */}
+            <Route path="/" element={<Navigate to={ROUTES.LOGIN} replace />} />
+            <Route path="*" element={<Navigate to={ROUTES.LOGIN} replace />} />
+          </Routes>
         </Router>
       </NotificationProvider>
     </ToastProvider>

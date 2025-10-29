@@ -174,6 +174,27 @@ export const CERTIFICATION_STANDARD_ENDPOINTS = {
   delete: '/certification-standards',
 }
 
+// Users Endpoints (Certification Applications context)
+export const USERS_ENDPOINTS = {
+  getAll: '/users',
+}
+
+// Certification Endpoints
+export const CERTIFICATION_ENDPOINTS = {
+  applications: '/certification/applications',
+  status: '/certification/status',
+  reply: '/certification/reply',
+  companyInformation: '/certification/company-information',
+  scopeOfCertification: '/certification/scope-of-certification',
+  productionSites: '/certification/production-sites',
+  businessActivities: '/certification/business-activities',
+  humanResource: '/certification/human-resource',
+  contactPersons: '/certification/contact-persons',
+  certificationConsultants: '/certification/certification-consultants',
+  declarationsSignatures: '/certification/declarations-signatures',
+  productList: '/certification/product-list',
+}
+
 // Export Endpoints for other modules
 export const CLIENT_EXPORT_ENDPOINT = '/clients/export/csv'
 export const ECODE_EXPORT_ENDPOINT = '/ecodes/export/csv'
