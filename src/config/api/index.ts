@@ -184,6 +184,8 @@ export const CERTIFICATION_ENDPOINTS = {
   applications: '/certification/applications',
   status: '/certification/status',
   reply: '/certification/reply',
+  generateApplicationForm: '/certification/generate-application-form',
+  downloadApplicationForm: '/certification/download-application-form',
   companyInformation: '/certification/company-information',
   scopeOfCertification: '/certification/scope-of-certification',
   productionSites: '/certification/production-sites',

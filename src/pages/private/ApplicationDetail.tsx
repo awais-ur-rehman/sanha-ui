@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { FiArrowLeft, FiChevronRight } from 'react-icons/fi'
-import { useGetApi } from '../../hooks'
+import { useGetApi, usePostApi } from '../../hooks'
+import { useWebSocket } from '../../hooks/useWebSocket'
 import { CERTIFICATION_ENDPOINTS } from '../../config/api'
 import { useToast } from '../../components/CustomToast/ToastContext'
 import CompanyInformationForm from '../../components/forms/CompanyInformationForm'
@@ -23,6 +24,7 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = () => {
     const { userId, applicationId } = useParams<{ userId: string; applicationId: string }>()
     const navigate = useNavigate()
     const { showToast } = useToast()
+    const { socket } = useWebSocket()
 
     const [currentForm, setCurrentForm] = useState(1)
     const [isSubmitting, setIsSubmitting] = useState(false)
@@ -32,6 +34,11 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = () => {
     const [rejectReason, setRejectReason] = useState('')
     const [isProcessingReply, setIsProcessingReply] = useState(false)
     const [refetchTrigger, setRefetchTrigger] = useState(0)
+    // Generation progress toast state
+    const [genToastVisible, setGenToastVisible] = useState(false)
+    const [genProgress, setGenProgress] = useState(0)
+    const [genStatus, setGenStatus] = useState<'idle' | 'processing' | 'completed' | 'failed'>('idle')
+    const [genMessage, setGenMessage] = useState('')
 
     // Fetch user data for breadcrumb
     const { data: userResponse } = useGetApi<any>(
@@ -52,6 +59,11 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = () => {
             setUserData(userResponse.data)
         }
     }, [userResponse])
+
+    const generateFormMutation = usePostApi<any, any>(
+        `${CERTIFICATION_ENDPOINTS.generateApplicationForm}`,
+        { requireAuth: true }
+    )
 
     const handleSaveAndNext = async (formData: any, formType: string): Promise<void> => {
         // Check if we should skip API call (view-only navigation)
@@ -215,6 +227,76 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = () => {
 
     const fullName = userData ? `${userData.firstName || ''} ${userData.lastName || ''}`.trim() : 'User'
 
+    // Listen to WebSocket events for application form generation
+    useEffect(() => {
+        if (!socket) return
+        const downloadZip = async (appId: number, pdfPath: string, csvPath: string) => {
+            try {
+                const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}${CERTIFICATION_ENDPOINTS.downloadApplicationForm}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    body: JSON.stringify({ applicationId: appId, pdfPath, csvPath })
+                })
+                if (!res.ok) {
+                    showToast('error', 'Failed to download application ZIP')
+                    return
+                }
+                const blob = await res.blob()
+                // Try to get filename from header
+                const dispo = res.headers.get('Content-Disposition') || ''
+                const match = dispo.match(/filename="?([^";]+)"?/i)
+                const filename = match?.[1] || 'application.zip'
+                const url = window.URL.createObjectURL(blob)
+                const a = document.createElement('a')
+                a.href = url
+                a.download = filename
+                document.body.appendChild(a)
+                a.click()
+                a.remove()
+                window.URL.revokeObjectURL(url)
+            } catch {
+                showToast('error', 'Download failed')
+            }
+        }
+        const onEvent = (event: any) => {
+            if (!event || !event.type) return
+            if (event.type === 'APPLICATION_FORM_GENERATION_PROGRESS') {
+                const p = Math.max(0, Math.min(100, Number(event.data?.progress ?? 0)))
+                setGenToastVisible(true)
+                setGenStatus('processing')
+                setGenProgress(p)
+                setGenMessage(event.data?.message || 'Generating...')
+            } else if (event.type === 'APPLICATION_FORM_GENERATION_COMPLETED') {
+                const status = event.data?.status
+                if (status === 'completed') {
+                    setGenStatus('completed')
+                    setGenProgress(100)
+                    setGenMessage('Generated successfully. Downloading...')
+                    const appIdNum = parseInt(applicationId || '0')
+                    const pdfPath = event.data?.pdfPath
+                    const csvPath = event.data?.csvPath
+                    if (appIdNum && pdfPath && csvPath) {
+                        // Fire and forget
+                        void downloadZip(appIdNum, pdfPath, csvPath)
+                    }
+                    setTimeout(() => setGenToastVisible(false), 3000)
+                } else {
+                    setGenStatus('failed')
+                    setGenMessage('Application form generation failed')
+                    setTimeout(() => setGenToastVisible(false), 4000)
+                }
+            }
+        }
+        socket.on('event', onEvent)
+        return () => {
+            socket.off('event', onEvent)
+        }
+    }, [socket])
+
     return (
         <div className="py-4">
             <div className="bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] p-6">
@@ -241,7 +323,28 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = () => {
                         <div className="flex gap-3">
                             {/* Download button (logic to be added later) */}
                             {!isReviewNeeded && (
-                                <Button variant="outline" size="sm">Download</Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={async () => {
+                                        try {
+                                            await generateFormMutation.mutateAsync({
+                                                applicationId: parseInt(applicationId || '0'),
+                                                userId: parseInt(userId || '0')
+                                            })
+                                            setGenToastVisible(true)
+                                            setGenStatus('processing')
+                                            setGenProgress(0)
+                                            setGenMessage('Starting generation...')
+                                        } catch (e) {
+                                            setGenToastVisible(true)
+                                            setGenStatus('failed')
+                                            setGenMessage('Failed to start generation')
+                                        }
+                                    }}
+                                >
+                                    Download
+                                </Button>
                             )}
                             {/* Show Approve and Reject based on status */}
                             {!isApproved && (
@@ -479,8 +582,39 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = () => {
                     </div>
                 </div>
             )}
+
+            {/* Top-right generation toast with progress bar */}
+            {genToastVisible && (
+                <div className="fixed top-4 right-4 z-50 w-80 bg-white border border-gray-200 rounded-lg shadow-lg p-4">
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <p className="text-sm font-medium text-gray-900">Generating Application Form</p>
+                            <p className="text-xs text-gray-500 mt-1">{genMessage}</p>
+                        </div>
+                        <button
+                            onClick={() => setGenToastVisible(false)}
+                            className="text-gray-400 hover:text-gray-600"
+                        >
+                            ✕
+                        </button>
+                    </div>
+                    <div className="mt-3 w-full h-2 bg-gray-100 rounded">
+                        <div
+                            className={`h-2 rounded ${genStatus === 'failed' ? 'bg-red-600' : 'bg-[#0c684b]'}`}
+                            style={{ width: `${genStatus === 'completed' ? 100 : genProgress}%` }}
+                        />
+                    </div>
+                    <div className="flex justify-between mt-2">
+                        <span className="text-xs text-gray-500 capitalize">{genStatus}</span>
+                        <span className="text-xs text-gray-500">{genStatus === 'completed' ? 100 : genProgress}%</span>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
 
 export default ApplicationDetail
+
+// WebSocket event listeners within component
+// Attach after component definition via side-effect hook

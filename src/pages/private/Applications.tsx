@@ -4,6 +4,7 @@ import { FiSearch } from 'react-icons/fi'
 import { useGetApi } from '../../hooks'
 import { USERS_ENDPOINTS } from '../../config/api'
 import StyledTable from '../../components/StyledTable'
+import CustomSelect from '../../components/CustomSelect'
 import Chip from '../../components/Chip'
 import DateRangePicker from '../../components/DateRangePicker'
 import { Pagination } from '../../components'
@@ -34,7 +35,8 @@ const Applications = () => {
     const [searchTerm, setSearchTerm] = useState('')
     const [filters, setFilters] = useState({
         startDate: '',
-        endDate: ''
+        endDate: '',
+        applicationStatus: '' as '' | 'Pending' | 'In Progress' | 'Review Needed' | 'Approved' | 'Rejected'
     })
     const [pagination, setPagination] = useState({
         currentPage: 1,
@@ -49,6 +51,7 @@ const Applications = () => {
         ...(searchTerm && { search: searchTerm }),
         ...(filters.startDate && { startDate: filters.startDate }),
         ...(filters.endDate && { endDate: filters.endDate }),
+        ...(filters.applicationStatus && { applicationStatus: filters.applicationStatus }),
     })
 
     const { data: usersResponse, isLoading: loading } = useGetApi<any>(
@@ -184,6 +187,27 @@ const Applications = () => {
                             className="w-72 text-xs"
                             includeTime={true}
                         />
+
+                        {/* Application Status Filter */}
+                        <div className="w-64">
+                            <CustomSelect
+                                label="Application Status"
+                                placeholder="Select status"
+                                value={filters.applicationStatus}
+                                onChange={(e) => {
+                                    setFilters(prev => ({ ...prev, applicationStatus: e.target.value as any }))
+                                    setPagination(prev => ({ ...prev, currentPage: 1 }))
+                                }}
+                                options={[
+                                    { value: '', label: 'All' },
+                                    { value: 'Pending', label: 'Pending' },
+                                    { value: 'In Progress', label: 'In Progress' },
+                                    { value: 'Review Needed', label: 'Review Needed' },
+                                    { value: 'Approved', label: 'Approved' },
+                                    { value: 'Rejected', label: 'Rejected' },
+                                ]}
+                            />
+                        </div>
                     </div>
                 </div>
 
