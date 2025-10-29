@@ -11,6 +11,7 @@ interface ProductListFormProps {
     applicationId?: string
     onSaveAndNext: (data: any) => void
     isLoading?: boolean
+    refetchTrigger?: number
 }
 
 interface Product {
@@ -26,7 +27,8 @@ const ProductListForm: React.FC<ProductListFormProps> = ({
     userId,
     applicationId,
     onSaveAndNext,
-    isLoading = false
+    isLoading = false,
+    refetchTrigger = 0
 }) => {
     const [isLoadingData, setIsLoadingData] = useState(true)
     const [originalData, setOriginalData] = useState<any>(null)
@@ -47,7 +49,7 @@ const ProductListForm: React.FC<ProductListFormProps> = ({
     const watchedValues = watch()
 
     // Fetch existing product list data
-    const { data: productListData } = useGetApi<any>(
+    const { data: productListData, refetch } = useGetApi<any>(
         `${CERTIFICATION_ENDPOINTS.productList}?userId=${userId}&applicationId=${applicationId}`,
         {
             requireAuth: true,
@@ -82,7 +84,21 @@ const ProductListForm: React.FC<ProductListFormProps> = ({
         }
     )
 
-    // Handle data when it arrives
+    // Refetch data when refetchTrigger changes
+    useEffect(() => {
+        if (refetchTrigger > 0) {
+            refetch()
+        }
+    }, [refetchTrigger, refetch])
+
+    // Reset change detection when originalData is updated after refetch
+    useEffect(() => {
+        if (refetchTrigger > 0 && originalData && !isLoadingData) {
+            setHasChanges(false)
+        }
+    }, [originalData, refetchTrigger, isLoadingData])
+
+    // Handle data when it arrives (initial load)
     useEffect(() => {
         if (productListData?.data && isLoadingData) {
             if (productListData.data.length > 0) {
@@ -107,6 +123,25 @@ const ProductListForm: React.FC<ProductListFormProps> = ({
             setIsLoadingData(false)
         }
     }, [productListData, isLoadingData, setValue])
+
+    // Handle data after refetch
+    useEffect(() => {
+        if (productListData?.data && refetchTrigger > 0 && !isLoadingData) {
+            if (productListData.data.length > 0) {
+                const formData = productListData.data[0] // API returns array, take first item
+                setOriginalData(formData)
+
+                const productsList = formData.products || []
+                setProducts(productsList)
+                setValue('products', productsList)
+            } else {
+                // No data exists, initialize with empty array
+                setOriginalData({ products: [] })
+                setProducts([])
+                setValue('products', [])
+            }
+        }
+    }, [productListData, refetchTrigger, isLoadingData, setValue])
 
     // Handle product field changes
     const handleProductChange = (index: number, field: keyof Product, value: string) => {

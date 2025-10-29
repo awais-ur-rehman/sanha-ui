@@ -11,6 +11,7 @@ interface ProductionSitesFormProps {
     applicationId?: string
     onSaveAndNext: (data: any) => void
     isLoading?: boolean
+    refetchTrigger?: number
 }
 
 interface ProductionSitesData {
@@ -29,7 +30,8 @@ const ProductionSitesForm: React.FC<ProductionSitesFormProps> = ({
     userId,
     applicationId,
     onSaveAndNext,
-    isLoading = false
+    isLoading = false,
+    refetchTrigger = 0
 }) => {
     const [isLoadingData, setIsLoadingData] = useState(true)
     const [originalData, setOriginalData] = useState<any>(null)
@@ -48,7 +50,7 @@ const ProductionSitesForm: React.FC<ProductionSitesFormProps> = ({
     const watchedValues = watch()
 
     // Fetch existing production sites data
-    const { data: productionSitesData } = useGetApi<any>(
+    const { data: productionSitesData, refetch } = useGetApi<any>(
         `${CERTIFICATION_ENDPOINTS.productionSites}?userId=${userId}&applicationId=${applicationId}`,
         {
             requireAuth: true,
@@ -81,7 +83,21 @@ const ProductionSitesForm: React.FC<ProductionSitesFormProps> = ({
         }
     )
 
-    // Handle data when it arrives
+    // Refetch data when refetchTrigger changes
+    useEffect(() => {
+        if (refetchTrigger > 0) {
+            refetch()
+        }
+    }, [refetchTrigger, refetch])
+
+    // Reset change detection when originalData is updated after refetch
+    useEffect(() => {
+        if (refetchTrigger > 0 && originalData && !isLoadingData) {
+            setHasChanges(false)
+        }
+    }, [originalData, refetchTrigger, isLoadingData])
+
+    // Handle data when it arrives (initial load)
     useEffect(() => {
         if (productionSitesData?.data && isLoadingData) {
             const formData = productionSitesData.data
@@ -105,6 +121,24 @@ const ProductionSitesForm: React.FC<ProductionSitesFormProps> = ({
             setIsLoadingData(false)
         }
     }, [productionSitesData, isLoadingData, setValue])
+
+    // Handle data after refetch
+    useEffect(() => {
+        if (productionSitesData?.data && refetchTrigger > 0 && !isLoadingData) {
+            const formData = productionSitesData.data
+            setOriginalData(formData)
+
+            setValue('numberOfProductionSites', formData.numberOfProductionSites || '1')
+            setValue('siteNumber', formData.siteNumber || '1')
+            setValue('numberOfProcessingLines', formData.numberOfProcessingLines || '')
+            setValue('facilitySize', formData.facilitySize || '')
+            setValue('physicalAddress', formData.physicalAddress || '')
+            setValue('telephone', formData.telephone || '')
+            setValue('email', formData.email || '')
+            setValue('numberOfShifts', formData.numberOfShift || '1') // API uses numberOfShift
+            setValue('numberOfEmployees', formData.numberOfEmployees || '1')
+        }
+    }, [productionSitesData, refetchTrigger, isLoadingData, setValue])
 
     // Track changes
     useEffect(() => {

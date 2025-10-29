@@ -10,6 +10,7 @@ interface DeclarationsSignaturesFormProps {
     applicationId?: string
     onSaveAndNext: (data: any) => void
     isLoading?: boolean
+    refetchTrigger?: number
 }
 
 interface DeclarationsSignaturesData {
@@ -24,7 +25,8 @@ const DeclarationsSignaturesForm: React.FC<DeclarationsSignaturesFormProps> = ({
     userId,
     applicationId,
     onSaveAndNext,
-    isLoading = false
+    isLoading = false,
+    refetchTrigger = 0
 }) => {
     const [isLoadingData, setIsLoadingData] = useState(true)
     const [originalData, setOriginalData] = useState<any>(null)
@@ -34,7 +36,7 @@ const DeclarationsSignaturesForm: React.FC<DeclarationsSignaturesFormProps> = ({
 
     const watchedValues = watch()
 
-    const { data: declarationsData } = useGetApi<any>(
+    const { data: declarationsData, refetch } = useGetApi<any>(
         `${CERTIFICATION_ENDPOINTS.declarationsSignatures}?userId=${userId}&applicationId=${applicationId}`,
         {
             requireAuth: true,
@@ -55,6 +57,21 @@ const DeclarationsSignaturesForm: React.FC<DeclarationsSignaturesFormProps> = ({
         }
     )
 
+    // Refetch data when refetchTrigger changes
+    useEffect(() => {
+        if (refetchTrigger > 0) {
+            refetch()
+        }
+    }, [refetchTrigger, refetch])
+
+    // Reset change detection when originalData is updated after refetch
+    useEffect(() => {
+        if (refetchTrigger > 0 && originalData && !isLoadingData) {
+            setHasChanges(false)
+        }
+    }, [originalData, refetchTrigger, isLoadingData])
+
+    // Handle data when it arrives (initial load)
     useEffect(() => {
         if (declarationsData?.data && isLoadingData) {
             const d = declarationsData.data
@@ -67,6 +84,19 @@ const DeclarationsSignaturesForm: React.FC<DeclarationsSignaturesFormProps> = ({
             setIsLoadingData(false)
         }
     }, [declarationsData, isLoadingData, setValue])
+
+    // Handle data after refetch
+    useEffect(() => {
+        if (declarationsData?.data && refetchTrigger > 0 && !isLoadingData) {
+            const d = declarationsData.data
+            setOriginalData(d)
+            setValue('name', d.name || '')
+            setValue('position', d.position || '')
+            setValue('location', d.location || '')
+            setValue('digitalSignature', d.digitalSignature || '')
+            setValue('dateOfApplication', d.dateOfApplication || '')
+        }
+    }, [declarationsData, refetchTrigger, isLoadingData, setValue])
 
     useEffect(() => {
         if (!originalData) return

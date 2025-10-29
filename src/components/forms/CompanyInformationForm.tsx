@@ -12,6 +12,7 @@ interface CompanyInformationFormProps {
     applicationId?: string
     onSaveAndNext: (data: any) => void
     isLoading?: boolean
+    refetchTrigger?: number
 }
 
 interface CompanyInformationData {
@@ -32,7 +33,8 @@ const CompanyInformationForm: React.FC<CompanyInformationFormProps> = ({
     userId,
     applicationId,
     onSaveAndNext,
-    isLoading = false
+    isLoading = false,
+    refetchTrigger = 0
 }) => {
     const [isLoadingData, setIsLoadingData] = useState(true)
     const [originalData, setOriginalData] = useState<any>(null)
@@ -50,7 +52,7 @@ const CompanyInformationForm: React.FC<CompanyInformationFormProps> = ({
     const watchedValues = watch()
 
     // Fetch existing company information
-    const { data: companyData } = useGetApi<any>(
+    const { data: companyData, refetch } = useGetApi<any>(
         `${CERTIFICATION_ENDPOINTS.companyInformation}?userId=${userId}&applicationId=${applicationId}`,
         {
             requireAuth: true,
@@ -80,7 +82,21 @@ const CompanyInformationForm: React.FC<CompanyInformationFormProps> = ({
         }
     )
 
-    // Handle data when it arrives
+    // Refetch data when refetchTrigger changes
+    useEffect(() => {
+        if (refetchTrigger > 0) {
+            refetch()
+        }
+    }, [refetchTrigger, refetch])
+
+    // Reset change detection when originalData is updated after refetch
+    useEffect(() => {
+        if (refetchTrigger > 0 && originalData && !isLoadingData) {
+            setHasChanges(false)
+        }
+    }, [originalData, refetchTrigger, isLoadingData])
+
+    // Handle data when it arrives (initial load)
     useEffect(() => {
         if (companyData?.data && isLoadingData) {
             const formData = companyData.data
@@ -99,6 +115,25 @@ const CompanyInformationForm: React.FC<CompanyInformationFormProps> = ({
             setIsLoadingData(false)
         }
     }, [companyData, isLoadingData, setValue])
+
+    // Handle data after refetch
+    useEffect(() => {
+        if (companyData?.data && refetchTrigger > 0 && !isLoadingData) {
+            const formData = companyData.data
+            setOriginalData(formData)
+
+            setValue('companyLegalName', formData.companyLegalName || '')
+            setValue('tradingName', formData.tradingName || '')
+            setValue('registeredOfficeAddress', formData.registeredOfficeAddress || '')
+            setValue('companyStatus', formData.companyStatus || '')
+            setValue('periodOfCurrentOwnership', formData.periodOfCurrentOwnership || '')
+            setValue('companyOwnedBy', Array.isArray(formData.companyOwnedBy) ? formData.companyOwnedBy[0] || '' : formData.companyOwnedBy || '')
+            setValue('registrationNumber', formData.registrationNumber || '')
+            setValue('ntn', formData.ntn || '')
+            setValue('gstNumber', formData.gstNumber || '')
+            setValue('belongingsWithAnyBusinessGroup', formData.belongingsWithAnyBusinessGroup || '')
+        }
+    }, [companyData, refetchTrigger, isLoadingData, setValue])
 
     // Track changes
     useEffect(() => {

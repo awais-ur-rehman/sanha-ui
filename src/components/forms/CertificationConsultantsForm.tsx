@@ -12,6 +12,7 @@ interface CertificationConsultantsFormProps {
     applicationId?: string
     onSaveAndNext: (data: any) => void
     isLoading?: boolean
+    refetchTrigger?: number
 }
 
 interface CertificationConsultantsData {
@@ -42,7 +43,8 @@ const CertificationConsultantsForm: React.FC<CertificationConsultantsFormProps> 
     userId,
     applicationId,
     onSaveAndNext,
-    isLoading = false
+    isLoading = false,
+    refetchTrigger = 0
 }) => {
     const [isLoadingData, setIsLoadingData] = useState(true)
     const [originalData, setOriginalData] = useState<any>(null)
@@ -60,7 +62,7 @@ const CertificationConsultantsForm: React.FC<CertificationConsultantsFormProps> 
     const watchedValues = watch()
 
     // Fetch existing certification consultants data
-    const { data: certificationConsultantsData } = useGetApi<any>(
+    const { data: certificationConsultantsData, refetch } = useGetApi<any>(
         `${CERTIFICATION_ENDPOINTS.certificationConsultants}?userId=${userId}&applicationId=${applicationId}`,
         {
             requireAuth: true,
@@ -104,7 +106,21 @@ const CertificationConsultantsForm: React.FC<CertificationConsultantsFormProps> 
         }
     )
 
-    // Handle data when it arrives
+    // Refetch data when refetchTrigger changes
+    useEffect(() => {
+        if (refetchTrigger > 0) {
+            refetch()
+        }
+    }, [refetchTrigger, refetch])
+
+    // Reset change detection when originalData is updated after refetch
+    useEffect(() => {
+        if (refetchTrigger > 0 && originalData && !isLoadingData) {
+            setHasChanges(false)
+        }
+    }, [originalData, refetchTrigger, isLoadingData])
+
+    // Handle data when it arrives (initial load)
     useEffect(() => {
         if (certificationConsultantsData?.data && isLoadingData) {
             const formData = certificationConsultantsData.data
@@ -140,6 +156,35 @@ const CertificationConsultantsForm: React.FC<CertificationConsultantsFormProps> 
         }
     }, [certificationConsultantsData, isLoadingData, setValue])
 
+    // Handle data after refetch
+    useEffect(() => {
+        if (certificationConsultantsData?.data && refetchTrigger > 0 && !isLoadingData) {
+            const formData = certificationConsultantsData.data
+            setOriginalData(formData)
+
+            // Set other management system certification data
+            setValue('otherManagementSystemCertification.isCertified', formData.otherManagementSystemCertification?.isCertified || 'No')
+            setValue('otherManagementSystemCertification.details', formData.otherManagementSystemCertification?.details || '')
+
+            // Set consultant details data
+            setValue('consultantDetails.hasConsultant', formData.consultantDetails?.hasConsultant || 'No')
+            if (formData.consultantDetails?.consultant) {
+                setValue('consultantDetails.consultant.name', formData.consultantDetails.consultant.name || '')
+                setValue('consultantDetails.consultant.company', formData.consultantDetails.consultant.company || '')
+                setValue('consultantDetails.consultant.address', formData.consultantDetails.consultant.address || '')
+                setValue('consultantDetails.consultant.email', formData.consultantDetails.consultant.email || '')
+                setValue('consultantDetails.consultant.telephone', formData.consultantDetails.consultant.telephone || '')
+            }
+
+            // Set toll co manufacturing data
+            setValue('tollCoManufacturing.hasTollCoManufacturing', formData.tollCoManufacturing?.hasTollCoManufacturing || 'No')
+            if (formData.tollCoManufacturing?.manufacturer) {
+                setValue('tollCoManufacturing.manufacturer.name', formData.tollCoManufacturing.manufacturer.name || '')
+                setValue('tollCoManufacturing.manufacturer.products', formData.tollCoManufacturing.manufacturer.products || '')
+            }
+        }
+    }, [certificationConsultantsData, refetchTrigger, isLoadingData, setValue])
+
     // Track changes
     useEffect(() => {
         if (originalData && watchedValues && !isInitialLoad) {
@@ -148,17 +193,17 @@ const CertificationConsultantsForm: React.FC<CertificationConsultantsFormProps> 
                 const changes: string[] = []
                 const hasFormChanges = Object.keys(watchedValues).some(key => {
                     const currentValue = watchedValues[key as keyof CertificationConsultantsData]
-                    const originalValue = originalData[key]
+                    const originalValue = (originalData as any)[key]
 
                     // Handle nested object comparison
                     if (typeof currentValue === 'object' && typeof originalValue === 'object') {
                         const currentObj = currentValue || {}
                         const originalObj = originalValue || {}
                         return Object.keys(currentObj).some(subKey => {
-                            if (typeof currentObj[subKey] === 'object' && typeof originalObj[subKey] === 'object') {
+                            if (typeof (currentObj as any)[subKey] === 'object' && typeof (originalObj as any)[subKey] === 'object') {
                                 // Handle deeply nested objects (like consultant and manufacturer)
-                                const currentSubObj = currentObj[subKey] || {}
-                                const originalSubObj = originalObj[subKey] || {}
+                                const currentSubObj = (currentObj as any)[subKey] || {}
+                                const originalSubObj = (originalObj as any)[subKey] || {}
                                 return Object.keys(currentSubObj).some(subSubKey => {
                                     const curr = (currentSubObj[subSubKey] ?? '').toString().trim()
                                     const orig = (originalSubObj[subSubKey] ?? '').toString().trim()
@@ -169,8 +214,8 @@ const CertificationConsultantsForm: React.FC<CertificationConsultantsFormProps> 
                                     return hasChange
                                 })
                             } else {
-                                const curr = (currentObj[subKey] ?? '').toString().trim()
-                                const orig = (originalObj[subKey] ?? '').toString().trim()
+                                const curr = ((currentObj as any)[subKey] ?? '').toString().trim()
+                                const orig = ((originalObj as any)[subKey] ?? '').toString().trim()
                                 const hasChange = curr !== orig
                                 if (hasChange) {
                                     changes.push(`${key}.${subKey}: "${orig}" -> "${curr}"`)

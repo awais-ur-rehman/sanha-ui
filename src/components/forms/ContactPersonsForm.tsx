@@ -10,6 +10,7 @@ interface ContactPersonsFormProps {
     applicationId?: string
     onSaveAndNext: (data: any) => void
     isLoading?: boolean
+    refetchTrigger?: number
 }
 
 interface ContactPersonsData {
@@ -26,7 +27,8 @@ const ContactPersonsForm: React.FC<ContactPersonsFormProps> = ({
     userId,
     applicationId,
     onSaveAndNext,
-    isLoading = false
+    isLoading = false,
+    refetchTrigger = 0
 }) => {
     const [isLoadingData, setIsLoadingData] = useState(true)
     const [originalData, setOriginalData] = useState<any>(null)
@@ -51,7 +53,7 @@ const ContactPersonsForm: React.FC<ContactPersonsFormProps> = ({
     const watchedValues = watch()
 
     // Fetch existing contact persons data
-    const { data: contactPersonsData } = useGetApi<any>(
+    const { data: contactPersonsData, refetch } = useGetApi<any>(
         `${CERTIFICATION_ENDPOINTS.contactPersons}?userId=${userId}&applicationId=${applicationId}`,
         {
             requireAuth: true,
@@ -99,7 +101,21 @@ const ContactPersonsForm: React.FC<ContactPersonsFormProps> = ({
         }
     )
 
-    // Handle data when it arrives
+    // Refetch data when refetchTrigger changes
+    useEffect(() => {
+        if (refetchTrigger > 0) {
+            refetch()
+        }
+    }, [refetchTrigger, refetch])
+
+    // Reset change detection when originalData is updated after refetch
+    useEffect(() => {
+        if (refetchTrigger > 0 && originalData && !isLoadingData) {
+            setHasChanges(false)
+        }
+    }, [originalData, refetchTrigger, isLoadingData])
+
+    // Handle data when it arrives (initial load)
     useEffect(() => {
         if (contactPersonsData?.data && isLoadingData) {
             const formData = contactPersonsData.data
@@ -138,6 +154,39 @@ const ContactPersonsForm: React.FC<ContactPersonsFormProps> = ({
             setIsLoadingData(false)
         }
     }, [contactPersonsData, isLoadingData, setValue])
+
+    // Handle data after refetch
+    useEffect(() => {
+        if (contactPersonsData?.data && refetchTrigger > 0 && !isLoadingData) {
+            const formData = contactPersonsData.data
+            setOriginalData(formData)
+
+            // Initialize contact persons array with default structure
+            const defaultContactPersons = [
+                { department: 'Top Management', name: '', position: '', emailAddress: '', contactNumber: '' },
+                { department: 'Halal Management Representative (MR)', name: '', position: '', emailAddress: '', contactNumber: '' },
+                { department: 'Research and Development', name: '', position: '', emailAddress: '', contactNumber: '' },
+                { department: 'Marketing', name: '', position: '', emailAddress: '', contactNumber: '' },
+                { department: 'Finance', name: '', position: '', emailAddress: '', contactNumber: '' }
+            ]
+
+            // Map API data to form structure
+            const apiContactPersons = formData.contactPersons || []
+            const mappedContactPersons = defaultContactPersons.map(defaultContact => {
+                const apiContact = apiContactPersons.find((api: any) => api.department === defaultContact.department)
+                return apiContact ? {
+                    department: defaultContact.department,
+                    name: apiContact.name || '',
+                    position: apiContact.position || '',
+                    emailAddress: apiContact.emailAddress || '',
+                    contactNumber: apiContact.contactNumber || ''
+                } : defaultContact
+            })
+
+            setContactPersons(mappedContactPersons)
+            setValue('contactPersons', mappedContactPersons)
+        }
+    }, [contactPersonsData, refetchTrigger, isLoadingData, setValue])
 
     // Handle contact person field changes
     const handleContactPersonChange = (index: number, field: string, value: string) => {

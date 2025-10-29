@@ -12,6 +12,7 @@ interface HumanResourceFormProps {
     applicationId?: string
     onSaveAndNext: (data: any) => void
     isLoading?: boolean
+    refetchTrigger?: number
 }
 
 interface HumanResourceData {
@@ -24,7 +25,8 @@ const HumanResourceForm: React.FC<HumanResourceFormProps> = ({
     userId,
     applicationId,
     onSaveAndNext,
-    isLoading = false
+    isLoading = false,
+    refetchTrigger = 0
 }) => {
     const [isLoadingData, setIsLoadingData] = useState(true)
     const [originalData, setOriginalData] = useState<any>(null)
@@ -43,7 +45,7 @@ const HumanResourceForm: React.FC<HumanResourceFormProps> = ({
     const watchedValues = watch()
 
     // Fetch existing human resource data
-    const { data: humanResourceData } = useGetApi<any>(
+    const { data: humanResourceData, refetch } = useGetApi<any>(
         `${CERTIFICATION_ENDPOINTS.humanResource}?userId=${userId}&applicationId=${applicationId}`,
         {
             requireAuth: true,
@@ -70,7 +72,21 @@ const HumanResourceForm: React.FC<HumanResourceFormProps> = ({
         }
     )
 
-    // Handle data when it arrives
+    // Refetch data when refetchTrigger changes
+    useEffect(() => {
+        if (refetchTrigger > 0) {
+            refetch()
+        }
+    }, [refetchTrigger, refetch])
+
+    // Reset change detection when originalData is updated after refetch
+    useEffect(() => {
+        if (refetchTrigger > 0 && originalData && !isLoadingData) {
+            setHasChanges(false)
+        }
+    }, [originalData, refetchTrigger, isLoadingData])
+
+    // Handle data when it arrives (initial load)
     useEffect(() => {
         if (humanResourceData?.data && isLoadingData) {
             const formData = humanResourceData.data
@@ -88,6 +104,18 @@ const HumanResourceForm: React.FC<HumanResourceFormProps> = ({
             setIsLoadingData(false)
         }
     }, [humanResourceData, isLoadingData, setValue])
+
+    // Handle data after refetch
+    useEffect(() => {
+        if (humanResourceData?.data && refetchTrigger > 0 && !isLoadingData) {
+            const formData = humanResourceData.data
+            setOriginalData(formData)
+
+            setValue('totalNumberOfEmployees', formData.totalNoOfEmployees || '') // API uses totalNoOfEmployees
+            setValue('hasNonMuslimEmployees', formData.hasNonMuslimEmployee || 'No') // API uses hasNonMuslimEmployee
+            setValue('nonMuslimEmployeeDetails', formData.nonMuslimEmployeeDetails || '')
+        }
+    }, [humanResourceData, refetchTrigger, isLoadingData, setValue])
 
     // Track changes
     useEffect(() => {

@@ -13,6 +13,9 @@ import ContactPersonsForm from '../../components/forms/ContactPersonsForm'
 import CertificationConsultantsForm from '../../components/forms/CertificationConsultantsForm'
 import ProductListForm from '../../components/forms/ProductListForm'
 import DeclarationsSignaturesForm from '../../components/forms/DeclarationsSignaturesForm'
+import ConfirmationModal from '../../components/ConfirmationModal'
+import CustomTextarea from '../../components/CustomTextarea'
+import Button from '../../components/Button'
 
 interface ApplicationDetailProps { }
 
@@ -24,6 +27,11 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = () => {
     const [currentForm, setCurrentForm] = useState(1)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [userData, setUserData] = useState<any>(null)
+    const [showAcceptModal, setShowAcceptModal] = useState(false)
+    const [showRejectModal, setShowRejectModal] = useState(false)
+    const [rejectReason, setRejectReason] = useState('')
+    const [isProcessingReply, setIsProcessingReply] = useState(false)
+    const [refetchTrigger, setRefetchTrigger] = useState(0)
 
     // Fetch user data for breadcrumb
     const { data: userResponse } = useGetApi<any>(
@@ -79,7 +87,7 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = () => {
                     throw new Error('Unknown form type')
             }
 
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://quiet-similarly-cattle.ngrok-free.app/api/v1'}${endpoint}?userId=${userId}&applicationId=${applicationId}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}${endpoint}?userId=${userId}&applicationId=${applicationId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -106,6 +114,9 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = () => {
             }
             showToast('success', `${formNames[formType as keyof typeof formNames] || 'Form'} updated successfully!`)
 
+            // Trigger refetch of current form data
+            setRefetchTrigger(prev => prev + 1)
+
             // Do not auto-advance; stay on the same form
         } catch (error) {
             showToast('error', 'Failed to update form data')
@@ -116,6 +127,77 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = () => {
 
     const handleBackToApplications = () => {
         navigate('/certification/applications')
+    }
+
+    const handleAcceptApplication = async () => {
+        setIsProcessingReply(true)
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/certification/reply`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'ngrok-skip-browser-warning': 'true'
+                },
+                body: JSON.stringify({
+                    status: 'Approved',
+                    applicationId: parseInt(applicationId || '0')
+                })
+            })
+
+            const result = await response.json()
+
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || 'Failed to accept application')
+            }
+
+            showToast('success', 'Application accepted successfully!')
+            setShowAcceptModal(false)
+            navigate('/certification/applications')
+        } catch (error) {
+            showToast('error', error instanceof Error ? error.message : 'Failed to accept application')
+        } finally {
+            setIsProcessingReply(false)
+        }
+    }
+
+    const handleRejectApplication = async () => {
+        if (!rejectReason.trim()) {
+            showToast('error', 'Please provide a reason for rejection')
+            return
+        }
+
+        setIsProcessingReply(true)
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://quiet-similarly-cattle.ngrok-free.app/api/v1'}/certification/reply`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'ngrok-skip-browser-warning': 'true'
+                },
+                body: JSON.stringify({
+                    status: 'Rejected',
+                    applicationId: parseInt(applicationId || '0'),
+                    reply: rejectReason.trim()
+                })
+            })
+
+            const result = await response.json()
+
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || 'Failed to reject application')
+            }
+
+            showToast('success', 'Application rejected successfully!')
+            setShowRejectModal(false)
+            setRejectReason('')
+            navigate('/certification/applications')
+        } catch (error) {
+            showToast('error', error instanceof Error ? error.message : 'Failed to reject application')
+        } finally {
+            setIsProcessingReply(false)
+        }
     }
 
     const fullName = userData ? `${userData.firstName || ''} ${userData.lastName || ''}`.trim() : 'User'
@@ -138,8 +220,28 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = () => {
 
                 {/* Header */}
                 <div className="mb-6">
-                    <h1 className="text-2xl font-semibold text-gray-900">Certification Application</h1>
-                    <p className="text-gray-600 text-sm">Review and manage application details</p>
+                    <div className="flex justify-between items-start">
+                        <div>
+                            <h1 className="text-2xl font-semibold text-gray-900">Certification Application</h1>
+                            <p className="text-gray-600 text-sm">Review and manage application details</p>
+                        </div>
+                        <div className="flex gap-3">
+                            <Button
+                                variant="outlineDanger"
+                                size="sm"
+                                onClick={() => setShowRejectModal(true)}
+                            >
+                                Reject
+                            </Button>
+                            <Button
+                                variant="success"
+                                size="sm"
+                                onClick={() => setShowAcceptModal(true)}
+                            >
+                                Approve
+                            </Button>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Form Progress */}
@@ -185,6 +287,7 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = () => {
                             applicationId={applicationId}
                             onSaveAndNext={(data: any) => handleSaveAndNext(data, 'company')}
                             isLoading={isSubmitting}
+                            refetchTrigger={refetchTrigger}
                         />
                     )}
 
@@ -194,6 +297,7 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = () => {
                             applicationId={applicationId}
                             onSaveAndNext={(data: any) => handleSaveAndNext(data, 'scope')}
                             isLoading={isSubmitting}
+                            refetchTrigger={refetchTrigger}
                         />
                     )}
 
@@ -203,6 +307,7 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = () => {
                             applicationId={applicationId}
                             onSaveAndNext={(data: any) => handleSaveAndNext(data, 'production')}
                             isLoading={isSubmitting}
+                            refetchTrigger={refetchTrigger}
                         />
                     )}
 
@@ -212,6 +317,7 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = () => {
                             applicationId={applicationId}
                             onSaveAndNext={(data: any) => handleSaveAndNext(data, 'business')}
                             isLoading={isSubmitting}
+                            refetchTrigger={refetchTrigger}
                         />
                     )}
 
@@ -221,6 +327,7 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = () => {
                             applicationId={applicationId}
                             onSaveAndNext={(data: any) => handleSaveAndNext(data, 'human')}
                             isLoading={isSubmitting}
+                            refetchTrigger={refetchTrigger}
                         />
                     )}
 
@@ -230,6 +337,7 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = () => {
                             applicationId={applicationId}
                             onSaveAndNext={(data: any) => handleSaveAndNext(data, 'contact')}
                             isLoading={isSubmitting}
+                            refetchTrigger={refetchTrigger}
                         />
                     )}
 
@@ -239,6 +347,7 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = () => {
                             applicationId={applicationId}
                             onSaveAndNext={(data: any) => handleSaveAndNext(data, 'consultants')}
                             isLoading={isSubmitting}
+                            refetchTrigger={refetchTrigger}
                         />
                     )}
 
@@ -248,6 +357,7 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = () => {
                             applicationId={applicationId}
                             onSaveAndNext={(data: any) => handleSaveAndNext(data, 'products')}
                             isLoading={isSubmitting}
+                            refetchTrigger={refetchTrigger}
                         />
                     )}
 
@@ -257,10 +367,78 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = () => {
                             applicationId={applicationId}
                             onSaveAndNext={(data: any) => handleSaveAndNext(data, 'declarations')}
                             isLoading={isSubmitting}
+                            refetchTrigger={refetchTrigger}
                         />
                     )}
                 </div>
             </div>
+
+            {/* Accept Confirmation Modal */}
+            <ConfirmationModal
+                isOpen={showAcceptModal}
+                onClose={() => setShowAcceptModal(false)}
+                onConfirm={handleAcceptApplication}
+                title="Accept Application"
+                message="Are you sure you want to accept this application?"
+                confirmText="Approve"
+                cancelText="Cancel"
+                isLoading={isProcessingReply}
+                type="success"
+            />
+
+            {/* Reject Confirmation Modal */}
+            {showRejectModal && (
+                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+                        {/* Header */}
+                        <div className="flex flex-col items-start space-x-3 p-6">
+                            <div className="flex justify-center items-center space-x-2">
+                                <div className="w-10 h-10 rounded-full flex items-center justify-center text-red-600 bg-red-100">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 19.5c-.77.833.192 2.5 1.732 2.5z" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-xl font-semibold text-gray-900">Reject Application</h3>
+                            </div>
+                            <div className='mt-2'>
+                                <p className="text-sm text-gray-500">Are you sure you want to reject this application?</p>
+                            </div>
+                        </div>
+
+                        {/* Rejection Reason */}
+                        <div className="px-6 pb-4">
+                            <CustomTextarea
+                                label="Reason for Rejection *"
+                                placeholder="Please provide a reason for rejecting this application..."
+                                value={rejectReason}
+                                onChange={(e) => setRejectReason(e.target.value)}
+                                rows={3}
+                            />
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex items-center justify-end space-x-3 px-6 pb-3">
+                            <button
+                                onClick={() => {
+                                    setShowRejectModal(false)
+                                    setRejectReason('')
+                                }}
+                                disabled={isProcessingReply}
+                                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors text-sm font-medium disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleRejectApplication}
+                                disabled={isProcessingReply}
+                                className="px-4 py-2 text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {isProcessingReply ? 'Processing...' : 'Yes, Reject'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

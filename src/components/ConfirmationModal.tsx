@@ -41,7 +41,7 @@ const ConfirmationModal = ({
       case 'warning':
         return 'bg-yellow-600 hover:bg-yellow-700'
       case 'success':
-        return 'bg-green-600 hover:bg-green-700'
+        return 'bg-[#0c684b] hover:bg-[#0c684b]/80'
       default:
         return 'bg-[#0c684b] hover:bg-[#0c684b]/80'
     }
@@ -63,7 +63,7 @@ const ConfirmationModal = ({
           </div>
         </div>
 
-        
+
 
         {/* Actions */}
         <div className="flex items-center justify-end space-x-3 px-6 pb-3">

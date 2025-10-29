@@ -12,6 +12,7 @@ interface BusinessActivitiesFormProps {
     applicationId?: string
     onSaveAndNext: (data: any) => void
     isLoading?: boolean
+    refetchTrigger?: number
 }
 
 interface BusinessActivitiesData {
@@ -31,7 +32,8 @@ const BusinessActivitiesForm: React.FC<BusinessActivitiesFormProps> = ({
     userId,
     applicationId,
     onSaveAndNext,
-    isLoading = false
+    isLoading = false,
+    refetchTrigger = 0
 }) => {
     const [isLoadingData, setIsLoadingData] = useState(true)
     const [originalData, setOriginalData] = useState<any>(null)
@@ -52,7 +54,7 @@ const BusinessActivitiesForm: React.FC<BusinessActivitiesFormProps> = ({
     const watchedValues = watch()
 
     // Fetch existing business activities data
-    const { data: businessActivitiesData } = useGetApi<any>(
+    const { data: businessActivitiesData, refetch } = useGetApi<any>(
         `${CERTIFICATION_ENDPOINTS.businessActivities}?userId=${userId}&applicationId=${applicationId}`,
         {
             requireAuth: true,
@@ -93,7 +95,21 @@ const BusinessActivitiesForm: React.FC<BusinessActivitiesFormProps> = ({
         }
     )
 
-    // Handle data when it arrives
+    // Refetch data when refetchTrigger changes
+    useEffect(() => {
+        if (refetchTrigger > 0) {
+            refetch()
+        }
+    }, [refetchTrigger, refetch])
+
+    // Reset change detection when originalData is updated after refetch
+    useEffect(() => {
+        if (refetchTrigger > 0 && originalData && !isLoadingData) {
+            setHasChanges(false)
+        }
+    }, [originalData, refetchTrigger, isLoadingData])
+
+    // Handle data when it arrives (initial load)
     useEffect(() => {
         if (businessActivitiesData?.data && isLoadingData) {
             const formData = businessActivitiesData.data
@@ -125,6 +141,32 @@ const BusinessActivitiesForm: React.FC<BusinessActivitiesFormProps> = ({
             setIsLoadingData(false)
         }
     }, [businessActivitiesData, isLoadingData, setValue])
+
+    // Handle data after refetch
+    useEffect(() => {
+        if (businessActivitiesData?.data && refetchTrigger > 0 && !isLoadingData) {
+            const formData = businessActivitiesData.data
+            setOriginalData(formData)
+
+            setValue('brandNames', formData.brandsName || '') // API uses brandsName
+            setValue('totalNumberOfProducts', formData.totalNoOfProducts || '') // API uses totalNoOfProducts
+            setValue('totalNumberOfRawMaterials', formData.totalNoOfRawMaterials || '') // API uses totalNoOfRawMaterials
+            setValue('numberOfProductVariety', formData.noOfProductVariety || '') // API uses noOfProductVariety
+            setValue('numberOfHACCPStudies', formData.noOfHaccpStudies || '') // API uses noOfHaccpStudies
+            setValue('exportLocations', formData.exportLocations || '')
+            setValue('isProducerDistributorSupplierOfWineOrPork', formData.isProducerDistributorSupplierOfWineOrPork || 'No')
+            setValue('hasSeparateFacilityForWineOrPork', formData.hasSeparateFacilityForWineOrPork || 'No')
+            setValue('numberOfWarehouses', formData.numberOfWarehouses || '1')
+
+            // Handle warehouse addresses - API uses warehouses array
+            const warehouses = formData.warehouses || []
+            const warehouseCount = parseInt(formData.numberOfWarehouses || '1')
+            const warehouseAddresses = warehouses.map((w: any) => w.physicalAddress || '').slice(0, warehouseCount)
+            setNumberOfWarehouses(warehouseCount)
+            setWarehouseAddresses(warehouseAddresses.length > 0 ? warehouseAddresses : Array(warehouseCount).fill(''))
+            setValue('warehouseAddresses', warehouseAddresses.length > 0 ? warehouseAddresses : Array(warehouseCount).fill(''))
+        }
+    }, [businessActivitiesData, refetchTrigger, isLoadingData, setValue])
 
     // Handle warehouse count change
     const handleWarehouseCountChange = (count: number) => {

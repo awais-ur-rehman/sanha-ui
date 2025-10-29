@@ -1,5 +1,5 @@
 // Button variants
-export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'danger' | 'success' | 'warning'
+export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'danger' | 'outlineDanger' | 'success' | 'warning'
 
 // Button sizes
 export type ButtonSize = 'sm' | 'md' | 'lg' | 'xl'

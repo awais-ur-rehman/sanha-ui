@@ -10,6 +10,7 @@ interface ScopeOfCertificationFormProps {
     applicationId?: string
     onSaveAndNext: (data: any) => void
     isLoading?: boolean
+    refetchTrigger?: number
 }
 
 interface ScopeOfCertificationData {
@@ -22,7 +23,8 @@ const ScopeOfCertificationForm: React.FC<ScopeOfCertificationFormProps> = ({
     userId,
     applicationId,
     onSaveAndNext,
-    isLoading = false
+    isLoading = false,
+    refetchTrigger = 0
 }) => {
     const [isLoadingData, setIsLoadingData] = useState(true)
     const [originalData, setOriginalData] = useState<any>(null)
@@ -41,7 +43,7 @@ const ScopeOfCertificationForm: React.FC<ScopeOfCertificationFormProps> = ({
     const watchedValues = watch()
 
     // Fetch existing scope of certification data
-    const { data: scopeData } = useGetApi<any>(
+    const { data: scopeData, refetch } = useGetApi<any>(
         `${CERTIFICATION_ENDPOINTS.scopeOfCertification}?userId=${userId}&applicationId=${applicationId}`,
         {
             requireAuth: true,
@@ -67,7 +69,21 @@ const ScopeOfCertificationForm: React.FC<ScopeOfCertificationFormProps> = ({
         }
     )
 
-    // Handle data when it arrives
+    // Refetch data when refetchTrigger changes
+    useEffect(() => {
+        if (refetchTrigger > 0) {
+            refetch()
+        }
+    }, [refetchTrigger, refetch])
+
+    // Reset change detection when originalData is updated after refetch
+    useEffect(() => {
+        if (refetchTrigger > 0 && originalData && !isLoadingData) {
+            setHasChanges(false)
+        }
+    }, [originalData, refetchTrigger, isLoadingData])
+
+    // Handle data when it arrives (initial load)
     useEffect(() => {
         if (scopeData?.data && isLoadingData) {
             const formData = scopeData.data
@@ -83,6 +99,21 @@ const ScopeOfCertificationForm: React.FC<ScopeOfCertificationFormProps> = ({
             setIsLoadingData(false)
         }
     }, [scopeData, isLoadingData, setValue])
+
+    // Handle data after refetch
+    useEffect(() => {
+        if (scopeData?.data && refetchTrigger > 0 && !isLoadingData) {
+            const formData = scopeData.data
+            setOriginalData(formData)
+
+            setValue('scopeDescription', formData.scopeDescription || '')
+            setValue('otherStandardDescription', formData.otherStandardDescription || '')
+
+            const standards = formData.selectedStandards || []
+            setSelectedStandards(standards)
+            setValue('selectedStandards', standards)
+        }
+    }, [scopeData, refetchTrigger, isLoadingData, setValue])
 
     // Track changes
     useEffect(() => {
