@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { FiArrowLeft, FiChevronRight } from 'react-icons/fi'
 import { useGetApi } from '../../hooks'
 import { CERTIFICATION_ENDPOINTS } from '../../config/api'
@@ -39,6 +39,14 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = () => {
         { requireAuth: true, enabled: !!userId }
     )
 
+    // Receive status from Applications page navigation state
+    const location = useLocation() as { state?: { status?: string } }
+    const applicationStatus: string = (location?.state?.status || '').toString()
+    const statusLower = applicationStatus.trim().toLowerCase()
+    const isApproved = statusLower === 'approved'
+    const isRejected = statusLower === 'rejected'
+    const isReviewNeeded = statusLower.includes('review')
+
     useEffect(() => {
         if (userResponse?.data) {
             setUserData(userResponse.data)
@@ -48,6 +56,11 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = () => {
     const handleSaveAndNext = async (formData: any, formType: string): Promise<void> => {
         // Check if we should skip API call (view-only navigation)
         if (formData.skipApi) {
+            return
+        }
+
+        if (isApproved) {
+            showToast('info', 'This application is approved and read-only.')
             return
         }
 
@@ -226,20 +239,29 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = () => {
                             <p className="text-gray-600 text-sm">Review and manage application details</p>
                         </div>
                         <div className="flex gap-3">
-                            <Button
-                                variant="outlineDanger"
-                                size="sm"
-                                onClick={() => setShowRejectModal(true)}
-                            >
-                                Reject
-                            </Button>
-                            <Button
-                                variant="success"
-                                size="sm"
-                                onClick={() => setShowAcceptModal(true)}
-                            >
-                                Approve
-                            </Button>
+                            {/* Download button (logic to be added later) */}
+                            {!isReviewNeeded && (
+                                <Button variant="outline" size="sm">Download</Button>
+                            )}
+                            {/* Show Approve and Reject based on status */}
+                            {!isApproved && (
+                                <Button
+                                    variant="success"
+                                    size="sm"
+                                    onClick={() => setShowAcceptModal(true)}
+                                >
+                                    Approve
+                                </Button>
+                            )}
+                            {isRejected ? null : (!isApproved && (
+                                <Button
+                                    variant="outlineDanger"
+                                    size="sm"
+                                    onClick={() => setShowRejectModal(true)}
+                                >
+                                    Reject
+                                </Button>
+                            ))}
                         </div>
                     </div>
                 </div>
@@ -378,8 +400,8 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = () => {
                 isOpen={showAcceptModal}
                 onClose={() => setShowAcceptModal(false)}
                 onConfirm={handleAcceptApplication}
-                title="Accept Application"
-                message="Are you sure you want to accept this application?"
+                title="Approve Application"
+                message="Are you sure you want to approve this application?"
                 confirmText="Approve"
                 cancelText="Cancel"
                 isLoading={isProcessingReply}
@@ -389,7 +411,7 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = () => {
             {/* Reject Confirmation Modal */}
             {showRejectModal && (
                 <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+                    <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4">
                         {/* Header */}
                         <div className="flex flex-col items-start space-x-3 p-6">
                             <div className="flex justify-center items-center space-x-2">
@@ -412,7 +434,7 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = () => {
                                 placeholder="Please provide a reason for rejecting this application..."
                                 value={rejectReason}
                                 onChange={(e) => setRejectReason(e.target.value)}
-                                rows={3}
+                                rows={10}
                             />
                         </div>
 

@@ -4,6 +4,7 @@ import { FiSearch } from 'react-icons/fi'
 import { useGetApi } from '../../hooks'
 import { USERS_ENDPOINTS } from '../../config/api'
 import StyledTable from '../../components/StyledTable'
+import Chip from '../../components/Chip'
 import DateRangePicker from '../../components/DateRangePicker'
 import { Pagination } from '../../components'
 import { useToast } from '../../components/CustomToast/ToastContext'
@@ -100,6 +101,33 @@ const Applications = () => {
         return row.applications[0]?.certificationStatus || 'Pending'
     }
 
+    const renderStatusChip = (statusRaw: string) => {
+        const status = (statusRaw || 'Pending').toString().trim().toLowerCase()
+        let classes = 'bg-gray-100 text-gray-700 ring-1 ring-gray-200'
+        let label = statusRaw || 'Pending'
+
+        if (status === 'approved') {
+            classes = 'bg-green-50 text-green-700 ring-1 ring-green-200'
+        } else if (status === 'rejected') {
+            classes = 'bg-red-50 text-red-700 ring-1 ring-red-200'
+        } else if (status.includes('progress')) {
+            classes = 'bg-blue-50 text-blue-700 ring-1 ring-blue-200'
+            label = 'In Progress'
+        } else if (status.includes('review')) {
+            classes = 'bg-amber-50 text-amber-700 ring-1 ring-amber-200'
+            label = 'Review Needed'
+        } else if (status === 'pending') {
+            classes = 'bg-gray-100 text-gray-700 ring-1 ring-gray-200'
+        }
+
+        return (
+            <Chip
+                label={label}
+                className={`min-w-[128px] ${classes}`}
+            />
+        )
+    }
+
     const handleRowClick = (row: UserRow) => {
         const statusRaw = getApplicationStatus(row)
         const status = (statusRaw || '').toString().trim().toLowerCase()
@@ -108,11 +136,13 @@ const Applications = () => {
             showToast('info', 'This user has not started the certification application yet.')
         } else if (status.includes('progress')) {
             showToast('info', 'This user is currently filling the certification application.')
-        } else if (status.includes('review')) {
+        } else if (status.includes('review') || status.includes('approved') || status.includes('rejected')) {
             // Navigate to application detail page
             const applicationId = row.applications?.[0]?.id
             if (applicationId) {
-                navigate(`/certification/application/${row.id}/${applicationId}`)
+                navigate(`/certification/application/${row.id}/${applicationId}`, {
+                    state: { status: getApplicationStatus(row) }
+                })
             } else {
                 showToast('error', 'Application ID not found.')
             }
@@ -209,7 +239,9 @@ const Applications = () => {
                                     key: 'applicationStatus',
                                     header: 'Application Status',
                                     render: (row: UserRow) => (
-                                        <span className="text-sm text-gray-900 cursor-pointer hover:underline text-[#0c684b]">{getApplicationStatus(row)}</span>
+                                        <div className="text-sm flex justify-start">
+                                            {renderStatusChip(getApplicationStatus(row))}
+                                        </div>
                                     )
                                 },
                             ]}
