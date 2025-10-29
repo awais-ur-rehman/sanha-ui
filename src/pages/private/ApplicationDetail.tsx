@@ -304,93 +304,111 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = () => {
                 {/* Form Content (no background, horizontal padding only) */}
                 <div className="px-6">
                     {currentForm === 1 && (
-                        <CompanyInformationForm
-                            userId={userId}
-                            applicationId={applicationId}
-                            onSaveAndNext={(data: any) => handleSaveAndNext(data, 'company')}
-                            isLoading={isSubmitting}
-                            refetchTrigger={refetchTrigger}
-                        />
+                        <div className={isApproved ? 'pointer-events-none select-none' : ''}>
+                            <CompanyInformationForm
+                                userId={userId}
+                                applicationId={applicationId}
+                                onSaveAndNext={(data: any) => handleSaveAndNext(data, 'company')}
+                                isLoading={isSubmitting}
+                                refetchTrigger={refetchTrigger}
+                            />
+                        </div>
                     )}
 
                     {currentForm === 2 && (
-                        <ScopeOfCertificationForm
-                            userId={userId}
-                            applicationId={applicationId}
-                            onSaveAndNext={(data: any) => handleSaveAndNext(data, 'scope')}
-                            isLoading={isSubmitting}
-                            refetchTrigger={refetchTrigger}
-                        />
+                        <div className={isApproved ? 'pointer-events-none select-none' : ''}>
+                            <ScopeOfCertificationForm
+                                userId={userId}
+                                applicationId={applicationId}
+                                onSaveAndNext={(data: any) => handleSaveAndNext(data, 'scope')}
+                                isLoading={isSubmitting}
+                                refetchTrigger={refetchTrigger}
+                            />
+                        </div>
                     )}
 
                     {currentForm === 3 && (
-                        <ProductionSitesForm
-                            userId={userId}
-                            applicationId={applicationId}
-                            onSaveAndNext={(data: any) => handleSaveAndNext(data, 'production')}
-                            isLoading={isSubmitting}
-                            refetchTrigger={refetchTrigger}
-                        />
+                        <div className={isApproved ? 'pointer-events-none select-none' : ''}>
+                            <ProductionSitesForm
+                                userId={userId}
+                                applicationId={applicationId}
+                                onSaveAndNext={(data: any) => handleSaveAndNext(data, 'production')}
+                                isLoading={isSubmitting}
+                                refetchTrigger={refetchTrigger}
+                            />
+                        </div>
                     )}
 
                     {currentForm === 4 && (
-                        <BusinessActivitiesForm
-                            userId={userId}
-                            applicationId={applicationId}
-                            onSaveAndNext={(data: any) => handleSaveAndNext(data, 'business')}
-                            isLoading={isSubmitting}
-                            refetchTrigger={refetchTrigger}
-                        />
+                        <div className={isApproved ? 'pointer-events-none select-none' : ''}>
+                            <BusinessActivitiesForm
+                                userId={userId}
+                                applicationId={applicationId}
+                                onSaveAndNext={(data: any) => handleSaveAndNext(data, 'business')}
+                                isLoading={isSubmitting}
+                                refetchTrigger={refetchTrigger}
+                            />
+                        </div>
                     )}
 
                     {currentForm === 5 && (
-                        <HumanResourceForm
-                            userId={userId}
-                            applicationId={applicationId}
-                            onSaveAndNext={(data: any) => handleSaveAndNext(data, 'human')}
-                            isLoading={isSubmitting}
-                            refetchTrigger={refetchTrigger}
-                        />
+                        <div className={isApproved ? 'pointer-events-none select-none' : ''}>
+                            <HumanResourceForm
+                                userId={userId}
+                                applicationId={applicationId}
+                                onSaveAndNext={(data: any) => handleSaveAndNext(data, 'human')}
+                                isLoading={isSubmitting}
+                                refetchTrigger={refetchTrigger}
+                            />
+                        </div>
                     )}
 
                     {currentForm === 6 && (
-                        <ContactPersonsForm
-                            userId={userId}
-                            applicationId={applicationId}
-                            onSaveAndNext={(data: any) => handleSaveAndNext(data, 'contact')}
-                            isLoading={isSubmitting}
-                            refetchTrigger={refetchTrigger}
-                        />
+                        <div className={isApproved ? 'pointer-events-none select-none' : ''}>
+                            <ContactPersonsForm
+                                userId={userId}
+                                applicationId={applicationId}
+                                onSaveAndNext={(data: any) => handleSaveAndNext(data, 'contact')}
+                                isLoading={isSubmitting}
+                                refetchTrigger={refetchTrigger}
+                            />
+                        </div>
                     )}
 
                     {currentForm === 7 && (
-                        <CertificationConsultantsForm
-                            userId={userId}
-                            applicationId={applicationId}
-                            onSaveAndNext={(data: any) => handleSaveAndNext(data, 'consultants')}
-                            isLoading={isSubmitting}
-                            refetchTrigger={refetchTrigger}
-                        />
+                        <div className={isApproved ? 'pointer-events-none select-none' : ''}>
+                            <CertificationConsultantsForm
+                                userId={userId}
+                                applicationId={applicationId}
+                                onSaveAndNext={(data: any) => handleSaveAndNext(data, 'consultants')}
+                                isLoading={isSubmitting}
+                                refetchTrigger={refetchTrigger}
+                            />
+                        </div>
                     )}
 
                     {currentForm === 8 && (
-                        <ProductListForm
-                            userId={userId}
-                            applicationId={applicationId}
-                            onSaveAndNext={(data: any) => handleSaveAndNext(data, 'products')}
-                            isLoading={isSubmitting}
-                            refetchTrigger={refetchTrigger}
-                        />
+                        <div className={isApproved ? 'pointer-events-none select-none' : ''}>
+                            <ProductListForm
+                                userId={userId}
+                                applicationId={applicationId}
+                                onSaveAndNext={(data: any) => handleSaveAndNext(data, 'products')}
+                                isLoading={isSubmitting}
+                                refetchTrigger={refetchTrigger}
+                            />
+                        </div>
                     )}
 
                     {currentForm === 9 && (
-                        <DeclarationsSignaturesForm
-                            userId={userId}
-                            applicationId={applicationId}
-                            onSaveAndNext={(data: any) => handleSaveAndNext(data, 'declarations')}
-                            isLoading={isSubmitting}
-                            refetchTrigger={refetchTrigger}
-                        />
+                        <div className={isApproved ? 'pointer-events-none select-none' : ''}>
+                            <DeclarationsSignaturesForm
+                                userId={userId}
+                                applicationId={applicationId}
+                                onSaveAndNext={(data: any) => handleSaveAndNext(data, 'declarations')}
+                                isLoading={isSubmitting}
+                                refetchTrigger={refetchTrigger}
+                            />
+                        </div>
                     )}
                 </div>
             </div>
