@@ -4,7 +4,7 @@ import { FiSearch } from 'react-icons/fi'
 import { useGetApi } from '../../hooks'
 import { USERS_ENDPOINTS } from '../../config/api'
 import StyledTable from '../../components/StyledTable'
-import CustomSelect from '../../components/CustomSelect'
+import CustomDropdown from '../../components/CustomDropdown'
 import Chip from '../../components/Chip'
 import DateRangePicker from '../../components/DateRangePicker'
 import { Pagination } from '../../components'
@@ -82,7 +82,7 @@ const Applications = () => {
     }
 
     const handleDateFilterApply = (startDate: string, endDate: string) => {
-        setFilters({ startDate, endDate })
+        setFilters({ startDate, endDate, applicationStatus: filters.applicationStatus })
         setPagination(prev => ({ ...prev, currentPage: 1 }))
     }
 
@@ -189,23 +189,24 @@ const Applications = () => {
                         />
 
                         {/* Application Status Filter */}
-                        <div className="w-64">
-                            <CustomSelect
-                                label="Application Status"
-                                placeholder="Select status"
-                                value={filters.applicationStatus}
-                                onChange={(e) => {
-                                    setFilters(prev => ({ ...prev, applicationStatus: e.target.value as any }))
-                                    setPagination(prev => ({ ...prev, currentPage: 1 }))
-                                }}
+                        <div>
+                            <CustomDropdown
                                 options={[
-                                    { value: '', label: 'All' },
+                                    { value: '', label: 'All Status' },
                                     { value: 'Pending', label: 'Pending' },
                                     { value: 'In Progress', label: 'In Progress' },
                                     { value: 'Review Needed', label: 'Review Needed' },
                                     { value: 'Approved', label: 'Approved' },
                                     { value: 'Rejected', label: 'Rejected' },
                                 ]}
+                                value={filters.applicationStatus}
+                                onChange={(val: string | number) => {
+                                    const v = String(val) as '' | 'Pending' | 'In Progress' | 'Review Needed' | 'Approved' | 'Rejected'
+                                    setFilters(prev => ({ ...prev, applicationStatus: v }))
+                                    setPagination(prev => ({ ...prev, currentPage: 1 }))
+                                }}
+                                placeholder="Filter by status"
+                                className="text-xs w-[180px]"
                             />
                         </div>
                     </div>

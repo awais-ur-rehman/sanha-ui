@@ -27,7 +27,6 @@ import ReportedProducts from './pages/private/ReportedProducts'
 import Newsletter from './pages/private/Newsletter'
 import { ROUTES } from './config/routes'
 import { useAuthStore } from './store'
-import ComingSoon from './components/ComingSoon'
 import Applications from './pages/private/Applications'
 import ApplicationDetail from './pages/private/ApplicationDetail'
 
