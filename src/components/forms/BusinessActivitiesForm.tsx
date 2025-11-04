@@ -170,10 +170,17 @@ const BusinessActivitiesForm: React.FC<BusinessActivitiesFormProps> = ({
 
     // Handle warehouse count change
     const handleWarehouseCountChange = (count: number) => {
-        setNumberOfWarehouses(count)
-        const newAddresses = Array(count).fill('').map((_, index) => warehouseAddresses[index] || '')
+        const newCount = Math.max(1, count) // Ensure at least 1
+        setNumberOfWarehouses(newCount)
+
+        // Preserve existing addresses when increasing, or trim when decreasing
+        const newAddresses = Array(newCount).fill('').map((_, index) => {
+            // Preserve existing addresses if they exist
+            return warehouseAddresses[index] || ''
+        })
         setWarehouseAddresses(newAddresses)
         setValue('warehouseAddresses', newAddresses)
+        setValue('numberOfWarehouses', newCount.toString())
     }
 
     // Handle warehouse address change
@@ -266,6 +273,7 @@ const BusinessActivitiesForm: React.FC<BusinessActivitiesFormProps> = ({
             totalNoOfRawMaterials: totalNumberOfRawMaterials, // API uses totalNoOfRawMaterials
             noOfProductVariety: numberOfProductVariety, // API uses noOfProductVariety
             noOfHaccpStudies: numberOfHACCPStudies, // API uses noOfHaccpStudies
+            numberOfWarehouses: numberOfWarehouses.toString(), // Include number of warehouses from state
             warehouses: warehouseAddresses
                 .filter(addr => addr.trim() !== '')
                 .map((address, index) => ({

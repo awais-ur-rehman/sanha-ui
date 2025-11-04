@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { FiSearch } from 'react-icons/fi'
 import { useGetApi } from '../../hooks'
 import { USERS_ENDPOINTS } from '../../config/api'
@@ -31,6 +31,7 @@ interface UserRow {
 
 const Applications = () => {
     const navigate = useNavigate()
+    const location = useLocation()
     const { showToast } = useToast()
     const [searchTerm, setSearchTerm] = useState('')
     const [filters, setFilters] = useState({
@@ -54,7 +55,7 @@ const Applications = () => {
         ...(filters.applicationStatus && { applicationStatus: filters.applicationStatus }),
     })
 
-    const { data: usersResponse, isLoading: loading } = useGetApi<any>(
+    const { data: usersResponse, isLoading: loading, refetch } = useGetApi<any>(
         `${USERS_ENDPOINTS.getAll}?${queryParams.toString()}`,
         { requireAuth: true, staleTime: 0 }
     )
@@ -75,6 +76,25 @@ const Applications = () => {
             }))
         }
     }, [usersResponse?.data?.pagination])
+
+    // Listen for WebSocket notifications when status changes to 'Review Needed'
+    useEffect(() => {
+        const handleNewNotification = async (event: CustomEvent) => {
+            const { type } = event.detail
+
+            // Check if this is a halal application notification and user is on applications page
+            if (type === 'halal_application' && location.pathname.includes('/certification/applications')) {
+                // Refetch the users list to get updated application status
+                refetch()
+            }
+        }
+
+        window.addEventListener('newNotificationReceived', handleNewNotification as unknown as EventListener)
+
+        return () => {
+            window.removeEventListener('newNotificationReceived', handleNewNotification as unknown as EventListener)
+        }
+    }, [location.pathname, refetch])
 
     const handleSearch = (value: string) => {
         setSearchTerm(value)

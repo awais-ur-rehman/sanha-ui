@@ -39,6 +39,7 @@ import {
   HiPaperAirplane
 } from 'react-icons/hi'
 import { useAuthStore, useUIStore } from '../store'
+import { usePermissions } from '../hooks/usePermissions'
 import logo from '../assets/logo/sanhaLogo.png'
 import { ROUTES } from '../config/routes'
 
@@ -54,6 +55,7 @@ const Sidebar = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const { logout } = useAuthStore()
+  const { canAccessModule } = usePermissions()
   const [expandedItems, setExpandedItems] = useState<string[]>([])
 
   const {
@@ -169,18 +171,20 @@ const Sidebar = () => {
       path: ROUTES.CLIENTS,
       icon: getIcon('clients', isActive(ROUTES.CLIENTS))
     },
-    {
+    // Only show Products if user has Products module access
+    ...(canAccessModule('Products') ? [{
       id: 'products',
       title: 'Products',
       path: ROUTES.PRODUCTS,
       icon: getIcon('products', isActive(ROUTES.PRODUCTS) || isActive(ROUTES.HALAL_PRODUCTS) || isActive(ROUTES.NON_HALAL_PRODUCTS) || isActive(ROUTES.PRODUCTS_REPORTED))
-    },
-    {
+    }] : []),
+    // Only show Certification if user has Certification module access
+    ...(canAccessModule('Certification') ? [{
       id: 'certification',
       title: 'Certification',
       path: ROUTES.CERTIFICATION,
       icon: getIcon('access-control', isActive(ROUTES.CERTIFICATION) || isActive(ROUTES.CERTIFICATION_ENQUIRIES) || isActive(ROUTES.CERTIFICATION_APPLICATIONS))
-    },
+    }] : []),
     {
       id: 'e-codes',
       title: 'E-Codes',
@@ -219,8 +223,8 @@ const Sidebar = () => {
     },
   ]
 
-  // Sub-items for Products
-  const productSubItems: SidebarItem[] = [
+  // Sub-items for Products - only show if user has Products module access
+  const productSubItems: SidebarItem[] = canAccessModule('Products') ? [
     {
       id: 'halal-products',
       title: 'Halal',
@@ -239,10 +243,10 @@ const Sidebar = () => {
       path: ROUTES.PRODUCTS_REPORTED,
       icon: getIcon('products', isActive(ROUTES.PRODUCTS_REPORTED))
     }
-  ]
+  ] : []
 
-  // Sub-items for Certification
-  const certificationSubItems: SidebarItem[] = [
+  // Sub-items for Certification - only show if user has Certification module access
+  const certificationSubItems: SidebarItem[] = canAccessModule('Certification') ? [
     {
       id: 'certification-enquiries',
       title: 'Enquiries',
@@ -255,9 +259,9 @@ const Sidebar = () => {
       path: ROUTES.CERTIFICATION_APPLICATIONS,
       icon: getIcon('resources', isActive(ROUTES.CERTIFICATION_APPLICATIONS))
     }
-  ]
+  ] : []
 
-  // Show all sidebar items (don't filter based on permissions)
+  // Filter sidebar items based on module access
 
 
   const bottomItems: SidebarItem[] = [
@@ -337,12 +341,12 @@ const Sidebar = () => {
               <button
                 onClick={() => handleItemClick(item)}
                 className={`w-full flex items-center text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] py-[9px] lg:py-2.5 rounded-md transition-all duration-300 ease-in-out transform relative group ${isSidebarCollapsed
-                    ? isActive(item.path)
-                      ? 'justify-center px-1 text-[#0c684b] bg-transparent'
-                      : 'justify-center px-1 text-gray-300 bg-transparent hover:bg-gray-700'
-                    : isActive(item.path)
-                      ? 'justify-start gap-2 sm:gap-3 lg:gap-2.5 px-2 sm:px-4 lg:px-3 bg-[#0c684b] text-white shadow-lg'
-                      : 'justify-start gap-2 sm:gap-3 lg:gap-2.5 px-2 sm:px-4 lg:px-3 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
+                  ? isActive(item.path)
+                    ? 'justify-center px-1 text-[#0c684b] bg-transparent'
+                    : 'justify-center px-1 text-gray-300 bg-transparent hover:bg-gray-700'
+                  : isActive(item.path)
+                    ? 'justify-start gap-2 sm:gap-3 lg:gap-2.5 px-2 sm:px-4 lg:px-3 bg-[#0c684b] text-white shadow-lg'
+                    : 'justify-start gap-2 sm:gap-3 lg:gap-2.5 px-2 sm:px-4 lg:px-3 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
                   }`}
               >
                 {item.icon}
@@ -373,12 +377,12 @@ const Sidebar = () => {
                     <button
                       onClick={() => toggleExpanded('products')}
                       className={`w-full flex items-center text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] py-[9px] rounded-md transition-all duration-300 ease-in-out transform relative group ${isSidebarCollapsed
-                          ? isActive(item.path) || isActive(ROUTES.HALAL_PRODUCTS) || isActive(ROUTES.NON_HALAL_PRODUCTS)
-                            ? 'justify-center px-1 text-[#0c684b] bg-transparent'
-                            : 'justify-center px-1 text-gray-300 bg-transparent hover:bg-gray-700'
-                          : isActive(item.path) || isActive(ROUTES.HALAL_PRODUCTS) || isActive(ROUTES.NON_HALAL_PRODUCTS)
-                            ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
-                            : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
+                        ? isActive(item.path) || isActive(ROUTES.HALAL_PRODUCTS) || isActive(ROUTES.NON_HALAL_PRODUCTS)
+                          ? 'justify-center px-1 text-[#0c684b] bg-transparent'
+                          : 'justify-center px-1 text-gray-300 bg-transparent hover:bg-gray-700'
+                        : isActive(item.path) || isActive(ROUTES.HALAL_PRODUCTS) || isActive(ROUTES.NON_HALAL_PRODUCTS)
+                          ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
+                          : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
                         }`}
                     >
                       {item.icon}
@@ -411,8 +415,8 @@ const Sidebar = () => {
                             <button
                               onClick={() => handleItemClick(subItem)}
                               className={`w-full flex items-center text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] py-[6px] rounded-md transition-all duration-300 ease-in-out transform relative group ${isActive(subItem.path)
-                                  ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
-                                  : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
+                                ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
+                                : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
                                 }`}
                             >
                               {subItem.icon}
@@ -429,12 +433,12 @@ const Sidebar = () => {
                     <button
                       onClick={() => toggleExpanded('certification')}
                       className={`w-full flex items-center text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] py-[9px] rounded-md transition-all duration-300 ease-in-out transform relative group ${isSidebarCollapsed
-                          ? isActive(item.path) || isActive(ROUTES.CERTIFICATION_ENQUIRIES) || isActive(ROUTES.CERTIFICATION_APPLICATIONS)
-                            ? 'justify-center px-1 text-[#0c684b] bg-transparent'
-                            : 'justify-center px-1 text-gray-300 bg-transparent hover:bg-gray-700'
-                          : isActive(item.path) || isActive(ROUTES.CERTIFICATION_ENQUIRIES) || isActive(ROUTES.CERTIFICATION_APPLICATIONS)
-                            ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
-                            : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
+                        ? isActive(item.path) || isActive(ROUTES.CERTIFICATION_ENQUIRIES) || isActive(ROUTES.CERTIFICATION_APPLICATIONS)
+                          ? 'justify-center px-1 text-[#0c684b] bg-transparent'
+                          : 'justify-center px-1 text-gray-300 bg-transparent hover:bg-gray-700'
+                        : isActive(item.path) || isActive(ROUTES.CERTIFICATION_ENQUIRIES) || isActive(ROUTES.CERTIFICATION_APPLICATIONS)
+                          ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
+                          : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
                         }`}
                     >
                       {item.icon}
@@ -466,8 +470,8 @@ const Sidebar = () => {
                             <button
                               onClick={() => handleItemClick(subItem)}
                               className={`w-full flex items-center text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] py-[6px] rounded-md transition-all duration-300 ease-in-out transform relative group ${isActive(subItem.path)
-                                  ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
-                                  : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
+                                ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
+                                : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
                                 }`}
                             >
                               {subItem.icon}
@@ -483,12 +487,12 @@ const Sidebar = () => {
                   <button
                     onClick={() => handleItemClick(item)}
                     className={`w-full flex items-center text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] py-[9px] rounded-md transition-all duration-300 ease-in-out transform relative group ${isSidebarCollapsed
-                        ? isActive(item.path)
-                          ? 'justify-center px-1 text-[#0c684b] bg-transparent'
-                          : 'justify-center px-1 text-gray-300 bg-transparent hover:bg-gray-700'
-                        : isActive(item.path)
-                          ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
-                          : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
+                      ? isActive(item.path)
+                        ? 'justify-center px-1 text-[#0c684b] bg-transparent'
+                        : 'justify-center px-1 text-gray-300 bg-transparent hover:bg-gray-700'
+                      : isActive(item.path)
+                        ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
+                        : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
                       }`}
                   >
                     {item.icon}
@@ -519,12 +523,12 @@ const Sidebar = () => {
               <button
                 onClick={() => handleItemClick(item)}
                 className={`w-full flex items-center py-[9px] rounded-md text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] transition-all duration-300 ease-in-out transform relative group ${isSidebarCollapsed
-                    ? isActive(item.path)
-                      ? 'justify-center px-2 text-[#0c684b] bg-transparent'
-                      : 'justify-center px-2 text-gray-300 bg-transparent hover:bg-gray-700'
-                    : isActive(item.path)
-                      ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
-                      : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 hover:bg-gray-700 hover:text-green-400 bg-transparent'
+                  ? isActive(item.path)
+                    ? 'justify-center px-2 text-[#0c684b] bg-transparent'
+                    : 'justify-center px-2 text-gray-300 bg-transparent hover:bg-gray-700'
+                  : isActive(item.path)
+                    ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
+                    : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 hover:bg-gray-700 hover:text-green-400 bg-transparent'
                   }`}
               >
                 {item.icon}

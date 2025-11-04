@@ -14,8 +14,8 @@ const ReportedProducts = () => {
   const { showToast } = useToast()
   const location = useLocation()
 
-  const hasReadPermission = hasPermission('Reported Products', 'read')
-  const hasUpdatePermission = hasPermission('Reported Products', 'update')
+  const hasReadPermission = hasPermission('Products', 'read')
+  const hasUpdatePermission = hasPermission('Products', 'update')
 
   const [activeTab, setActiveTab] = useState<'pending' | 'resolved'>('pending')
 
@@ -47,8 +47,8 @@ const ReportedProducts = () => {
 
   const { data, isLoading, refetch } = useGetApi<any>(
     `${REPORTED_PRODUCT_ENDPOINTS.getAll}?${queryParams}`,
-    { 
-      requireAuth: true, 
+    {
+      requireAuth: true,
       staleTime: 0
     }
   )
@@ -73,12 +73,12 @@ const ReportedProducts = () => {
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `reported-products-${new Date().toISOString().slice(0,10)}.csv`
+      a.download = `reported-products-${new Date().toISOString().slice(0, 10)}.csv`
       document.body.appendChild(a)
       a.click()
       a.remove()
       window.URL.revokeObjectURL(url)
-    } catch {}
+    } catch { }
   }
 
   const pageItems: ReportProduct[] = data?.data?.data || []
@@ -98,7 +98,7 @@ const ReportedProducts = () => {
   const [showImageOverlay, setShowImageOverlay] = useState(false)
   const [overlayImageUrl, setOverlayImageUrl] = useState('')
 
-  useEffect(() => { 
+  useEffect(() => {
     setItems([])
     setTabCache({
       pending: { list: [], pagination: { currentPage: 1, totalPages: 1, totalItems: 0 } },
@@ -141,7 +141,7 @@ const ReportedProducts = () => {
             // Ensure the correct tab is active based on status
             setActiveTab(item.status === 'Resolved' ? 'resolved' : 'pending')
           })
-          .catch(() => {})
+          .catch(() => { })
       }
 
       // Clear navigation state to avoid reprocessing
@@ -283,17 +283,15 @@ const ReportedProducts = () => {
           <div className="inline-flex bg-gray-100 rounded-lg p-1">
             <button
               onClick={() => { setActiveTab('pending'); setSelected(null) }}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                activeTab === 'pending' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
-              }`}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${activeTab === 'pending' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+                }`}
             >
               Pending
             </button>
             <button
               onClick={() => { setActiveTab('resolved'); setSelected(null) }}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                activeTab === 'resolved' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
-              }`}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${activeTab === 'resolved' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+                }`}
             >
               Resolved
             </button>
@@ -317,21 +315,21 @@ const ReportedProducts = () => {
 
             <div>
               {/* Type Filter */}
-            <CustomDropdown
-              options={[
-                { value: '', label: 'All Types' },
-                { value: 'Incorrect Certification', label: 'Incorrect Certification' },
-                { value: 'Suspicious Ingredients', label: 'Suspicious Ingredients' },
-                { value: 'Expired Certificate', label: 'Expired Certificate' },
-                { value: 'Counterfeit Product', label: 'Counterfeit Product' },
-                { value: 'Misleading Information', label: 'Misleading Information' },
-                { value: 'Other', label: 'Other' },
-              ]}
-              value={filters.reportType}
-              onChange={handleTypeFilterChange}
-              placeholder="Filter by type"
-              className="text-xs w-[180px]"
-            />
+              <CustomDropdown
+                options={[
+                  { value: '', label: 'All Types' },
+                  { value: 'Incorrect Certification', label: 'Incorrect Certification' },
+                  { value: 'Suspicious Ingredients', label: 'Suspicious Ingredients' },
+                  { value: 'Expired Certificate', label: 'Expired Certificate' },
+                  { value: 'Counterfeit Product', label: 'Counterfeit Product' },
+                  { value: 'Misleading Information', label: 'Misleading Information' },
+                  { value: 'Other', label: 'Other' },
+                ]}
+                value={filters.reportType}
+                onChange={handleTypeFilterChange}
+                placeholder="Filter by type"
+                className="text-xs w-[180px]"
+              />
             </div>
 
             {/* Date Range Picker */}
@@ -380,9 +378,8 @@ const ReportedProducts = () => {
                   <div
                     key={r.id}
                     onClick={() => setSelected(r)}
-                    className={`p-4 border-b border-gray-100 cursor-pointer transition-colors hover:bg-gray-50 ${
-                      selected?.id === r.id ? 'bg-[#0c684b]/5 border-l-4 border-l-[#0c684b]' : ''
-                    }`}
+                    className={`p-4 border-b border-gray-100 cursor-pointer transition-colors hover:bg-gray-50 ${selected?.id === r.id ? 'bg-[#0c684b]/5 border-l-4 border-l-[#0c684b]' : ''
+                      }`}
                   >
                     <div className="flex items-start justify-between mb-1">
                       <div className="flex-1">
@@ -391,7 +388,7 @@ const ReportedProducts = () => {
                         <p className="text-xs text-gray-500 mt-1">{r.productName} • {r.manufacturer}</p>
                       </div>
                       <div className="text-right space-y-1">
-            
+
                         <p className="text-[10px] text-gray-400 mt-1">{new Date(r.createdAt).toLocaleDateString()}</p>
                       </div>
                     </div>

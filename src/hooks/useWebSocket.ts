@@ -11,7 +11,7 @@ interface WebSocketEvent {
 
 interface NotificationData {
     id: string | number
-    type: 'user_faq' | 'contact_us' | 'enquiry' | 'report_product'
+    type: 'user_faq' | 'contact_us' | 'enquiry' | 'report_product' | 'halal_application'
     title: string
     message: string
     priority: 'low' | 'medium' | 'high'
@@ -140,7 +140,7 @@ export const useWebSocket = (): UseWebSocketReturn => {
 
         // Event handlers for notifications
         newSocket.on('event', (event: WebSocketEvent) => {
-            if (event.type === 'NEW_USER_FAQ' || event.type === 'NEW_CONTACT_US' || event.type === 'NEW_ENQUIRY' || event.type === 'NEW_REPORT_PRODUCT') {
+            if (event.type === 'NEW_USER_FAQ' || event.type === 'NEW_CONTACT_US' || event.type === 'NEW_ENQUIRY' || event.type === 'NEW_REPORT_PRODUCT' || event.type === 'NEW_HALAL_APPLICATION') {
                 const notification: NotificationData = {
                     id: event.data.id,
                     type: event.data.type,

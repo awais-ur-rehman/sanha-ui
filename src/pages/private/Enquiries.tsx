@@ -17,7 +17,11 @@ const Enquiries = () => {
   const { showToast } = useToast()
   const location = useLocation()
 
-  const hasReadPermission = hasPermission('Enquiry', 'read')
+  // Check if we're on the certification enquiries route or regular enquiries route
+  const isCertificationRoute = location.pathname.includes('/certification/enquiries')
+  const moduleName = isCertificationRoute ? 'Certification' : 'Enquiry'
+
+  const hasReadPermission = hasPermission(moduleName, 'read')
 
   const [activeTab, setActiveTab] = useState<EnquiryTabType>('pending')
   const [searchTerm, setSearchTerm] = useState('')
@@ -88,12 +92,12 @@ const Enquiries = () => {
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `enquiries-${activeTab}-${new Date().toISOString().slice(0,10)}.csv`
+      a.download = `enquiries-${activeTab}-${new Date().toISOString().slice(0, 10)}.csv`
       document.body.appendChild(a)
       a.click()
       a.remove()
       window.URL.revokeObjectURL(url)
-    } catch {}
+    } catch { }
   }
 
   const enquiriesPage: Enquiry[] = data?.data?.data || []
@@ -107,11 +111,11 @@ const Enquiries = () => {
       setEnquiriesList(prev => {
         // Check if enquiry already exists to avoid duplicates
         const exists = prev.some(enquiry => enquiry.id === newEnquiry.id)
-        
+
         if (exists) {
           return prev
         }
-        
+
         // Only add to list if we're on the pending tab (where new enquiries should appear)
         if (activeTab !== 'pending') {
           // Still update the pending tab cache
@@ -128,10 +132,10 @@ const Enquiries = () => {
           }))
           return prev
         }
-        
+
         // Add new enquiry to the beginning of the list
         const updatedList = [newEnquiry, ...prev]
-        
+
         // Update cache for current tab
         setTabCache(cache => ({
           ...cache,
@@ -144,7 +148,7 @@ const Enquiries = () => {
             }
           }
         }))
-        
+
         return updatedList
       })
     },
@@ -170,7 +174,7 @@ const Enquiries = () => {
           }))
           return enquiriesPage
         }
-        
+
         // Otherwise, merge with existing data for pagination
         const merged = pagination.currentPage === 1 ? enquiriesPage : [...prev, ...enquiriesPage]
         // Dedupe by id to avoid duplicates when switching tabs and returning
@@ -191,7 +195,7 @@ const Enquiries = () => {
   // When active tab changes, hydrate from cache immediately; if empty, trigger fetch
   useEffect(() => {
     console.log('📋 Tab change effect triggered', { activeTab, isReturningFromNavigation, cacheLength: tabCache[activeTab].list.length })
-    
+
     // If we're returning from navigation, always fetch fresh data
     if (isReturningFromNavigation) {
       console.log('🔄 Returning from navigation, fetching fresh data')
@@ -201,7 +205,7 @@ const Enquiries = () => {
       refetch()
       return
     }
-    
+
     const cached = tabCache[activeTab]
     // Load from cache if available
     if (cached.list.length > 0) {
@@ -384,7 +388,7 @@ const Enquiries = () => {
 
   return (
     <div className="py-4">
-      <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] px-6 py-10'> 
+      <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] px-6 py-10'>
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-2xl font-semibold text-gray-900">Enquiries</h1>
@@ -396,31 +400,28 @@ const Enquiries = () => {
           <div className="inline-flex bg-gray-100 rounded-lg p-1">
             <button
               onClick={() => setActiveTab('pending')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                activeTab === 'pending'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${activeTab === 'pending'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+                }`}
             >
               Pending
             </button>
             <button
               onClick={() => setActiveTab('accepted')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                activeTab === 'accepted'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${activeTab === 'accepted'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+                }`}
             >
               Accepted
             </button>
             <button
               onClick={() => setActiveTab('rejected')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                activeTab === 'rejected'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${activeTab === 'rejected'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+                }`}
             >
               Rejected
             </button>
@@ -454,8 +455,8 @@ const Enquiries = () => {
             />
 
             <div className="ml-auto flex items-center gap-2">
-            <button
-              onClick={handleExport}
+              <button
+                onClick={handleExport}
                 className="px-10 py-[10px] text-xs border border-[#0c684b] text-[#0c684b] rounded-sm hover:bg-gray-50 transition-colors"
               >
                 Export
@@ -489,9 +490,8 @@ const Enquiries = () => {
                   <div
                     key={enquiry.id}
                     onClick={() => setSelectedEnquiry(enquiry)}
-                    className={`p-4 border-b border-gray-100 cursor-pointer transition-colors hover:bg-gray-50 ${
-                      selectedEnquiry?.id === enquiry.id ? 'bg-[#0c684b]/5 border-l-4 border-l-[#0c684b]' : ''
-                    }`}
+                    className={`p-4 border-b border-gray-100 cursor-pointer transition-colors hover:bg-gray-50 ${selectedEnquiry?.id === enquiry.id ? 'bg-[#0c684b]/5 border-l-4 border-l-[#0c684b]' : ''
+                      }`}
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
@@ -502,11 +502,10 @@ const Enquiries = () => {
                         <p className="text-xs text-gray-500 mt-1">{enquiry.phone}</p>
                       </div>
                       <div className="text-right">
-                        <span className={`inline-flex items-center px-2 py-1 rounded-md text-[10px] ${
-                          enquiry.state === 'Pending' ? 'bg-[#0c684b] text-white' :
+                        <span className={`inline-flex items-center px-2 py-1 rounded-md text-[10px] ${enquiry.state === 'Pending' ? 'bg-[#0c684b] text-white' :
                           enquiry.state === 'Accepted' ? 'bg-[#0c684b] text-white' :
-                          'bg-[#0c684b] text-white'
-                        }`}>
+                            'bg-[#0c684b] text-white'
+                          }`}>
                           {enquiry.state}
                         </span>
                         <p className="text-xs text-gray-400 mt-5">

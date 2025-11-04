@@ -21,10 +21,10 @@ const FAQs = () => {
   const { hasPermission } = usePermissions()
   const { showToast } = useToast()
   const location = useLocation()
-  
+
   // Check if user has read permission for FAQs
 
-  
+
   // State management
   const [activeTab, setActiveTab] = useState<'FAQs' | 'User FAQs'>('FAQs')
   const [searchTerm, setSearchTerm] = useState('')
@@ -44,7 +44,7 @@ const FAQs = () => {
     totalItems: 0,
     itemsPerPage: 10,
   })
-  
+
   // Simple reply state
   const [isSubmittingReply, setIsSubmittingReply] = useState(false)
 
@@ -137,12 +137,12 @@ const FAQs = () => {
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `${activeTab === 'FAQs' ? 'faqs' : 'user-faqs'}-${new Date().toISOString().slice(0,10)}.csv`
+      a.download = `${activeTab === 'FAQs' ? 'faqs' : 'user-faqs'}-${new Date().toISOString().slice(0, 10)}.csv`
       document.body.appendChild(a)
       a.click()
       a.remove()
       window.URL.revokeObjectURL(url)
-    } catch {}
+    } catch { }
   }
 
 
@@ -159,7 +159,7 @@ const FAQs = () => {
 
   // State for managing user FAQs list with real-time updates
   const [userFaqsList, setUserFaqsList] = useState<UserFAQ[]>([])
-  
+
   // Compute user FAQs from API response
   const userFaqsFromApi = userFaqsResponse?.data?.data?.map((userFaq: UserFAQ) => ({
     ...userFaq,
@@ -182,16 +182,16 @@ const FAQs = () => {
       setUserFaqsList(prev => {
         // Check if FAQ already exists to avoid duplicates
         const exists = prev.some(userFaq => userFaq.id === newUserFaq.id)
-        
+
         if (exists) {
           return prev
         }
-        
+
         // Only add to list if we're on the User FAQs tab
         if (activeTab !== 'User FAQs') {
           return prev
         }
-        
+
         // Add new user FAQ to the beginning of the list
         return [newUserFaq, ...prev]
       })
@@ -255,10 +255,10 @@ const FAQs = () => {
   }
 
   const handleDateFilterApply = (startDate: string, endDate: string) => {
-    setFilters(prev => ({ 
-      ...prev, 
-      startDate, 
-      endDate 
+    setFilters(prev => ({
+      ...prev,
+      startDate,
+      endDate
     }))
     setPagination(prev => ({ ...prev, currentPage: 1 }))
   }
@@ -308,7 +308,7 @@ const FAQs = () => {
       showToast('error', 'Cannot add FAQ without an answer')
       return
     }
-    
+
     setUserFaqToAdd(userFaq)
     setSelectedFaqType('Business') // Reset to default
     setIsAddToFAQModalOpen(true)
@@ -323,7 +323,7 @@ const FAQs = () => {
         question: userFaqToAdd.question,
         answer: userFaqToAdd.answer,
         faqType: selectedFaqType, // Use selected FAQ type
-        isActive: false, // Set to inactive as requested
+        isActive: true, // Always set to active when adding new FAQ
       }
 
       const response = await fetch(`${API_CONFIG.baseURL}${FAQ_ENDPOINTS.create}`, {
@@ -460,12 +460,12 @@ const FAQs = () => {
     setIsSubmittingFAQ(true)
     try {
       const isEditing = !!selectedFAQ
-      const url = isEditing 
+      const url = isEditing
         ? `${API_CONFIG.baseURL}${FAQ_ENDPOINTS.update}/${selectedFAQ.id}`
         : `${API_CONFIG.baseURL}${FAQ_ENDPOINTS.create}`
-      
+
       const method = isEditing ? 'PUT' : 'POST'
-      
+
       const response = await fetch(url, {
         method,
         headers: getAuthHeaders(),
@@ -521,38 +521,38 @@ const FAQs = () => {
           </span>
         </div>
         <div className='space-y-2'>
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={() => handleEditFAQ(faq)}
-            className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-            title="Edit FAQ"
-          >
-            <FiEdit size={16} />
-          </button>
-          <button
-            onClick={() => handleDeleteFAQ(faq)}
-            className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-            title="Delete FAQ"
-          >
-            <FiTrash2 size={16} />
-          </button>
-        </div>
-        <div className="flex items-center justify-between mb-2">
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-[5px] text-xs font-medium bg-blue-100 text-blue-800">
-            {faq.faqType}
-          </span>
-        </div>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => handleEditFAQ(faq)}
+              className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+              title="Edit FAQ"
+            >
+              <FiEdit size={16} />
+            </button>
+            <button
+              onClick={() => handleDeleteFAQ(faq)}
+              className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+              title="Delete FAQ"
+            >
+              <FiTrash2 size={16} />
+            </button>
+          </div>
+          <div className="flex items-center justify-between mb-2">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-[5px] text-xs font-medium bg-blue-100 text-blue-800">
+              {faq.faqType}
+            </span>
+          </div>
         </div>
       </div>
 
       {/* Top: Question and FAQ Type */}
-      <div className="mb-4"> 
+      <div className="mb-4">
         <h3 className="text-lg font-semibold text-gray-900 leading-relaxed">
           {faq.question}
         </h3>
       </div>
 
-     
+
 
       {/* Bottom: Answer */}
       <div className="border border-[#0c684b]/20 rounded-lg p-4">
@@ -631,51 +631,51 @@ const FAQs = () => {
     return (
       <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-6 mb-6 border border-[#0c684b]/20">
         {/* Top Right: Add To FAQs Button (only if answer exists) */}
-        <div className='flex justify-between'>      
-        {/* Middle: User details */}
-        <div className=" p-4 rounded-lg">
-          <div className="flex items-center space-x-3 mb-3">
-            {/* User Avatar */}
-            <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-              <span className="text-sm font-medium text-gray-600">
-                {userFaq.firstName.charAt(0)}{userFaq.lastName.charAt(0)}
-              </span>
-            </div>
-            
-            {/* User Info */}
-            <div className="flex-1">
-              <div className="flex items-center space-x-2 mb-1">
-                <h4 className="font-medium text-gray-900">
-                  {userFaq.firstName} {userFaq.lastName}
-                </h4>
-                <span className="text-xs text-gray-500">
-                  {new Date(userFaq.createdAt).toLocaleDateString()}
+        <div className='flex justify-between'>
+          {/* Middle: User details */}
+          <div className=" p-4 rounded-lg">
+            <div className="flex items-center space-x-3 mb-3">
+              {/* User Avatar */}
+              <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                <span className="text-sm font-medium text-gray-600">
+                  {userFaq.firstName.charAt(0)}{userFaq.lastName.charAt(0)}
                 </span>
               </div>
-              
-              {/* Contact Details */}
-              <div className="flex items-center space-x-4 text-xs text-gray-500">
-                <div className="flex items-center space-x-1">
-                  <FiMail className="w-3 h-3" />
-                  <span>{userFaq.email}</span>
+
+              {/* User Info */}
+              <div className="flex-1">
+                <div className="flex items-center space-x-2 mb-1">
+                  <h4 className="font-medium text-gray-900">
+                    {userFaq.firstName} {userFaq.lastName}
+                  </h4>
+                  <span className="text-xs text-gray-500">
+                    {new Date(userFaq.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+
+                {/* Contact Details */}
+                <div className="flex items-center space-x-4 text-xs text-gray-500">
+                  <div className="flex items-center space-x-1">
+                    <FiMail className="w-3 h-3" />
+                    <span>{userFaq.email}</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {userFaq.answer && (
-          <div className="flex justify-end ">
-            <button
-              onClick={() => handleAddToFaqs(userFaq)}
-              className="flex items-center space-x-1 h-8 px-2  bg-green-100 text-green-700 rounded-lg text-xs font-medium hover:bg-green-200 transition-colors"
-            >
-              <FiPlus className="w-3 h-3" />
-              <span>Add To FAQs</span>
-            </button>
-          </div>
-        )}
-        
+          {userFaq.answer && (
+            <div className="flex justify-end ">
+              <button
+                onClick={() => handleAddToFaqs(userFaq)}
+                className="flex items-center space-x-1 h-8 px-2  bg-green-100 text-green-700 rounded-lg text-xs font-medium hover:bg-green-200 transition-colors"
+              >
+                <FiPlus className="w-3 h-3" />
+                <span>Add To FAQs</span>
+              </button>
+            </div>
+          )}
+
         </div>
 
         {/* Top: Question asked by user */}
@@ -684,7 +684,7 @@ const FAQs = () => {
             {userFaq.question}
           </h3>
         </div>
-        
+
         {/* Bottom: Admin answer or reply button */}
         {userFaq.answer ? (
           <div className=" border border-[#0c684b]/20 rounded-lg p-4">
@@ -707,7 +707,7 @@ const FAQs = () => {
             </button>
           </div>
         )}
-        
+
         {/* Reply Input Section */}
         {isReplying && (
           <div className="border-t border-gray-200 pt-4 mt-4">
@@ -767,247 +767,245 @@ const FAQs = () => {
 
   return (
     <div className="py-4">
-      <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] max-h-[calc(100vh-35px)] overflow-y-auto px-6 py-10'> 
-         {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">FAQs</h1>
-        <p className="text-gray-600">View & manage FAQs.</p>
-      </div>
-
-      {/* Tab Navigation */}
-      <div className="mb-6">
-        <div className="inline-flex bg-gray-100 rounded-lg p-1">
-          <button
-            onClick={() => setActiveTab('FAQs')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-              activeTab === 'FAQs'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            FAQs
-          </button>
-          <button
-            onClick={() => setActiveTab('User FAQs')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-              activeTab === 'User FAQs'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            User FAQs
-          </button>
+      <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] max-h-[calc(100vh-35px)] overflow-y-auto px-6 py-10'>
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-semibold text-gray-900">FAQs</h1>
+          <p className="text-gray-600">View & manage FAQs.</p>
         </div>
-      </div>
 
-      {/* Filters */}
-      <div className='py-6'>
-        <div className="flex items-center gap-3">
-          {/* Search */}
-          <div className="relative w-72">
-            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-            <input
-              type="text"
-              placeholder={activeTab === 'FAQs' ? 'Search FAQs...' : 'Search in name, email, or question'}
-              value={searchTerm}
-              onChange={(e) => handleSearch(e.target.value)}
-              className="w-full pl-10 pr-3 py-[10px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-xs"
-            />
-          </div>
-
-          {/* Date Range Picker */}
-          <DateRangePicker
-            startDate={filters.startDate}
-            endDate={filters.endDate}
-            onDateRangeChange={handleDateFilterApply}
-            placeholder="Select date range"
-            includeTime={true}
-            className="w-[250px] text-xs"
-          />
-
-          {/* Status Filter (only for FAQs) */}
-          {activeTab === 'FAQs' && (
-            <CustomDropdown
-              placeholder="All Status"
-              value={filters.isActive}
-              onChange={(value) => handleFilterChange('isActive', value as string)}
-              options={[
-                { value: '', label: 'All Status' },
-                { value: 'true', label: 'Active' },
-                { value: 'false', label: 'Inactive' },
-              ]}
-              className="w-[120px] text-xs"
-            />
-          )}
-
-          {/* FAQ Type Filter (only for FAQs) */}
-          {activeTab === 'FAQs' && (
-            <CustomDropdown
-              placeholder="All Types"
-              value={filters.faqType}
-              onChange={(value) => handleFilterChange('faqType', value as string)}
-              options={[
-                { value: '', label: 'All Types' },
-                { value: 'Business', label: 'Business' },
-                { value: 'Consumer', label: 'Consumer' },
-              ]}
-              className="w-[120px] text-xs"
-            />
-          )}
-
-          <div className="ml-auto flex items-center gap-2">
+        {/* Tab Navigation */}
+        <div className="mb-6">
+          <div className="inline-flex bg-gray-100 rounded-lg p-1">
             <button
-              onClick={handleExport}
-              className="px-10 py-[10px] text-xs border border-[#0c684b] text-[#0c684b] rounded-sm hover:bg-gray-50 transition-colors"
+              onClick={() => setActiveTab('FAQs')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${activeTab === 'FAQs'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+                }`}
             >
-              Export
+              FAQs
             </button>
-            {/* Add FAQ Button (only for FAQs tab) */}
-            {activeTab === 'FAQs' && hasPermission('FAQs', 'create') && (
-              <button
-                onClick={handleAddFAQ}
-                className="flex items-center space-x-2 px-10 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors"
-              >
-                <span>Add FAQ</span>
-              </button>
-            )}
+            <button
+              onClick={() => setActiveTab('User FAQs')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${activeTab === 'User FAQs'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+                }`}
+            >
+              User FAQs
+            </button>
           </div>
         </div>
-      </div>
 
-      {/* Content - Single Column Layout */}
-      <div className="w-full">
-        {getCurrentLoading() ? (
-          // Loading shimmer
-          Array.from({ length: 3 }).map((_, index) => (
-            <CardShimmer key={index} />
-          ))
-        ) : getCurrentData().length === 0 ? (
-          <div className="text-center py-12">
-            <div className="text-gray-500">
-              <p className="text-lg font-medium">No {activeTab.toLowerCase()} found</p>
-              <p className="text-sm">Try adjusting your search or filters</p>
+        {/* Filters */}
+        <div className='py-6'>
+          <div className="flex items-center gap-3">
+            {/* Search */}
+            <div className="relative w-72">
+              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+              <input
+                type="text"
+                placeholder={activeTab === 'FAQs' ? 'Search FAQs...' : 'Search in name, email, or question'}
+                value={searchTerm}
+                onChange={(e) => handleSearch(e.target.value)}
+                className="w-full pl-10 pr-3 py-[10px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-xs"
+              />
+            </div>
+
+            {/* Date Range Picker */}
+            <DateRangePicker
+              startDate={filters.startDate}
+              endDate={filters.endDate}
+              onDateRangeChange={handleDateFilterApply}
+              placeholder="Select date range"
+              includeTime={true}
+              className="w-[250px] text-xs"
+            />
+
+            {/* Status Filter (only for FAQs) */}
+            {activeTab === 'FAQs' && (
+              <CustomDropdown
+                placeholder="All Status"
+                value={filters.isActive}
+                onChange={(value) => handleFilterChange('isActive', value as string)}
+                options={[
+                  { value: '', label: 'All Status' },
+                  { value: 'true', label: 'Active' },
+                  { value: 'false', label: 'Inactive' },
+                ]}
+                className="w-[120px] text-xs"
+              />
+            )}
+
+            {/* FAQ Type Filter (only for FAQs) */}
+            {activeTab === 'FAQs' && (
+              <CustomDropdown
+                placeholder="All Types"
+                value={filters.faqType}
+                onChange={(value) => handleFilterChange('faqType', value as string)}
+                options={[
+                  { value: '', label: 'All Types' },
+                  { value: 'Business', label: 'Business' },
+                  { value: 'Consumer', label: 'Consumer' },
+                ]}
+                className="w-[120px] text-xs"
+              />
+            )}
+
+            <div className="ml-auto flex items-center gap-2">
+              <button
+                onClick={handleExport}
+                className="px-10 py-[10px] text-xs border border-[#0c684b] text-[#0c684b] rounded-sm hover:bg-gray-50 transition-colors"
+              >
+                Export
+              </button>
+              {/* Add FAQ Button (only for FAQs tab) */}
+              {activeTab === 'FAQs' && hasPermission('FAQs', 'create') && (
+                <button
+                  onClick={handleAddFAQ}
+                  className="flex items-center space-x-2 px-10 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors"
+                >
+                  <span>Add FAQ</span>
+                </button>
+              )}
             </div>
           </div>
-        ) : (
-          getCurrentData().map((item: FAQ | UserFAQ) => (
-            activeTab === 'FAQs' ? (
-              <div key={item.id} className="mb-6">
-                <FAQCard faq={item as FAQ} />
+        </div>
+
+        {/* Content - Single Column Layout */}
+        <div className="w-full">
+          {getCurrentLoading() ? (
+            // Loading shimmer
+            Array.from({ length: 3 }).map((_, index) => (
+              <CardShimmer key={index} />
+            ))
+          ) : getCurrentData().length === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-gray-500">
+                <p className="text-lg font-medium">No {activeTab.toLowerCase()} found</p>
+                <p className="text-sm">Try adjusting your search or filters</p>
               </div>
-            ) : (
-              <UserFAQCard key={item.id} userFaq={item as UserFAQ} />
-            )
-          ))
+            </div>
+          ) : (
+            getCurrentData().map((item: FAQ | UserFAQ) => (
+              activeTab === 'FAQs' ? (
+                <div key={item.id} className="mb-6">
+                  <FAQCard faq={item as FAQ} />
+                </div>
+              ) : (
+                <UserFAQCard key={item.id} userFaq={item as UserFAQ} />
+              )
+            ))
+          )}
+        </div>
+
+        {/* Pagination */}
+        {!getCurrentLoading() && pagination.totalPages > 1 && (
+          <div className="mt-8">
+            <Pagination
+              currentPage={pagination.currentPage}
+              totalPages={pagination.totalPages}
+              totalItems={pagination.totalItems}
+              itemsPerPage={pagination.itemsPerPage}
+              onPageChange={handlePageChange}
+              className="justify-center"
+            />
+          </div>
+        )}
+
+        {/* FAQ Modal */}
+        {isFAQModalOpen && (
+          <Modal
+            isOpen={isFAQModalOpen}
+            onClose={handleFAQFormCancel}
+            title={selectedFAQ ? 'Edit FAQ' : 'Add New FAQ'}
+            size="xl"
+          >
+            <div className="h-[70vh] overflow-hidden">
+              <FAQForm
+                faq={selectedFAQ}
+                onSubmit={handleFAQFormSubmit}
+                onCancel={handleFAQFormCancel}
+                isLoading={isSubmittingFAQ}
+                showActiveCheckbox={false} // Never show checkbox when editing
+                willBeInactive={!selectedFAQ && !shouldNewFAQBeActive()} // Show inactive message when creating and max active reached
+              />
+            </div>
+          </Modal>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        <DeleteConfirmationModal
+          isOpen={isDeleteModalOpen}
+          onClose={handleCancelDeleteFAQ}
+          onConfirm={handleConfirmDeleteFAQ}
+          title="Delete FAQ"
+          message="Are you sure you want to delete this FAQ? This action cannot be undone."
+
+          isLoading={isDeletingFAQ}
+        />
+
+        {/* Add to FAQ Confirmation Modal with FAQ Type Selection */}
+        {isAddToFAQModalOpen && (
+          <Modal
+            isOpen={isAddToFAQModalOpen}
+            onClose={handleCancelAddToFAQ}
+            title="Add to FAQs"
+            size="lg"
+          >
+            <div className="flex flex-col h-[35vh]">
+              <div className="flex flex-col h-full">
+                {/* Modal content - scrollable */}
+                <div className="flex-1 overflow-y-auto space-y-4 p-2">
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <p className="text-sm text-gray-700">
+                      Are you sure you want to add this user question to the FAQ list? The FAQ will be created as inactive and you can activate it later.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label htmlFor="faqTypeSelect" className="block text-sm font-medium text-gray-700 mb-2">
+                      Select FAQ Type *
+                    </label>
+                    <SearchableDropdown
+                      placeholder="Select FAQ type"
+                      value={selectedFaqType}
+                      onChange={(value) => setSelectedFaqType(value as 'Business' | 'Consumer')}
+                      options={[
+                        { value: 'Business', label: 'Business' },
+                        { value: 'Consumer', label: 'Consumer' },
+                      ]}
+                      allowCustomValue={false}
+                    />
+                  </div>
+                </div>
+
+                {/* Form Actions - fixed bottom within modal content */}
+                <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200 mt-4 flex-shrink-0 bg-white">
+                  <button
+                    type="button"
+                    onClick={handleCancelAddToFAQ}
+                    disabled={isAddingToFAQ}
+                    className="px-10 py-[10px] text-xs border border-[#0c684b] text-[#0c684b] rounded-sm hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleConfirmAddToFAQ}
+                    disabled={isAddingToFAQ}
+                    className="flex items-center space-x-2 px-10 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span>{isAddingToFAQ ? 'Adding...' : 'Add to FAQs'}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </Modal>
         )}
       </div>
 
-      {/* Pagination */}
-      {!getCurrentLoading() && pagination.totalPages > 1 && (
-        <div className="mt-8">
-          <Pagination
-            currentPage={pagination.currentPage}
-            totalPages={pagination.totalPages}
-            totalItems={pagination.totalItems}
-            itemsPerPage={pagination.itemsPerPage}
-            onPageChange={handlePageChange}
-            className="justify-center"
-          />
-        </div>
-      )}
-
-      {/* FAQ Modal */}
-      {isFAQModalOpen && (
-        <Modal
-          isOpen={isFAQModalOpen}
-          onClose={handleFAQFormCancel}
-          title={selectedFAQ ? 'Edit FAQ' : 'Add New FAQ'}
-          size="xl"
-        >
-          <div className="h-[70vh] overflow-hidden">
-            <FAQForm
-              faq={selectedFAQ}
-              onSubmit={handleFAQFormSubmit}
-              onCancel={handleFAQFormCancel}
-              isLoading={isSubmittingFAQ}
-              showActiveCheckbox={false} // Never show checkbox when editing
-              willBeInactive={!selectedFAQ && !shouldNewFAQBeActive()} // Show inactive message when creating and max active reached
-            />
-          </div>
-        </Modal>
-      )}
-
-      {/* Delete Confirmation Modal */}
-      <DeleteConfirmationModal
-        isOpen={isDeleteModalOpen}
-        onClose={handleCancelDeleteFAQ}
-        onConfirm={handleConfirmDeleteFAQ}
-        title="Delete FAQ"
-        message="Are you sure you want to delete this FAQ? This action cannot be undone."
-        
-        isLoading={isDeletingFAQ}
-      />
-
-      {/* Add to FAQ Confirmation Modal with FAQ Type Selection */}
-      {isAddToFAQModalOpen && (
-        <Modal
-          isOpen={isAddToFAQModalOpen}
-          onClose={handleCancelAddToFAQ}
-          title="Add to FAQs"
-          size="lg"
-        >
-          <div className="flex flex-col h-[35vh]">
-            <div className="flex flex-col h-full">
-              {/* Modal content - scrollable */}
-              <div className="flex-1 overflow-y-auto space-y-4 p-2">
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <p className="text-sm text-gray-700">
-                    Are you sure you want to add this user question to the FAQ list? The FAQ will be created as inactive and you can activate it later.
-                  </p>
-                </div>
-
-                <div>
-                  <label htmlFor="faqTypeSelect" className="block text-sm font-medium text-gray-700 mb-2">
-                    Select FAQ Type *
-                  </label>
-                  <SearchableDropdown
-                    placeholder="Select FAQ type"
-                    value={selectedFaqType}
-                    onChange={(value) => setSelectedFaqType(value as 'Business' | 'Consumer')}
-                    options={[
-                      { value: 'Business', label: 'Business' },
-                      { value: 'Consumer', label: 'Consumer' },
-                    ]}
-                    allowCustomValue={false}
-                  />
-                </div>
-              </div>
-
-              {/* Form Actions - fixed bottom within modal content */}
-              <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200 mt-4 flex-shrink-0 bg-white">
-                <button
-                  type="button"
-                  onClick={handleCancelAddToFAQ}
-                  disabled={isAddingToFAQ}
-                  className="px-10 py-[10px] text-xs border border-[#0c684b] text-[#0c684b] rounded-sm hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleConfirmAddToFAQ}
-                  disabled={isAddingToFAQ}
-                  className="flex items-center space-x-2 px-10 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <span>{isAddingToFAQ ? 'Adding...' : 'Add to FAQs'}</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </Modal>
-      )}
-      </div>
-     
     </div>
   )
 }
