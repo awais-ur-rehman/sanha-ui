@@ -318,11 +318,14 @@ const Sidebar = () => {
   }
 
   const toggleExpanded = (itemId: string) => {
-    setExpandedItems(prev =>
-      prev.includes(itemId)
-        ? prev.filter(id => id !== itemId)
-        : [...prev, itemId]
-    )
+    setExpandedItems(prev => {
+      // If clicking the same item that's already expanded, collapse it
+      if (prev.includes(itemId)) {
+        return prev.filter(id => id !== itemId)
+      }
+      // Otherwise, collapse all others and expand only the clicked item
+      return [itemId]
+    })
   }
 
   const SidebarContent = () => (
