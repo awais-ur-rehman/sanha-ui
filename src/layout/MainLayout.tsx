@@ -20,7 +20,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         ? 'ml-0'
         : isSidebarCollapsed
           ? 'lg:ml-16'
-          : 'lg:ml-64'
+          : 'lg:ml-[17.5rem]'
         }`}>
         <div className={`animate-fade-in max-h-screen min-h-screen overflow-y-auto px-4 sm:px-6 ${isSidebarCollapsed
           ? 'lg:px-4 xl:px-6'

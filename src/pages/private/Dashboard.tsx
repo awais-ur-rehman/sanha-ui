@@ -1,4 +1,5 @@
 import { FiHome } from 'react-icons/fi'
+import PageHeader from '../../components/PageHeader'
 import { useAuthStore } from '../../store'
 
 const Dashboard = () => {
@@ -8,10 +9,7 @@ const Dashboard = () => {
     <div className="py-4">
         <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] px-6 py-10'>
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-[18px] md:text-[20px] lg:text-[20px] xl:text-[22px] font-semibold text-gray-900">Dashboard</h1>
-          <p className="text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px] text-gray-600">Welcome to the Sanha Admin Portal</p>
-        </div>
+        <PageHeader title="Dashboard" subtitle="Welcome to the Sanha Admin Portal" />
 
         {/* Content Container */}
         <div className="flex items-center justify-center min-h-[60vh]">

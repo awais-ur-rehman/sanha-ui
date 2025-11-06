@@ -95,11 +95,11 @@ const ContactUs = () => {
   const { hasPermission } = usePermissions()
   const { showToast } = useToast()
   const location = useLocation()
-  
+
   // Check permissions
-  const hasReadPermission = hasPermission('Contact Us', 'read')
-  const hasUpdatePermission = hasPermission('Contact Us', 'update')
-  
+  const hasReadPermission = hasPermission('Customer Support', 'read')
+  const hasUpdatePermission = hasPermission('Customer Support', 'update')
+
   // State management
   const [activeTab, setActiveTab] = useState<'pending' | 'answered'>('pending')
   const [searchTerm, setSearchTerm] = useState('')
@@ -156,7 +156,7 @@ const ContactUs = () => {
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `contact-us-${new Date().toISOString().slice(0,10)}.csv`
+      a.download = `contact-us-${new Date().toISOString().slice(0, 10)}.csv`
       document.body.appendChild(a)
       a.click()
       a.remove()
@@ -176,7 +176,7 @@ const ContactUs = () => {
       onError: (error: any) => {
         // Extract actual error message from API response
         let errorMessage = 'Failed to send reply'
-        
+
         if (error?.response?.data?.data?.errors && Array.isArray(error.response.data.data.errors)) {
           // Show the first validation error and remove field prefix
           const rawError = error.response.data.data.errors[0]
@@ -188,7 +188,7 @@ const ContactUs = () => {
           // Fallback to error message
           errorMessage = error.message
         }
-        
+
         showToast('error', errorMessage)
       },
     }
@@ -213,16 +213,16 @@ const ContactUs = () => {
       setEntriesList(prev => {
         // Check if contact us entry already exists to avoid duplicates
         const exists = prev.some(entry => entry.id === newContactUs.id)
-        
+
         if (exists) {
           return prev
         }
-        
+
         // Only add to list if we're on the pending tab (where new contact us entries should appear)
         if (activeTab !== 'pending') {
           return prev
         }
-        
+
         // Add new contact us entry to the beginning of the list
         return [newContactUs, ...prev]
       })
@@ -325,10 +325,10 @@ const ContactUs = () => {
   }
 
   const handleDateFilterApply = (startDate: string, endDate: string) => {
-    setFilters(prev => ({ 
-      ...prev, 
-      startDate, 
-      endDate 
+    setFilters(prev => ({
+      ...prev,
+      startDate,
+      endDate
     }))
     setPagination(prev => ({ ...prev, currentPage: 1 }))
     setEntriesList([])
@@ -336,9 +336,9 @@ const ContactUs = () => {
   }
 
   const handleTypeFilterChange = (value: string | number) => {
-    setFilters(prev => ({ 
-      ...prev, 
-      type: value.toString() 
+    setFilters(prev => ({
+      ...prev,
+      type: value.toString()
     }))
     setPagination(prev => ({ ...prev, currentPage: 1 }))
     setEntriesList([])
@@ -413,21 +413,19 @@ const ContactUs = () => {
           <div className="inline-flex bg-gray-100 rounded-lg p-1">
             <button
               onClick={() => { setActiveTab('pending'); setSelectedEntry(null); setEntriesList([]); setPagination(prev => ({ ...prev, currentPage: 1 })) }}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                activeTab === 'pending'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${activeTab === 'pending'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+                }`}
             >
               Pending
             </button>
             <button
               onClick={() => { setActiveTab('answered'); setSelectedEntry(null); setEntriesList([]); setPagination(prev => ({ ...prev, currentPage: 1 })) }}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                activeTab === 'answered'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${activeTab === 'answered'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+                }`}
             >
               Answered
             </button>
@@ -451,20 +449,20 @@ const ContactUs = () => {
 
             {/* Type Filter */}
             <div>
-            <ContactUsTypeDropdown
-              options={[
-                { value: '', label: 'All Types' },
-                { value: 'General Inquiry', label: 'General Inquiry' },
-                { value: 'Certification Inquiry (Businesses)', label: 'Certification Inquiry (Businesses)' },
-                { value: 'Verification and Consumer Complaints', label: 'Verification and Consumer Complaints' },
-                { value: 'Media and Press Inquiries', label: 'Media and Press Inquiries' },
-                { value: 'Partnerships and Collaborations', label: 'Partnerships and Collaborations' },
-              ]}
-              value={filters.type}
-              onChange={handleTypeFilterChange}
-              placeholder="Filter by type"
-              className="text-xs w-[180px]"
-            />
+              <ContactUsTypeDropdown
+                options={[
+                  { value: '', label: 'All Types' },
+                  { value: 'General Inquiry', label: 'General Inquiry' },
+                  { value: 'Certification Inquiry (Businesses)', label: 'Certification Inquiry (Businesses)' },
+                  { value: 'Verification and Consumer Complaints', label: 'Verification and Consumer Complaints' },
+                  { value: 'Media and Press Inquiries', label: 'Media and Press Inquiries' },
+                  { value: 'Partnerships and Collaborations', label: 'Partnerships and Collaborations' },
+                ]}
+                value={filters.type}
+                onChange={handleTypeFilterChange}
+                placeholder="Filter by type"
+                className="text-xs w-[180px]"
+              />
             </div>
 
             {/* Date Range Picker */}
@@ -513,9 +511,8 @@ const ContactUs = () => {
                   <div
                     key={entry.id}
                     onClick={() => setSelectedEntry(entry)}
-                    className={`p-4 border-b border-gray-100 cursor-pointer transition-colors hover:bg-gray-50 ${
-                      selectedEntry?.id === entry.id ? 'bg-[#0c684b]/5 border-l-4 border-l-[#0c684b]' : ''
-                    }`}
+                    className={`p-4 border-b border-gray-100 cursor-pointer transition-colors hover:bg-gray-50 ${selectedEntry?.id === entry.id ? 'bg-[#0c684b]/5 border-l-4 border-l-[#0c684b]' : ''
+                      }`}
                   >
                     <div className="flex items-start justify-between mb-1">
                       <div className="flex-1">

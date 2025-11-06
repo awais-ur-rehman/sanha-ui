@@ -13,6 +13,7 @@ import DateRangePicker from '../../components/DateRangePicker'
 import DeleteConfirmationModal from '../../components/DeleteConfirmationModal'
 import CustomDropdown from '../../components/CustomDropdown'
 import { Pagination } from '../../components'
+import PageHeader from '../../components/PageHeader'
 import StyledTable from '../../components/StyledTable'
 
 const Clients = () => {
@@ -280,13 +281,9 @@ const Clients = () => {
     <div className="py-4">
       <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] p-6'>
 
-        {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Clients</h1>
-          <p className="text-gray-600 text-sm">Manage client information and certifications</p>
-        </div>
-        
+      {/* Header */}
+      <div className="mb-4">
+        <PageHeader title="Clients" subtitle="Manage client information and certifications" />
       </div>
 
       {/* Filters */}

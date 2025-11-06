@@ -10,6 +10,7 @@ import { type TabType, type Module, type Role, type Admin, type ModuleCreateRequ
 import { RBAC_ENDPOINTS } from '../../config/api/rbac'
 import { API_CONFIG, getAuthHeaders } from '../../config/api'
 import { useToast } from '../../components'
+import PageHeader from '../../components/PageHeader'
 import { usePermissions } from '../../hooks/usePermissions'
 import { useDeleteApi } from '../../hooks'
 
@@ -22,7 +23,7 @@ const AccessControl = () => {
   const [editingItem, setEditingItem] = useState<Module | Role | Admin | null>(null)
   const [loading, setLoading] = useState(false)
   const [formLoading, setFormLoading] = useState(false)
-  
+
   // Delete modal state
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [itemToDelete, setItemToDelete] = useState<Module | Role | Admin | null>(null)
@@ -48,30 +49,30 @@ const AccessControl = () => {
       const endpoint = getEndpointForTab(activeTab)
       const headers = getAuthHeaders()
       const url = new URL(`${API_CONFIG.baseURL}${endpoint}`)
-      
+
       // Add pagination parameters
       url.searchParams.set('page', page.toString())
       url.searchParams.set('limit', itemsPerPage.toString())
-      
+
       console.log('Fetching data from:', url.toString())
       console.log('Headers:', headers)
-      
+
       const response = await fetch(url.toString(), {
         headers,
       })
-      
+
       console.log('Response status:', response.status)
       console.log('Response headers:', response.headers)
-      
+
       if (!response.ok) {
         const errorText = await response.text()
         console.error('Response error:', errorText)
         throw new Error(`HTTP ${response.status}: ${errorText}`)
       }
-      
+
       const result = await response.json()
       console.log('Response data:', result)
-      
+
       if (result.success) {
         const payload = result.data
         const pagination = payload?.pagination || payload?.meta || {}
@@ -121,13 +122,13 @@ const AccessControl = () => {
 
   const setDataForTab = (tab: TabType, data: any[]) => {
     switch (tab) {
-      case 'admins': 
+      case 'admins':
         setAdmins(data)
         break
-      case 'modules': 
+      case 'modules':
         setModules(data)
         break
-      case 'roles': 
+      case 'roles':
         setRoles(data)
         break
     }
@@ -146,9 +147,9 @@ const AccessControl = () => {
     switch (activeTab) {
       case 'admins':
         return [
-          { 
-            key: 'srNo', 
-            header: 'Sr.no', 
+          {
+            key: 'srNo',
+            header: 'Sr.no',
             width: 'w-16',
             render: (_admin: Admin, index?: number) => {
               const baseNumber = ((currentPage - 1) * itemsPerPage) + 1
@@ -157,8 +158,8 @@ const AccessControl = () => {
           },
           { key: 'username', header: 'Username' },
           { key: 'email', header: 'Email' },
-          { 
-            key: 'role', 
+          {
+            key: 'role',
             header: 'Role',
             render: (admin: Admin) => admin.role || 'No Role'
           },
@@ -166,11 +167,10 @@ const AccessControl = () => {
             key: 'isActive',
             header: 'Status',
             render: (admin: Admin) => (
-              <span className={`px-1.5 py-0.5 text-xs rounded-full ${
-                admin.isActive 
-                  ? 'bg-green-100 text-green-800' 
-                  : 'bg-red-100 text-red-800'
-              }`}>
+              <span className={`px-1.5 py-0.5 text-xs rounded-full ${admin.isActive
+                ? 'bg-green-100 text-green-800'
+                : 'bg-red-100 text-red-800'
+                }`}>
                 {admin.isActive ? 'Active' : 'Inactive'}
               </span>
             )
@@ -178,9 +178,9 @@ const AccessControl = () => {
         ]
       case 'modules':
         return [
-          { 
-            key: 'srNo', 
-            header: 'Sr.no', 
+          {
+            key: 'srNo',
+            header: 'Sr.no',
             width: 'w-16',
             render: (_module: Module, index?: number) => {
               const baseNumber = ((currentPage - 1) * itemsPerPage) + 1
@@ -211,11 +211,10 @@ const AccessControl = () => {
             key: 'isActive',
             header: 'Status',
             render: (module: Module) => (
-              <span className={`px-1.5 py-0.5 text-xs rounded-full ${
-                module.isActive 
-                  ? 'bg-green-100 text-green-800' 
-                  : 'bg-red-100 text-red-800'
-              }`}>
+              <span className={`px-1.5 py-0.5 text-xs rounded-full ${module.isActive
+                ? 'bg-green-100 text-green-800'
+                : 'bg-red-100 text-red-800'
+                }`}>
                 {module.isActive ? 'Active' : 'Inactive'}
               </span>
             )
@@ -223,9 +222,9 @@ const AccessControl = () => {
         ]
       case 'roles':
         return [
-          { 
-            key: 'srNo', 
-            header: 'Sr.no', 
+          {
+            key: 'srNo',
+            header: 'Sr.no',
             width: 'w-16',
             render: (_role: Role, index?: number) => {
               const baseNumber = ((currentPage - 1) * itemsPerPage) + 1
@@ -282,8 +281,8 @@ const AccessControl = () => {
   }
 
   const handleRowSelect = (id: number) => {
-    setSelectedRows(prev => 
-      prev.includes(id) 
+    setSelectedRows(prev =>
+      prev.includes(id)
         ? prev.filter(rowId => rowId !== id)
         : [...prev, id]
     )
@@ -348,7 +347,7 @@ const AccessControl = () => {
       }
 
       const result = await response.json()
-      
+
       if (result.success) {
         showToast(
           'success',
@@ -413,138 +412,132 @@ const AccessControl = () => {
   return (
     <div className="py-2 lg:py-3">
       <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] p-3 lg:p-4 space-y-3 lg:space-y-4'>
-       {/* Page Header */}
- <div>
-        <h1 className="text-[14px] md:text-[16px] lg:text-[16px] xl:text-[18px] font-semibold text-gray-900">Roles and Permissions</h1>
-        <p className="text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] text-gray-600">View & manage permissions and roles.</p>
-      </div>
+        {/* Page Header */}
+        <PageHeader title="Roles and Permissions" subtitle="View & manage permissions and roles." />
 
-      {/* Tab Navigation */}
-      <div className="mb-6">
-        <div className="inline-flex bg-gray-100 rounded-lg p-1">
-          {hasPermission('Access Control', 'read') && (
-            <button
-              onClick={() => setActiveTab('admins')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                activeTab === 'admins'
+        {/* Tab Navigation */}
+        <div className="mb-6">
+          <div className="inline-flex bg-gray-100 rounded-lg p-1">
+            {hasPermission('Access Control', 'read') && (
+              <button
+                onClick={() => setActiveTab('admins')}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${activeTab === 'admins'
                   ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Admins
-            </button>
-          )}
-          {hasPermission('Access Control', 'read') && (
-            <button
-              onClick={() => setActiveTab('modules')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                activeTab === 'modules'
+                  }`}
+              >
+                Admins
+              </button>
+            )}
+            {hasPermission('Access Control', 'read') && (
+              <button
+                onClick={() => setActiveTab('modules')}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${activeTab === 'modules'
                   ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Modules
-            </button>
-          )}
-          {hasPermission('Access Control', 'read') && (
-            <button
-              onClick={() => setActiveTab('roles')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                activeTab === 'roles'
+                  }`}
+              >
+                Modules
+              </button>
+            )}
+            {hasPermission('Access Control', 'read') && (
+              <button
+                onClick={() => setActiveTab('roles')}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${activeTab === 'roles'
                   ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Roles & Permissions
-            </button>
-          )}
+                  }`}
+              >
+                Roles & Permissions
+              </button>
+            )}
+          </div>
         </div>
+
+        {/* Data Table */}
+        <DataTable<any>
+          data={filteredData}
+          columns={getColumns()}
+          loading={loading}
+          selectedRows={selectedRows}
+          onRowSelect={handleRowSelect}
+          onSelectAll={handleSelectAll}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          onAddClick={handleAddClick}
+          addButtonText={getAddButtonText()}
+          addButtonIcon={getAddButtonIcon()}
+          actions={[
+            {
+              label: 'Edit',
+              icon: <FiEdit className="w-4 h-4" />,
+              onClick: handleEdit,
+              variant: 'primary'
+            },
+            {
+              label: 'Delete',
+              icon: <FiTrash2 className="w-4 h-4" />,
+              onClick: handleDelete,
+              variant: 'danger'
+            }
+          ]}
+          pagination={{
+            currentPage,
+            totalPages,
+            totalItems,
+            itemsPerPage,
+            onPageChange: handlePageChange
+          }}
+        />
+
+        {/* Modal for Forms */}
+        <Modal
+          isOpen={isModalOpen}
+          onClose={handleFormCancel}
+          title={`${editingItem ? 'Edit' : 'Add'} ${activeTab.slice(0, -1)}`}
+          size="xl"
+        >
+          {activeTab === 'modules' && (
+            <ModuleForm
+              module={editingItem as Module}
+              onSubmit={handleFormSubmit as (data: ModuleCreateRequest) => void}
+              onCancel={handleFormCancel}
+              loading={formLoading}
+            />
+          )}
+
+          {activeTab === 'roles' && (
+            <RoleForm
+              role={editingItem as Role}
+              modules={modules}
+              onSubmit={handleFormSubmit as (data: RoleCreateRequest) => void}
+              onCancel={handleFormCancel}
+              loading={formLoading}
+            />
+          )}
+
+          {activeTab === 'admins' && (
+            <AdminForm
+              admin={editingItem as Admin}
+              onSubmit={handleFormSubmit as (data: AdminCreateRequest | AdminUpdateRequest) => void}
+              onCancel={handleFormCancel}
+              loading={formLoading}
+            />
+          )}
+        </Modal>
+
+        {/* Delete Confirmation Modal */}
+        <DeleteConfirmationModal
+          isOpen={isDeleteModalOpen}
+          onClose={handleCancelDelete}
+          onConfirm={handleConfirmDelete}
+          title={`Delete ${activeTab.slice(0, -1)}`}
+          message={`Are you sure you want to delete this ${activeTab.slice(0, -1)}? This action cannot be undone.`}
+
+          isLoading={deleteMutation.isPending}
+        />
       </div>
 
-      {/* Data Table */}
-      <DataTable<any>
-        data={filteredData}
-        columns={getColumns()}
-        loading={loading}
-        selectedRows={selectedRows}
-        onRowSelect={handleRowSelect}
-        onSelectAll={handleSelectAll}
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        onAddClick={handleAddClick}
-        addButtonText={getAddButtonText()}
-        addButtonIcon={getAddButtonIcon()}
-        actions={[
-          {
-            label: 'Edit',
-            icon: <FiEdit className="w-4 h-4" />,
-            onClick: handleEdit,
-            variant: 'primary'
-          },
-          {
-            label: 'Delete',
-            icon: <FiTrash2 className="w-4 h-4" />,
-            onClick: handleDelete,
-            variant: 'danger'
-          }
-        ]}
-        pagination={{
-          currentPage,
-          totalPages,
-          totalItems,
-          itemsPerPage,
-          onPageChange: handlePageChange
-        }}
-      />
-
-      {/* Modal for Forms */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={handleFormCancel}
-        title={`${editingItem ? 'Edit' : 'Add'} ${activeTab.slice(0, -1)}`}
-        size="xl"
-      >
-        {activeTab === 'modules' && (
-          <ModuleForm
-            module={editingItem as Module}
-            onSubmit={handleFormSubmit as (data: ModuleCreateRequest) => void}
-            onCancel={handleFormCancel}
-            loading={formLoading}
-          />
-        )}
-        
-        {activeTab === 'roles' && (
-          <RoleForm
-            role={editingItem as Role}
-            modules={modules}
-            onSubmit={handleFormSubmit as (data: RoleCreateRequest) => void}
-            onCancel={handleFormCancel}
-            loading={formLoading}
-          />
-        )}
-        
-        {activeTab === 'admins' && (
-          <AdminForm
-            admin={editingItem as Admin}
-            onSubmit={handleFormSubmit as (data: AdminCreateRequest | AdminUpdateRequest) => void}
-            onCancel={handleFormCancel}
-            loading={formLoading}
-          />
-        )}
-      </Modal>
-
-      {/* Delete Confirmation Modal */}
-      <DeleteConfirmationModal
-        isOpen={isDeleteModalOpen}
-        onClose={handleCancelDelete}
-        onConfirm={handleConfirmDelete}
-        title={`Delete ${activeTab.slice(0, -1)}`}
-        message={`Are you sure you want to delete this ${activeTab.slice(0, -1)}? This action cannot be undone.`}
-
-        isLoading={deleteMutation.isPending}
-      />
-      </div>
-     
     </div>
   )
 }
