@@ -185,42 +185,20 @@ const Sidebar = () => {
       path: ROUTES.CERTIFICATION,
       icon: getIcon('access-control', isActive(ROUTES.CERTIFICATION) || isActive(ROUTES.CERTIFICATION_ENQUIRIES) || isActive(ROUTES.CERTIFICATION_APPLICATIONS))
     }] : []),
-    {
-      id: 'e-codes',
-      title: 'E-Codes',
-      path: ROUTES.E_CODES,
-      icon: getIcon('e-codes', isActive(ROUTES.E_CODES))
-    },
-    {
-      id: 'resources',
-      title: 'Resources',
-      path: ROUTES.RESOURCES,
-      icon: getIcon('resources', isActive(ROUTES.RESOURCES))
-    },
-    {
-      id: 'books',
-      title: 'Books',
-      path: ROUTES.BOOKS,
-      icon: getIcon('books', isActive(ROUTES.BOOKS))
-    },
-    {
-      id: 'faqs',
-      title: 'FAQs',
+    // Customer Support group (permission-gated)
+    ...(canAccessModule('Customer Support') ? [{
+      id: 'customer-support',
+      title: 'Customer Support',
       path: ROUTES.FAQS,
-      icon: getIcon('faqs', isActive(ROUTES.FAQS))
-    },
-    {
-      id: 'contact-us',
-      title: 'Contact Us',
-      path: ROUTES.CONTACT_US,
-      icon: getIcon('contact-us', isActive(ROUTES.CONTACT_US))
-    },
-    {
-      id: 'newsletter',
-      title: 'Newsletter',
-      path: ROUTES.NEWSLETTER,
-      icon: getIcon('newsletter', isActive(ROUTES.NEWSLETTER))
-    },
+      icon: getIcon('faqs', isActive(ROUTES.FAQS) || isActive(ROUTES.NEWSLETTER) || isActive(ROUTES.CONTACT_US))
+    }] : []),
+    // Knowledge Base group (permission-gated)
+    ...(canAccessModule('Knowledge Base') ? [{
+      id: 'knowledge-base',
+      title: 'Knowledge Base',
+      path: ROUTES.BOOKS,
+      icon: getIcon('books', isActive(ROUTES.BOOKS) || isActive(ROUTES.RESOURCES) || isActive(ROUTES.E_CODES))
+    }] : []),
   ]
 
   // Sub-items for Products - only show if user has Products module access
@@ -258,6 +236,50 @@ const Sidebar = () => {
       title: 'Applications',
       path: ROUTES.CERTIFICATION_APPLICATIONS,
       icon: getIcon('resources', isActive(ROUTES.CERTIFICATION_APPLICATIONS))
+    }
+  ] : []
+
+  // Sub-items for Customer Support - only show if user has Customer Support module access
+  const customerSupportSubItems: SidebarItem[] = canAccessModule('Customer Support') ? [
+    {
+      id: 'faqs',
+      title: 'FAQs',
+      path: ROUTES.FAQS,
+      icon: getIcon('faqs', isActive(ROUTES.FAQS))
+    },
+    {
+      id: 'newsletter',
+      title: 'Newsletter',
+      path: ROUTES.NEWSLETTER,
+      icon: getIcon('newsletter', isActive(ROUTES.NEWSLETTER))
+    },
+    {
+      id: 'contact-us',
+      title: 'Contact Us',
+      path: ROUTES.CONTACT_US,
+      icon: getIcon('contact-us', isActive(ROUTES.CONTACT_US))
+    }
+  ] : []
+
+  // Sub-items for Knowledge Base - only show if user has Knowledge Base module access
+  const knowledgeBaseSubItems: SidebarItem[] = canAccessModule('Knowledge Base') ? [
+    {
+      id: 'books',
+      title: 'Books',
+      path: ROUTES.BOOKS,
+      icon: getIcon('books', isActive(ROUTES.BOOKS))
+    },
+    {
+      id: 'resources',
+      title: 'Resources',
+      path: ROUTES.RESOURCES,
+      icon: getIcon('resources', isActive(ROUTES.RESOURCES))
+    },
+    {
+      id: 'e-codes',
+      title: 'E-Codes',
+      path: ROUTES.E_CODES,
+      icon: getIcon('e-codes', isActive(ROUTES.E_CODES))
     }
   ] : []
 
@@ -482,6 +504,118 @@ const Sidebar = () => {
                       </ul>
                     )}
                   </div>
+                ) : item.id === 'customer-support' ? (
+                  <div>
+                    {/* Customer Support with expandable submenu */}
+                    <button
+                      onClick={() => toggleExpanded('customer-support')}
+                      className={`w-full flex items-center text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] py-[9px] rounded-md transition-all duration-300 ease-in-out transform relative group ${isSidebarCollapsed
+                        ? isActive(ROUTES.FAQS) || isActive(ROUTES.NEWSLETTER) || isActive(ROUTES.CONTACT_US)
+                          ? 'justify-center px-1 text-[#0c684b] bg-transparent'
+                          : 'justify-center px-1 text-gray-300 bg-transparent hover:bg-gray-700'
+                        : isActive(ROUTES.FAQS) || isActive(ROUTES.NEWSLETTER) || isActive(ROUTES.CONTACT_US)
+                          ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
+                          : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
+                        }`}
+                    >
+                      {item.icon}
+                      {!isSidebarCollapsed && (
+                        <>
+                          <span className="font-medium">{item.title}</span>
+                          <div className="ml-auto">
+                            {expandedItems.includes('customer-support') ? (
+                              <FiChevronDown className="w-3 h-3" />
+                            ) : (
+                              <FiChevronRight className="w-3 h-3" />
+                            )}
+                          </div>
+                        </>
+                      )}
+
+                      {/* Tooltip for collapsed state */}
+                      {isSidebarCollapsed && (
+                        <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 pointer-events-none">
+                          {item.title}
+                        </div>
+                      )}
+                    </button>
+
+                    {/* Sub-items for Customer Support */}
+                    {!isSidebarCollapsed && expandedItems.includes('customer-support') && (
+                      <ul className="ml-4 mt-1 space-y-1">
+                        {customerSupportSubItems.map((subItem) => (
+                          <li key={subItem.id}>
+                            <button
+                              onClick={() => handleItemClick(subItem)}
+                              className={`w-full flex items-center text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] py-[6px] rounded-md transition-all duration-300 ease-in-out transform relative group ${isActive(subItem.path)
+                                ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
+                                : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
+                                }`}
+                            >
+                              {subItem.icon}
+                              <span className="font-medium">{subItem.title}</span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ) : item.id === 'knowledge-base' ? (
+                  <div>
+                    {/* Knowledge Base with expandable submenu */}
+                    <button
+                      onClick={() => toggleExpanded('knowledge-base')}
+                      className={`w-full flex items-center text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] py-[9px] rounded-md transition-all duration-300 ease-in-out transform relative group ${isSidebarCollapsed
+                        ? isActive(ROUTES.BOOKS) || isActive(ROUTES.RESOURCES) || isActive(ROUTES.E_CODES)
+                          ? 'justify-center px-1 text-[#0c684b] bg-transparent'
+                          : 'justify-center px-1 text-gray-300 bg-transparent hover:bg-gray-700'
+                        : isActive(ROUTES.BOOKS) || isActive(ROUTES.RESOURCES) || isActive(ROUTES.E_CODES)
+                          ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
+                          : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
+                        }`}
+                    >
+                      {item.icon}
+                      {!isSidebarCollapsed && (
+                        <>
+                          <span className="font-medium">{item.title}</span>
+                          <div className="ml-auto">
+                            {expandedItems.includes('knowledge-base') ? (
+                              <FiChevronDown className="w-3 h-3" />
+                            ) : (
+                              <FiChevronRight className="w-3 h-3" />
+                            )}
+                          </div>
+                        </>
+                      )}
+
+                      {/* Tooltip for collapsed state */}
+                      {isSidebarCollapsed && (
+                        <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 pointer-events-none">
+                          {item.title}
+                        </div>
+                      )}
+                    </button>
+
+                    {/* Sub-items for Knowledge Base */}
+                    {!isSidebarCollapsed && expandedItems.includes('knowledge-base') && (
+                      <ul className="ml-4 mt-1 space-y-1">
+                        {knowledgeBaseSubItems.map((subItem) => (
+                          <li key={subItem.id}>
+                            <button
+                              onClick={() => handleItemClick(subItem)}
+                              className={`w-full flex items-center text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] py-[6px] rounded-md transition-all duration-300 ease-in-out transform relative group ${isActive(subItem.path)
+                                ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
+                                : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
+                                }`}
+                            >
+                              {subItem.icon}
+                              <span className="font-medium">{subItem.title}</span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 ) : (
                   /* Regular items without submenu */
                   <button
@@ -568,7 +702,7 @@ const Sidebar = () => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-3 left-3 sm:top-4 sm:left-4 h-[calc(100vh-1.5rem)] sm:h-[calc(100vh-2rem)] z-50 transition-all duration-300 rounded-xl ${isSidebarCollapsed ? 'w-12 sm:w-16' : 'w-48 sm:w-52'
+        className={`fixed top-3 left-3 sm:top-4 sm:left-4 h-[calc(100vh-1.5rem)] sm:h-[calc(100vh-2rem)] z-50 transition-all duration-300 rounded-xl ${isSidebarCollapsed ? 'w-12 sm:w-16' : 'w-56 sm:w-64'
           } ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
           }`}
       >

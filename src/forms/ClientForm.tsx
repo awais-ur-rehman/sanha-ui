@@ -116,13 +116,13 @@ const ClientForm: React.FC<ClientFormProps> = ({
 
     try {
       setUploadingLogo(true)
-      
+
       const token = localStorage.getItem('token')
       const headers: Record<string, string> = {}
       if (token) {
         headers['Authorization'] = `Bearer ${token}`
       }
-      
+
       const response = await fetch(`${API_CONFIG.baseURL}${FILE_ENDPOINTS.upload}/images`, {
         method: 'POST',
         headers,
@@ -134,7 +134,7 @@ const ClientForm: React.FC<ClientFormProps> = ({
       }
 
       const result = await response.json()
-      
+
       if (result.success) {
         const logoUrl = result.data.files[0].url
         setValue('logoUrl', logoUrl)
@@ -173,7 +173,7 @@ const ClientForm: React.FC<ClientFormProps> = ({
 
   const onSubmitForm = async (data: ClientCreateRequest | ClientUpdateRequest) => {
     const standardValue = (data.standard ?? '').toString().trim()
-    
+
     // Check if this is a new certification standard (not in the existing list)
     const existingStandards = certificationStandardsResponse?.data || []
     const isNewStandard = standardValue && !existingStandards.some(
@@ -324,317 +324,315 @@ const ClientForm: React.FC<ClientFormProps> = ({
   return (
     <form onSubmit={handleSubmit(onSubmitForm)} className="flex flex-col h-full px-3 py-2">
       <div className="flex-1 overflow-y-auto space-y-4 p-2">
-      {/* Basic Information */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Client Name *
-          </label>
-          <input
-            type="text"
-            {...register('name', { required: 'Client name is required' })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
-            placeholder="Enter client name"
-          />
-          {errors.name && (
-            <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>
-          )}
-        </div>
-
-        <PillsInput
-          label="Client Codes *"
-          items={clientCodes}
-          setItems={setClientCodes}
-          placeholder="Enter client code (e.g., K-0026) and press Enter"
-        />
-      </div>
-
-      {/* Logo Upload */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Logo
-        </label>
-        <div className="flex items-center space-x-4">
-          <div className="flex-1">
-            <input
-              type="text"
-              {...register('logoUrl')}
-              placeholder="Logo URL or upload file"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
-            />
-          </div>
-          <div className="relative">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleLogoChange}
-              className="hidden"
-              id="logo-upload"
-            />
-            <label
-              htmlFor="logo-upload"
-              className={`flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors ${
-                uploadingLogo ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
-            >
-              <FiUpload size={16} />
-              <span className="text-sm">{uploadingLogo ? 'Uploading...' : 'Upload'}</span>
-            </label>
-          </div>
-        </div>
-        {watchedLogoUrl && (
-          <div className="mt-2">
-            <img
-              src={watchedLogoUrl}
-              alt="Client logo"
-              className="w-16 h-16 object-cover rounded-lg border"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement
-                target.style.display = 'none'
-              }}
-            />
-          </div>
-        )}
-      </div>
-
-      {/* Contact Information */}
-      <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Status *
-          </label>
-          <CustomDropdown
-            options={[
-              { value: CLIENT_STATUS.ACTIVE, label: CLIENT_STATUS.ACTIVE },
-              { value: CLIENT_STATUS.ON_HOLD, label: CLIENT_STATUS.ON_HOLD },
-              { value: CLIENT_STATUS.CERTIFICATE_ON_HOLD, label: CLIENT_STATUS.CERTIFICATE_ON_HOLD },
-              { value: CLIENT_STATUS.EXPIRED, label: CLIENT_STATUS.EXPIRED },
-            ]}
-            value={statusValue}
-            onChange={(val) => setStatusValue(val as ClientStatus)}
-            placeholder="Select status"
-            className="w-full"
-          />
-        </div>
-      </div>
-
-      {/* Contact Information */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Email *
-          </label>
-          <input
-            type="email"
-            {...register('email', { 
-              required: 'Email is required',
-              pattern: {
-                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                message: 'Invalid email address'
-              }
-            })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
-            placeholder="client@example.com"
-          />
-          {errors.email && (
-            <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Fax
-          </label>
-          <input
-            type="text"
-            {...register('fax')}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
-            placeholder="+1-234-567-8900"
-          />
-        </div>
-      </div>
-
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Website
-        </label>
-        <input
-          type="text"
-          {...register('website')}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
-          placeholder="Website URL"
-        />
-      </div>
-
-      {/* Phone Numbers */}
-      <PillsInput
-        label="Phone Numbers"
-        items={phones}
-        setItems={setPhones}
-        placeholder="Enter phone number"
-        validate={(v) => /^\d{11,}$/.test(v)}
-        invalidMessage="Phone must be at least 11 digits"
-      />
-
-      {/* Addresses - initial input editable; plus adds more rows */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700 mb-1">Addresses</label>
-        <div className="flex items-center gap-2">
-          <input
-            type="text"
-            value={addressInput}
-            onChange={(e) => setAddressInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                const val = addressInput.trim();
-                if (val) {
-                  setAddresses(prev => [...prev, val]);
-                  setAddressInput('');
-                }
-              }
-            }}
-            placeholder="Enter address and press Enter or + to add"
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
-          />
-          <button
-            type="button"
-            onClick={() => { const val = addressInput.trim(); if (val) { setAddresses(prev => [...prev, val]); setAddressInput(''); } }}
-            className="inline-flex items-center justify-center w-8 h-8 border border-[#0c684b] rounded-full text-[#0c684b] bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#0c684b] transition-colors"
-          >
-            <FiPlus size={16} />
-          </button>
-        </div>
-        {addresses.length > 0 && (
-          <div className="space-y-2 p-1">
-            {addresses.map((address, index) => (
-              <div key={index} className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={address}
-                  onChange={(e) => updateField('addresses', setAddresses, index, e.target.value)}
-                  placeholder="Enter address"
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
-                />
-                <button type="button" onClick={() => removeField('addresses', setAddresses, index)} className="p-2 text-gray-500 hover:text-red-600 rounded-md transition-colors">
-                  <FiX size={14} />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Certification Information */}
-      <div className="space-y-4">
-        {/* Certification Standard single line */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Certification Standard *
-          </label>
-          <SearchableDropdown
-            options={certificationStandardOptions}
-            value={watch('standard') || ''}
-            onChange={(value) => setValue('standard', value)}
-            placeholder="Search or type certification standard (e.g., ISO 9001, ISO 14001)"
-            allowCustomValue={true}
-            maxDisplayed={5}
-          />
-          {errors.standard && (
-            <p className="text-red-500 text-xs mt-1">{errors.standard.message}</p>
-          )}
-        </div>
-
-        {/* Certified Since and Expiry in same line */}
+        {/* Basic Information */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Certified Since *
+              Client Name *
             </label>
-            <DatePicker
-              value={watch('certifiedSince') || ''}
-              onChange={(date) => setValue('certifiedSince', date)}
-              placeholder="Select certification date"
-              maxDate={undefined}
+            <input
+              type="text"
+              {...register('name', { required: 'Client name is required' })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
+              placeholder="Enter client name"
             />
-            {errors.certifiedSince && (
-              <p className="text-red-500 text-xs mt-1">{errors.certifiedSince.message}</p>
+            {errors.name && (
+              <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>
             )}
           </div>
+
+          <PillsInput
+            label="Client Codes *"
+            items={clientCodes}
+            setItems={setClientCodes}
+            placeholder="Enter client code (e.g., K-0026) and press Enter"
+          />
+        </div>
+
+        {/* Logo Upload */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Logo
+          </label>
+          <div className="flex items-center space-x-4">
+            <div className="flex-1">
+              <input
+                type="text"
+                {...register('logoUrl')}
+                placeholder="Logo URL or upload file"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
+              />
+            </div>
+            <div className="relative">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleLogoChange}
+                className="hidden"
+                id="logo-upload"
+              />
+              <label
+                htmlFor="logo-upload"
+                className={`flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors ${uploadingLogo ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+              >
+                <FiUpload size={16} />
+                <span className="text-sm">{uploadingLogo ? 'Uploading...' : 'Upload'}</span>
+              </label>
+            </div>
+          </div>
+          {watchedLogoUrl && (
+            <div className="mt-2">
+              <img
+                src={watchedLogoUrl}
+                alt="Client logo"
+                className="w-16 h-16 object-cover rounded-lg border"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement
+                  target.style.display = 'none'
+                }}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Contact Information */}
+        <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Expiry Date *
+              Status *
             </label>
-            <DatePicker
-              value={watch('expiryDate') || ''}
-              onChange={(date) => setValue('expiryDate', date)}
-              placeholder="Select expiry date"
-              minDate={new Date()}
-              maxDate={undefined}
+            <CustomDropdown
+              options={[
+                { value: CLIENT_STATUS.ACTIVE, label: CLIENT_STATUS.ACTIVE },
+                { value: CLIENT_STATUS.ON_HOLD, label: CLIENT_STATUS.ON_HOLD },
+                { value: CLIENT_STATUS.CERTIFICATE_ON_HOLD, label: CLIENT_STATUS.CERTIFICATE_ON_HOLD },
+                { value: CLIENT_STATUS.EXPIRED, label: CLIENT_STATUS.EXPIRED },
+              ]}
+              value={statusValue}
+              onChange={(val) => setStatusValue(val as ClientStatus)}
+              placeholder="Select status"
+              className="w-full"
             />
-            {errors.expiryDate && (
-              <p className="text-red-500 text-xs mt-1">{errors.expiryDate.message}</p>
+          </div>
+        </div>
+
+        {/* Contact Information */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Email *
+            </label>
+            <input
+              type="email"
+              {...register('email', {
+                required: 'Email is required',
+                pattern: {
+                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                  message: 'Invalid email address'
+                }
+              })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
+              placeholder="client@example.com"
+            />
+            {errors.email && (
+              <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
             )}
           </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Fax
+            </label>
+            <input
+              type="text"
+              {...register('fax')}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
+              placeholder="+1-234-567-8900"
+            />
+          </div>
         </div>
-      </div>
 
-      {/* Categories as pills */}
-      <PillsInput
-        label="Categories"
-        items={categories}
-        setItems={setCategories}
-        placeholder="Enter category and press Enter"
-      />
 
-      {/* Products as pills */}
-      <PillsInput
-        label="Products"
-        items={products}
-        setItems={setProducts}
-        placeholder="Enter product and press Enter"
-      />
-
-      {/* Scopes - initial input editable; plus adds more rows */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700 mb-1">Certification Scopes</label>
-        <div className="flex items-center gap-2">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Website
+          </label>
           <input
             type="text"
-            value={scopeInput}
-            onChange={(e) => setScopeInput(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); const v = scopeInput.trim(); if (v) { setScopes(prev => [...prev, v]); setScopeInput('') } } }}
-            placeholder="Enter scope and press Enter or + to add"
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
+            {...register('website')}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
+            placeholder="Website URL"
           />
-          <button type="button" onClick={() => { const v = scopeInput.trim(); if (v) { setScopes(prev => [...prev, v]); setScopeInput('') } }} className="inline-flex items-center justify-center w-8 h-8 border border-[#0c684b] rounded-full text-[#0c684b] bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#0c684b] transition-colors">
-            <FiPlus size={16} />
-          </button>
         </div>
-        {scopes.length > 0 && (
-          <div className="space-y-2 p-1">
-            {scopes.map((scope, index) => (
-              <div key={index} className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={scope}
-                  onChange={(e) => updateField('scopes', setScopes, index, e.target.value)}
-                  placeholder="Enter scope"
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
-                />
-                <button type="button" onClick={() => removeField('scopes', setScopes, index)} className="p-2 text-gray-500 hover:text-red-600 rounded-md transition-colors">
-                  <FiX size={14} />
-                </button>
-              </div>
-            ))}
+
+        {/* Phone Numbers */}
+        <PillsInput
+          label="Phone Numbers"
+          items={phones}
+          setItems={setPhones}
+          placeholder="Enter phone number"
+          validate={(v) => /^\d{11,}$/.test(v)}
+          invalidMessage="Phone must be at least 11 digits"
+        />
+
+        {/* Addresses - initial input editable; plus adds more rows */}
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Addresses</label>
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={addressInput}
+              onChange={(e) => setAddressInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  const val = addressInput.trim();
+                  if (val) {
+                    setAddresses(prev => [...prev, val]);
+                    setAddressInput('');
+                  }
+                }
+              }}
+              placeholder="Enter address and press Enter or + to add"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
+            />
+            <button
+              type="button"
+              onClick={() => { const val = addressInput.trim(); if (val) { setAddresses(prev => [...prev, val]); setAddressInput(''); } }}
+              className="inline-flex items-center justify-center w-8 h-8 border border-[#0c684b] rounded-full text-[#0c684b] bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#0c684b] transition-colors"
+            >
+              <FiPlus size={16} />
+            </button>
           </div>
-        )}
-      </div>
+          {addresses.length > 0 && (
+            <div className="space-y-2 p-1">
+              {addresses.map((address, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={address}
+                    onChange={(e) => updateField('addresses', setAddresses, index, e.target.value)}
+                    placeholder="Enter address"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
+                  />
+                  <button type="button" onClick={() => removeField('addresses', setAddresses, index)} className="p-2 text-gray-500 hover:text-red-600 rounded-md transition-colors">
+                    <FiX size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Certification Information */}
+        <div className="space-y-4">
+          {/* Certification Standard single line */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Certification Standard *
+            </label>
+            <SearchableDropdown
+              options={certificationStandardOptions}
+              value={watch('standard') || ''}
+              onChange={(value) => setValue('standard', value)}
+              placeholder="Search or type certification standard (e.g., ISO 9001, ISO 14001)"
+              allowCustomValue={true}
+              maxDisplayed={5}
+            />
+            {errors.standard && (
+              <p className="text-red-500 text-xs mt-1">{errors.standard.message}</p>
+            )}
+          </div>
+
+          {/* Certified Since and Expiry in same line */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Certified Since *
+              </label>
+              <DatePicker
+                value={watch('certifiedSince') || ''}
+                onChange={(date) => setValue('certifiedSince', date)}
+                placeholder="Select certification date"
+                maxDate={undefined}
+              />
+              {errors.certifiedSince && (
+                <p className="text-red-500 text-xs mt-1">{errors.certifiedSince.message}</p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Expiry Date *
+              </label>
+              <DatePicker
+                value={watch('expiryDate') || ''}
+                onChange={(date) => setValue('expiryDate', date)}
+                placeholder="Select expiry date"
+                maxDate={undefined}
+              />
+              {errors.expiryDate && (
+                <p className="text-red-500 text-xs mt-1">{errors.expiryDate.message}</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Categories as pills */}
+        <PillsInput
+          label="Categories"
+          items={categories}
+          setItems={setCategories}
+          placeholder="Enter category and press Enter"
+        />
+
+        {/* Products as pills */}
+        <PillsInput
+          label="Products"
+          items={products}
+          setItems={setProducts}
+          placeholder="Enter product and press Enter"
+        />
+
+        {/* Scopes - initial input editable; plus adds more rows */}
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Certification Scopes</label>
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={scopeInput}
+              onChange={(e) => setScopeInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); const v = scopeInput.trim(); if (v) { setScopes(prev => [...prev, v]); setScopeInput('') } } }}
+              placeholder="Enter scope and press Enter or + to add"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
+            />
+            <button type="button" onClick={() => { const v = scopeInput.trim(); if (v) { setScopes(prev => [...prev, v]); setScopeInput('') } }} className="inline-flex items-center justify-center w-8 h-8 border border-[#0c684b] rounded-full text-[#0c684b] bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#0c684b] transition-colors">
+              <FiPlus size={16} />
+            </button>
+          </div>
+          {scopes.length > 0 && (
+            <div className="space-y-2 p-1">
+              {scopes.map((scope, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={scope}
+                    onChange={(e) => updateField('scopes', setScopes, index, e.target.value)}
+                    placeholder="Enter scope"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
+                  />
+                  <button type="button" onClick={() => removeField('scopes', setScopes, index)} className="p-2 text-gray-500 hover:text-red-600 rounded-md transition-colors">
+                    <FiX size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
 
 
-      {/* Form Actions - fixed bottom within modal content */}
+        {/* Form Actions - fixed bottom within modal content */}
       </div>
       <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200 mt-4 flex-shrink-0 bg-white">
         <button

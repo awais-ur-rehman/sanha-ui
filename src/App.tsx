@@ -77,7 +77,7 @@ function App() {
             <Route
               path={ROUTES.BOOKS}
               element={
-                <PermissionRoute moduleName="Books">
+                <PermissionRoute moduleName="Knowledge Base">
                   <MainLayout>
                     <Books />
                   </MainLayout>
@@ -87,7 +87,7 @@ function App() {
             <Route
               path={ROUTES.E_CODES}
               element={
-                <PermissionRoute moduleName="E-Codes">
+                <PermissionRoute moduleName="Knowledge Base">
                   <MainLayout>
                     <ECodes />
                   </MainLayout>
@@ -97,7 +97,7 @@ function App() {
             <Route
               path={ROUTES.RESOURCES}
               element={
-                <PermissionRoute moduleName="Resources">
+                <PermissionRoute moduleName="Knowledge Base">
                   <MainLayout>
                     <Resources />
                   </MainLayout>
@@ -107,7 +107,7 @@ function App() {
             <Route
               path={ROUTES.FAQS}
               element={
-                <PermissionRoute moduleName="FAQs">
+                <PermissionRoute moduleName="Customer Support">
                   <MainLayout>
                     <FAQs />
                   </MainLayout>
@@ -208,7 +208,7 @@ function App() {
             <Route
               path={ROUTES.CONTACT_US}
               element={
-                <PermissionRoute moduleName="Contact Us">
+                <PermissionRoute moduleName="Customer Support">
                   <MainLayout>
                     <ContactUs />
                   </MainLayout>
@@ -228,7 +228,7 @@ function App() {
             <Route
               path={ROUTES.NEWSLETTER}
               element={
-                <PermissionRoute moduleName="Newsletter">
+                <PermissionRoute moduleName="Customer Support">
                   <MainLayout>
                     <Newsletter />
                   </MainLayout>
