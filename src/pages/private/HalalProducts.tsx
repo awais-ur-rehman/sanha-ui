@@ -14,6 +14,7 @@ import DeleteConfirmationModal from '../../components/DeleteConfirmationModal'
 import BulkImportModal from '../../components/BulkImportModal'
 import { Pagination } from '../../components'
 import StyledTable from '../../components/StyledTable'
+import PageHeader from '../../components/PageHeader'
 
 const HalalProducts = () => {
   // Hooks
@@ -316,12 +317,7 @@ const HalalProducts = () => {
     <div className="py-4">
       <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] p-6'>
         {/* Header */}
-        <div className="flex items-center justify-between my-4">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900">Halal Products</h1>
-            <p className="text-gray-600">Manage halal product information and certifications</p>
-          </div>
-        </div>
+        <PageHeader title="Halal Products" subtitle="Manage halal product information and certifications" />
 
         {/* Filters */}
         <div className='py-6'>

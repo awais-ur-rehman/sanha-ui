@@ -4,6 +4,7 @@ import { FiSearch, FiMessageCircle, FiEdit2, FiChevronDown } from 'react-icons/f
 import { usePermissions } from '../../hooks/usePermissions'
 import { useGetApi, usePutApi, useRealTimeUpdates } from '../../hooks'
 import { useToast } from '../../components/CustomToast/ToastContext'
+import PageHeader from '../../components/PageHeader'
 import { CONTACT_US_ENDPOINTS } from '../../config/api'
 import type { ContactUs as ContactUsType, ContactUsReplyRequest } from '../../types/entities'
 import DateRangePicker from '../../components/DateRangePicker'
@@ -403,10 +404,7 @@ const ContactUs = () => {
     <div className="py-4">
       <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] px-6 py-10'>
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-semibold text-gray-900">Contact Us</h1>
-          <p className="text-gray-600">View & manage contact us inquiries and replies.</p>
-        </div>
+        <PageHeader title="Contact Us" subtitle="View & manage contact us inquiries and replies." />
 
         {/* Tabs */}
         <div className="mb-6">

@@ -9,6 +9,7 @@ import Button from '../../components/Button'
 import NewsletterTemplate from '../../components/NewsletterTemplate'
 import { NEWSLETTER_ENDPOINTS } from '../../config/api'
 import type { NewsletterSection, NewsletterData } from '../../types/entities'
+import PageHeader from '../../components/PageHeader'
 
 const Newsletter = () => {
   const { showToast } = useToast()
@@ -114,10 +115,7 @@ const Newsletter = () => {
     <div className="py-4">
       <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] px-6 py-10'>
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-semibold text-gray-900">Newsletter</h1>
-          <p className="text-gray-600">Create and send newsletters to subscribers.</p>
-        </div>
+        <PageHeader title="Newsletter" subtitle="Create and send newsletters to subscribers." />
 
         {/* Send Button */}
         <div className='py-6'>

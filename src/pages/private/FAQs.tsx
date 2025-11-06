@@ -14,6 +14,7 @@ import FAQForm from '../../forms/FAQForm'
 import DeleteConfirmationModal from '../../components/DeleteConfirmationModal'
 import { USER_FAQ_ENDPOINTS, FAQ_ENDPOINTS, API_CONFIG, getAuthHeaders, FAQ_EXPORT_ENDPOINT, USER_FAQ_EXPORT_ENDPOINT } from '../../config/api'
 import { Pagination } from '../../components'
+import PageHeader from '../../components/PageHeader'
 
 
 const FAQs = () => {
@@ -769,10 +770,7 @@ const FAQs = () => {
     <div className="py-4">
       <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] max-h-[calc(100vh-35px)] overflow-y-auto px-6 py-10'>
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-semibold text-gray-900">FAQs</h1>
-          <p className="text-gray-600">View & manage FAQs.</p>
-        </div>
+        <PageHeader title="FAQs" subtitle="View & manage FAQs." />
 
         {/* Tab Navigation */}
         <div className="mb-6">

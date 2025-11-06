@@ -8,6 +8,7 @@ import DateRangePicker from '../../components/DateRangePicker'
 import CustomDropdown from '../../components/CustomDropdown'
 import { API_CONFIG, REPORTED_PRODUCT_ENDPOINTS, getAuthHeaders } from '../../config/api'
 import type { ReportProduct } from '../../types/entities'
+import PageHeader from '../../components/PageHeader'
 
 const ReportedProducts = () => {
   const { hasPermission } = usePermissions()
@@ -273,10 +274,7 @@ const ReportedProducts = () => {
     <div className="py-4">
       <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] px-6 py-10'>
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-[18px] md:text-[20px] lg:text-[20px] xl:text-[22px] font-semibold text-gray-900">Reported Products</h1>
-          <p className="text-gray-600">View & manage reported products.</p>
-        </div>
+        <PageHeader title="Reported Products" subtitle="View & manage reported products." />
 
         {/* Tabs */}
         <div className="mb-6">

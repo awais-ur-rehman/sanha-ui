@@ -17,6 +17,7 @@ import DeclarationsSignaturesForm from '../../components/forms/DeclarationsSigna
 import ConfirmationModal from '../../components/ConfirmationModal'
 import CustomTextarea from '../../components/CustomTextarea'
 import Button from '../../components/Button'
+import PageHeader from '../../components/PageHeader'
 
 interface ApplicationDetailProps { }
 
@@ -314,12 +315,10 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = () => {
                 </div>
 
                 {/* Header */}
-                <div className="mb-6">
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <h1 className="text-2xl font-semibold text-gray-900">Certification Application</h1>
-                            <p className="text-gray-600 text-sm">Review and manage application details</p>
-                        </div>
+                <PageHeader
+                    title="Certification Application"
+                    subtitle="Review and manage application details"
+                    actions={
                         <div className="flex gap-3">
                             {/* Download button (logic to be added later) */}
                             {!isReviewNeeded && (
@@ -366,8 +365,8 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = () => {
                                 </Button>
                             ))}
                         </div>
-                    </div>
-                </div>
+                    }
+                />
 
                 {/* Form Progress */}
                 <div className="mb-6 cursor-pointer">

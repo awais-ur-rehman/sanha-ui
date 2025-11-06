@@ -19,6 +19,7 @@ import BulkImportModal from "../../components/BulkImportModal";
 import ECodeForm from "../../forms/ECodeForm";
 import { Pagination } from "../../components";
 import StyledTable from "../../components/StyledTable";
+import PageHeader from "../../components/PageHeader";
 
 const ECodes = () => {
   // Hooks
@@ -389,10 +390,7 @@ const ECodes = () => {
     <div className="py-4">
       <div className="bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] px-6 py-10">
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-semibold text-gray-900">E-Codes</h1>
-          <p className="text-gray-600">View & manage E-Codes.</p>
-        </div>
+        <PageHeader title="E-Codes" subtitle="View & manage E-Codes." />
 
         {/* Filters */}
         <div className="py-6">

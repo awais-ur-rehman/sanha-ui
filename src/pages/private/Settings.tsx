@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { FiSearch, FiPlus, FiEdit2, FiTrash2 } from 'react-icons/fi'
 import { usePermissions } from '../../hooks/usePermissions'
+import PageHeader from '../../components/PageHeader'
 import { useGetApi, useDeleteApi } from '../../hooks'
 import { useToast } from '../../components/CustomToast/ToastContext'
 import { CERTIFICATION_STANDARD_ENDPOINTS, API_CONFIG, getAuthHeaders } from '../../config/api'
@@ -112,10 +113,7 @@ const Settings = () => {
     <div className="py-4">
       <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] px-6 py-10'>
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-semibold text-gray-900">Settings</h1>
-          <p className="text-gray-600">Manage certification standards and portal configuration</p>
-        </div>
+        <PageHeader title="Settings" subtitle="Manage certification standards and portal configuration" />
 
         {/* Main Content with Side Menu */}
         <div className="flex gap-8">

@@ -21,6 +21,7 @@ import CustomDropdown from "../../components/CustomDropdown";
 import DeleteConfirmationModal from "../../components/DeleteConfirmationModal";
 import { Pagination } from "../../components";
 import StyledTable from "../../components/StyledTable";
+import PageHeader from "../../components/PageHeader";
 
 const Products = () => {
   // Hooks
@@ -313,14 +314,7 @@ const Products = () => {
     <div className="py-4">
       <div className="bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] p-6">
         {/* Header */}
-        <div className="flex items-center justify-between my-4">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900">Products</h1>
-            <p className="text-gray-600">
-              Manage product information and certifications
-            </p>
-          </div>
-        </div>
+        <PageHeader title="Products" subtitle="Manage product information and certifications" />
 
         {/* Filters */}
         <div className="py-6">

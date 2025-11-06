@@ -11,6 +11,7 @@ import { useGetApi, useDeleteApi } from '../../hooks'
 import CustomDropdown from '../../components/CustomDropdown'
 import { useToast } from '../../components/CustomToast/ToastContext'
 import { Pagination } from '../../components'
+import PageHeader from '../../components/PageHeader'
 
 const Books = () => {
   // Hooks
@@ -247,9 +248,8 @@ const Books = () => {
     <div className="py-3 lg:py-4">
       <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] max-h-[calc(100vh-35px)] overflow-y-auto px-4 lg:px-6 py-6 lg:py-10'>
       {/* Header */}
-<div className="mb-4 lg:mb-6">
-        <h1 className="text-[16px] md:text-[18px] lg:text-[18px] xl:text-[20px] font-semibold text-gray-900">Books</h1>
-        <p className="text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px] text-gray-600">View & manage books.</p>
+      <div className="mb-4 lg:mb-6">
+        <PageHeader title="Books" subtitle="View & manage books." />
       </div>
 
       {/* Clean Filters */}

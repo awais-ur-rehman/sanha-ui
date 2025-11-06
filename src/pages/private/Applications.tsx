@@ -9,6 +9,7 @@ import Chip from '../../components/Chip'
 import DateRangePicker from '../../components/DateRangePicker'
 import { Pagination } from '../../components'
 import { useToast } from '../../components/CustomToast/ToastContext'
+import PageHeader from '../../components/PageHeader'
 
 interface ApplicationEntry {
     id: number
@@ -176,12 +177,7 @@ const Applications = () => {
         <div className="py-4">
             <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] p-6'>
                 {/* Header */}
-                <div className="flex items-center justify-between mb-4">
-                    <div>
-                        <h1 className="text-2xl font-semibold text-gray-900">Applications</h1>
-                        <p className="text-gray-600 text-sm">View certification applications by users</p>
-                    </div>
-                </div>
+                <PageHeader title="Applications" subtitle="View certification applications by users" />
 
                 {/* Filters */}
                 <div className='py-6'>

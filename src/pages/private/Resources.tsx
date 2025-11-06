@@ -12,6 +12,7 @@ import DeleteConfirmationModal from '../../components/DeleteConfirmationModal'
 import ResourceForm from '../../forms/ResourceForm'
 import DateRangePicker from '../../components/DateRangePicker'
 import { Pagination } from '../../components'
+import PageHeader from '../../components/PageHeader'
 
 const Resources = () => {
   // Hooks
@@ -362,10 +363,7 @@ const Resources = () => {
     <div className="py-4">
       <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] px-6 py-10'>
          {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">Resources</h1>
-        <p className="text-gray-600">View & manage resources.</p>
-      </div>
+      <PageHeader title="Resources" subtitle="View & manage resources." />
 
       {/* Tab Navigation */}
       <div className="mb-6">

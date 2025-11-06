@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { FiSearch } from 'react-icons/fi'
 import { useLocation } from 'react-router-dom'
 import { usePermissions } from '../../hooks/usePermissions'
+import PageHeader from '../../components/PageHeader'
 import { useEnquiriesApi, useGetApi, useRealTimeUpdates } from '../../hooks'
 import type { Enquiry } from '../../types/entities'
 import { useToast } from '../../components/CustomToast/ToastContext'
@@ -390,10 +391,7 @@ const Enquiries = () => {
     <div className="py-4">
       <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] px-6 py-10'>
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-semibold text-gray-900">Enquiries</h1>
-          <p className="text-gray-600">View and manage customer enquiries.</p>
-        </div>
+        <PageHeader title="Enquiries" subtitle="View and manage customer enquiries." />
 
         {/* Tabs */}
         <div className="mb-6">
