@@ -18,13 +18,13 @@ const NonHalalProducts = () => {
   // Hooks
   const { hasPermission } = usePermissions()
   const { showToast } = useToast()
-  
+
   // Check if user has read permission for Products
   const hasReadPermission = hasPermission('Products', 'read')
   const hasCreatePermission = hasPermission('Products', 'create')
   const hasUpdatePermission = hasPermission('Products', 'update')
   const hasDeletePermission = hasPermission('Products', 'delete')
-  
+
   // State management
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [isOverlayOpen, setIsOverlayOpen] = useState(false)
@@ -82,12 +82,12 @@ const NonHalalProducts = () => {
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `non-halal-products-${new Date().toISOString().slice(0,10)}.csv`
+      a.download = `non-halal-products-${new Date().toISOString().slice(0, 10)}.csv`
       document.body.appendChild(a)
       a.click()
       a.remove()
       window.URL.revokeObjectURL(url)
-    } catch {}
+    } catch { }
   }
 
   const createProductMutation = usePostApi<ProductCreateRequest, any>(
@@ -171,9 +171,9 @@ const NonHalalProducts = () => {
 
 
   const handleIsActiveFilterChange = (value: string | number) => {
-    setFilters(prev => ({ 
-      ...prev, 
-      isActive: value.toString() 
+    setFilters(prev => ({
+      ...prev,
+      isActive: value.toString()
     }))
     setPagination(prev => ({ ...prev, currentPage: 1 }))
   }
@@ -205,11 +205,11 @@ const NonHalalProducts = () => {
     try {
       // Use provided newStatus or current product status
       const statusToSet = newStatus !== undefined ? newStatus : product.isActive
-      
+
       const payload = {
         isActive: statusToSet,
       }
-      
+
       console.log('Sending payload:', payload)
 
       // Use direct fetch to ensure we send to the correct endpoint with product ID
@@ -279,7 +279,7 @@ const NonHalalProducts = () => {
 
   return (
     <div className="py-4">
-      <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] p-6'>
+      <div className='bg-[#F9F8F6] rounded-lg overflow-hidden min-h-[calc(100vh-35px)] p-6'>
         {/* Header */}
         <PageHeader title="Non-Halal Products" subtitle="Manage non-halal product information and certifications" />
 

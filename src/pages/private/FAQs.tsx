@@ -511,32 +511,38 @@ const FAQs = () => {
       {/* Top Right: Status Toggle & Edit/Delete Actions */}
       <div className="flex justify-between">
         <div className="flex items-center space-x-3">
-          <CustomCheckbox
-            checked={Boolean(faq.isActive)}
-            onChange={() => handleFAQStatusToggle(faq)}
-            disabled={togglingFAQId === faq.id || (Boolean(faq.isActive) && !canDeactivateFAQ())}
-            className="w-5 h-5"
-          />
+          {hasPermission('Customer Support', 'update') && (
+            <CustomCheckbox
+              checked={Boolean(faq.isActive)}
+              onChange={() => handleFAQStatusToggle(faq)}
+              disabled={togglingFAQId === faq.id || (Boolean(faq.isActive) && !canDeactivateFAQ())}
+              className="w-5 h-5"
+            />
+          )}
           <span className="text-sm text-gray-600 font-medium">
             {togglingFAQId === faq.id ? 'Updating...' : (Boolean(faq.isActive) ? 'Active' : 'Inactive')}
           </span>
         </div>
         <div className='space-y-2'>
           <div className="flex items-center space-x-2">
-            <button
-              onClick={() => handleEditFAQ(faq)}
-              className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-              title="Edit FAQ"
-            >
-              <FiEdit size={16} />
-            </button>
-            <button
-              onClick={() => handleDeleteFAQ(faq)}
-              className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-              title="Delete FAQ"
-            >
-              <FiTrash2 size={16} />
-            </button>
+            {hasPermission('Customer Support', 'update') && (
+              <button
+                onClick={() => handleEditFAQ(faq)}
+                className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                title="Edit FAQ"
+              >
+                <FiEdit size={16} />
+              </button>
+            )}
+            {hasPermission('Customer Support', 'delete') && (
+              <button
+                onClick={() => handleDeleteFAQ(faq)}
+                className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                title="Delete FAQ"
+              >
+                <FiTrash2 size={16} />
+              </button>
+            )}
           </div>
           <div className="flex items-center justify-between mb-2">
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-[5px] text-xs font-medium bg-blue-100 text-blue-800">
@@ -630,7 +636,7 @@ const FAQs = () => {
     }, [isReplying])
 
     return (
-      <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-6 mb-6 border border-[#0c684b]/20">
+      <div className="bg-[#F9F8F6] rounded-lg shadow-sm hover:shadow-md transition-shadow p-6 mb-6 border border-[#0c684b]/20">
         {/* Top Right: Add To FAQs Button (only if answer exists) */}
         <div className='flex justify-between'>
           {/* Middle: User details */}
@@ -665,7 +671,7 @@ const FAQs = () => {
             </div>
           </div>
 
-          {userFaq.answer && (
+          {userFaq.answer && hasPermission('Customer Support', 'create') && (
             <div className="flex justify-end ">
               <button
                 onClick={() => handleAddToFaqs(userFaq)}
@@ -859,7 +865,7 @@ const FAQs = () => {
                 Export
               </button>
               {/* Add FAQ Button (only for FAQs tab) */}
-              {activeTab === 'FAQs' && hasPermission('FAQs', 'create') && (
+              {activeTab === 'FAQs' && hasPermission('Customer Support', 'create') && (
                 <button
                   onClick={handleAddFAQ}
                   className="flex items-center space-x-2 px-10 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors"

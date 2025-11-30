@@ -40,7 +40,7 @@ import {
 } from 'react-icons/hi'
 import { useAuthStore, useUIStore } from '../store'
 import { usePermissions } from '../hooks/usePermissions'
-import logo from '../assets/logo/sanhaLogo.png'
+import logo from '../assets/logo/sanhaLogo.svg'
 import { ROUTES } from '../config/routes'
 
 interface SidebarItem {
@@ -329,15 +329,15 @@ const Sidebar = () => {
   }
 
   const SidebarContent = () => (
-    <div className="flex flex-col h-full rounded-xl" style={{ backgroundColor: '#1f222a' }}>
+    <div className="flex flex-col h-full rounded-xl" style={{ backgroundColor: '#F9F8F6' }}>
       <div className='px-2'>
         {/* Logo/Brand */}
-        <div className="p-3 sm:p-4 border-b border-gray-600">
+        <div className="p-3 sm:p-4 border-b border-[#e5e0d5]">
           <div className="flex items-center justify-center">
             <img
               src={logo}
               alt="Sanha Admin"
-              className={`transition-all duration-300 ${isSidebarCollapsed ? 'w-12 h-5 sm:w-14 sm:h-6 lg:w-20 lg:h-5 xl:w-14 xl:h-6' : 'w-10 h-10 sm:w-12 sm:h-12 lg:w-10 lg:h-10 xl:w-12 xl:h-12'
+              className={`transition-all duration-300 ${isSidebarCollapsed ? 'w-14 sm:h-6 lg:w-20 lg:h-5 xl:w-14 xl:h-6' : 'w-10 h-10 lg:w-24 lg:h-14 xl:w-24 xl:h-24'
                 }`}
             />
           </div>
@@ -347,13 +347,13 @@ const Sidebar = () => {
       {/* Toggle Button - Positioned absolutely */}
       <button
         onClick={toggleSidebar}
-        className={`absolute -right-2 sm:-right-3 w-6 h-6 sm:w-8 sm:h-8 rounded-full border border-gray-600 flex items-center justify-center transition-all duration-300 hover:scale-110 z-10 ${isSidebarCollapsed ? 'top-10 sm:top-12' : 'top-14 sm:top-16'}`}
-        style={{ backgroundColor: '#1f222a' }}
+        className={`absolute -right-2 sm:-right-3 w-6 h-6 sm:w-8 sm:h-8 rounded-full border border-[#d9d3c7] flex items-center justify-center transition-all duration-300 hover:scale-110 z-10 ${isSidebarCollapsed ? 'top-10 sm:top-12' : 'top-14 sm:top-16'}`}
+        style={{ backgroundColor: '#F9F8F6' }}
       >
         {isSidebarCollapsed ? (
-          <HiChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-gray-300" />
+          <HiChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
         ) : (
-          <HiChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-gray-300" />
+          <HiChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
         )}
       </button>
 
@@ -368,10 +368,10 @@ const Sidebar = () => {
                 className={`w-full flex items-center text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] py-[9px] lg:py-2.5 rounded-md transition-all duration-300 ease-in-out transform relative group ${isSidebarCollapsed
                   ? isActive(item.path)
                     ? 'justify-center px-1 text-[#0c684b] bg-transparent'
-                    : 'justify-center px-1 text-gray-300 bg-transparent hover:bg-gray-700'
+                    : 'justify-center px-1 text-gray-600 bg-transparent hover:bg-[#efeae1]'
                   : isActive(item.path)
                     ? 'justify-start gap-2 sm:gap-3 lg:gap-2.5 px-2 sm:px-4 lg:px-3 bg-[#0c684b] text-white shadow-lg'
-                    : 'justify-start gap-2 sm:gap-3 lg:gap-2.5 px-2 sm:px-4 lg:px-3 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
+                    : 'justify-start gap-2 sm:gap-3 lg:gap-2.5 px-2 sm:px-4 lg:px-3 text-gray-700 font-medium hover:bg-[#efeae1] hover:text-[#0c684b] bg-transparent'
                   }`}
               >
                 {item.icon}
@@ -379,7 +379,7 @@ const Sidebar = () => {
 
                 {/* Tooltip for collapsed state */}
                 {isSidebarCollapsed && (
-                  <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 pointer-events-none">
+                  <div className="absolute left-full ml-2 px-2 py-1 bg-[#0c684b] text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 pointer-events-none">
                     {item.title}
                   </div>
                 )}
@@ -391,7 +391,7 @@ const Sidebar = () => {
         {/* Management Section */}
         <div className="mt-2">
           {!isSidebarCollapsed && (
-            <h1 className='text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] font-semibold text-gray-400 ms-2 sm:ms-4 lg:ms-3 mb-2 sm:mb-3 lg:mb-2.5'>Management</h1>
+            <h1 className='text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] font-semibold text-gray-500 ms-2 sm:ms-4 lg:ms-3 mb-2 sm:mb-3 lg:mb-2.5'>Management</h1>
           )}
           <ul className="space-y-1">
             {managementSidebarItems.map((item) => (
@@ -404,10 +404,10 @@ const Sidebar = () => {
                       className={`w-full flex items-center text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] py-[9px] rounded-md transition-all duration-300 ease-in-out transform relative group ${isSidebarCollapsed
                         ? isActive(item.path) || isActive(ROUTES.HALAL_PRODUCTS) || isActive(ROUTES.NON_HALAL_PRODUCTS)
                           ? 'justify-center px-1 text-[#0c684b] bg-transparent'
-                          : 'justify-center px-1 text-gray-300 bg-transparent hover:bg-gray-700'
+                          : 'justify-center px-1 text-gray-600 bg-transparent hover:bg-[#efeae1]'
                         : isActive(item.path) || isActive(ROUTES.HALAL_PRODUCTS) || isActive(ROUTES.NON_HALAL_PRODUCTS)
                           ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
-                          : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
+                          : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-700 font-medium hover:bg-[#efeae1] hover:text-[#0c684b] bg-transparent'
                         }`}
                     >
                       {item.icon}
@@ -426,7 +426,7 @@ const Sidebar = () => {
 
                       {/* Tooltip for collapsed state */}
                       {isSidebarCollapsed && (
-                        <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 pointer-events-none">
+                        <div className="absolute left-full ml-2 px-2 py-1 bg-[#0c684b] text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 pointer-events-none">
                           {item.title}
                         </div>
                       )}
@@ -441,7 +441,7 @@ const Sidebar = () => {
                               onClick={() => handleItemClick(subItem)}
                               className={`w-full flex items-center text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] py-[6px] rounded-md transition-all duration-300 ease-in-out transform relative group ${isActive(subItem.path)
                                 ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
-                                : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
+                                : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-700 font-medium hover:bg-[#efeae1] hover:text-[#0c684b] bg-transparent'
                                 }`}
                             >
                               {subItem.icon}
@@ -460,10 +460,10 @@ const Sidebar = () => {
                       className={`w-full flex items-center text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] py-[9px] rounded-md transition-all duration-300 ease-in-out transform relative group ${isSidebarCollapsed
                         ? isActive(item.path) || isActive(ROUTES.CERTIFICATION_ENQUIRIES) || isActive(ROUTES.CERTIFICATION_APPLICATIONS)
                           ? 'justify-center px-1 text-[#0c684b] bg-transparent'
-                          : 'justify-center px-1 text-gray-300 bg-transparent hover:bg-gray-700'
+                          : 'justify-center px-1 text-gray-600 bg-transparent hover:bg-[#efeae1]'
                         : isActive(item.path) || isActive(ROUTES.CERTIFICATION_ENQUIRIES) || isActive(ROUTES.CERTIFICATION_APPLICATIONS)
                           ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
-                          : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
+                          : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-700 font-medium hover:bg-[#efeae1] hover:text-[#0c684b] bg-transparent'
                         }`}
                     >
                       {item.icon}
@@ -482,7 +482,7 @@ const Sidebar = () => {
 
                       {/* Tooltip for collapsed state */}
                       {isSidebarCollapsed && (
-                        <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 pointer-events-none">
+                        <div className="absolute left-full ml-2 px-2 py-1 bg-[#0c684b] text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 pointer-events-none">
                           {item.title}
                         </div>
                       )}
@@ -496,7 +496,7 @@ const Sidebar = () => {
                               onClick={() => handleItemClick(subItem)}
                               className={`w-full flex items-center text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] py-[6px] rounded-md transition-all duration-300 ease-in-out transform relative group ${isActive(subItem.path)
                                 ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
-                                : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
+                                : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-700 font-medium hover:bg-[#efeae1] hover:text-[#0c684b] bg-transparent'
                                 }`}
                             >
                               {subItem.icon}
@@ -515,10 +515,10 @@ const Sidebar = () => {
                       className={`w-full flex items-center text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] py-[9px] rounded-md transition-all duration-300 ease-in-out transform relative group ${isSidebarCollapsed
                         ? isActive(ROUTES.FAQS) || isActive(ROUTES.NEWSLETTER) || isActive(ROUTES.CONTACT_US)
                           ? 'justify-center px-1 text-[#0c684b] bg-transparent'
-                          : 'justify-center px-1 text-gray-300 bg-transparent hover:bg-gray-700'
+                          : 'justify-center px-1 text-gray-600 bg-transparent hover:bg-[#efeae1]'
                         : isActive(ROUTES.FAQS) || isActive(ROUTES.NEWSLETTER) || isActive(ROUTES.CONTACT_US)
                           ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
-                          : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
+                          : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-700 font-medium hover:bg-[#efeae1] hover:text-[#0c684b] bg-transparent'
                         }`}
                     >
                       {item.icon}
@@ -537,7 +537,7 @@ const Sidebar = () => {
 
                       {/* Tooltip for collapsed state */}
                       {isSidebarCollapsed && (
-                        <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 pointer-events-none">
+                        <div className="absolute left-full ml-2 px-2 py-1 bg-[#0c684b] text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 pointer-events-none">
                           {item.title}
                         </div>
                       )}
@@ -552,7 +552,7 @@ const Sidebar = () => {
                               onClick={() => handleItemClick(subItem)}
                               className={`w-full flex items-center text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] py-[6px] rounded-md transition-all duration-300 ease-in-out transform relative group ${isActive(subItem.path)
                                 ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
-                                : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
+                                : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-700 font-medium hover:bg-[#efeae1] hover:text-[#0c684b] bg-transparent'
                                 }`}
                             >
                               {subItem.icon}
@@ -571,10 +571,10 @@ const Sidebar = () => {
                       className={`w-full flex items-center text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] py-[9px] rounded-md transition-all duration-300 ease-in-out transform relative group ${isSidebarCollapsed
                         ? isActive(ROUTES.BOOKS) || isActive(ROUTES.RESOURCES) || isActive(ROUTES.E_CODES)
                           ? 'justify-center px-1 text-[#0c684b] bg-transparent'
-                          : 'justify-center px-1 text-gray-300 bg-transparent hover:bg-gray-700'
+                          : 'justify-center px-1 text-gray-600 bg-transparent hover:bg-[#efeae1]'
                         : isActive(ROUTES.BOOKS) || isActive(ROUTES.RESOURCES) || isActive(ROUTES.E_CODES)
                           ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
-                          : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
+                          : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-700 font-medium hover:bg-[#efeae1] hover:text-[#0c684b] bg-transparent'
                         }`}
                     >
                       {item.icon}
@@ -593,7 +593,7 @@ const Sidebar = () => {
 
                       {/* Tooltip for collapsed state */}
                       {isSidebarCollapsed && (
-                        <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 pointer-events-none">
+                        <div className="absolute left-full ml-2 px-2 py-1 bg-[#0c684b] text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 pointer-events-none">
                           {item.title}
                         </div>
                       )}
@@ -608,7 +608,7 @@ const Sidebar = () => {
                               onClick={() => handleItemClick(subItem)}
                               className={`w-full flex items-center text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] py-[6px] rounded-md transition-all duration-300 ease-in-out transform relative group ${isActive(subItem.path)
                                 ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
-                                : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
+                                : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-700 font-medium hover:bg-[#efeae1] hover:text-[#0c684b] bg-transparent'
                                 }`}
                             >
                               {subItem.icon}
@@ -626,10 +626,10 @@ const Sidebar = () => {
                     className={`w-full flex items-center text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] py-[9px] rounded-md transition-all duration-300 ease-in-out transform relative group ${isSidebarCollapsed
                       ? isActive(item.path)
                         ? 'justify-center px-1 text-[#0c684b] bg-transparent'
-                        : 'justify-center px-1 text-gray-300 bg-transparent hover:bg-gray-700'
+                        : 'justify-center px-1 text-gray-600 bg-transparent hover:bg-[#efeae1]'
                       : isActive(item.path)
                         ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
-                        : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 font-extralight hover:bg-gray-700 hover:text-white bg-transparent'
+                        : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-700 font-medium hover:bg-[#efeae1] hover:text-[#0c684b] bg-transparent'
                       }`}
                   >
                     {item.icon}
@@ -637,7 +637,7 @@ const Sidebar = () => {
 
                     {/* Tooltip for collapsed state */}
                     {isSidebarCollapsed && (
-                      <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 pointer-events-none">
+                      <div className="absolute left-full ml-2 px-2 py-1 bg-[#0c684b] text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 pointer-events-none">
                         {item.title}
                       </div>
                     )}
@@ -652,7 +652,7 @@ const Sidebar = () => {
       {/* Bottom Items */}
       <div className="pt-3 sm:pt-4 px-2 sm:py-4">
         {!isSidebarCollapsed && (
-          <h1 className='text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] font-semibold text-gray-400 ms-2 sm:ms-4 mb-2'>System Settings</h1>
+          <h1 className='text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] font-semibold text-gray-500 ms-2 sm:ms-4 mb-2'>System Settings</h1>
         )}
         <ul className="space-y-1">
           {bottomItems.map((item) => (
@@ -662,10 +662,10 @@ const Sidebar = () => {
                 className={`w-full flex items-center py-[9px] rounded-md text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] transition-all duration-300 ease-in-out transform relative group ${isSidebarCollapsed
                   ? isActive(item.path)
                     ? 'justify-center px-2 text-[#0c684b] bg-transparent'
-                    : 'justify-center px-2 text-gray-300 bg-transparent hover:bg-gray-700'
+                    : 'justify-center px-2 text-gray-600 bg-transparent hover:bg-[#efeae1]'
                   : isActive(item.path)
                     ? 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 bg-[#0c684b] text-white shadow-lg'
-                    : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-300 hover:bg-gray-700 hover:text-green-400 bg-transparent'
+                    : 'justify-start gap-2 sm:gap-3 px-2 sm:px-4 text-gray-700 hover:bg-[#efeae1] hover:text-[#0c684b] bg-transparent'
                   }`}
               >
                 {item.icon}
@@ -673,7 +673,7 @@ const Sidebar = () => {
 
                 {/* Tooltip for collapsed state */}
                 {isSidebarCollapsed && (
-                  <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 pointer-events-none">
+                  <div className="absolute left-full ml-2 px-2 py-1 bg-[#0c684b] text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 pointer-events-none">
                     {item.title}
                   </div>
                 )}

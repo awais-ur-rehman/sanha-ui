@@ -14,7 +14,7 @@ import StyledTable from '../../components/StyledTable'
 const Settings = () => {
   const { hasPermission } = usePermissions()
   const { showToast } = useToast()
-  
+
   const [selectedStandard, setSelectedStandard] = useState<CertificationStandard | null>(null)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -72,12 +72,12 @@ const Settings = () => {
     setIsSubmitting(true)
     try {
       const isEditing = !!selectedStandard
-      const url = isEditing 
+      const url = isEditing
         ? `${API_CONFIG.baseURL}${CERTIFICATION_STANDARD_ENDPOINTS.update}/${selectedStandard.id}`
         : `${API_CONFIG.baseURL}${CERTIFICATION_STANDARD_ENDPOINTS.create}`
-      
+
       const method = isEditing ? 'PUT' : 'POST'
-      
+
       const response = await fetch(url, {
         method,
         headers: getAuthHeaders(),
@@ -90,7 +90,7 @@ const Settings = () => {
       }
 
       showToast('success', `Certification standard ${isEditing ? 'updated' : 'created'} successfully!`)
-      
+
       setIsAddModalOpen(false)
       setIsEditModalOpen(false)
       setSelectedStandard(null)
@@ -111,7 +111,7 @@ const Settings = () => {
 
   return (
     <div className="py-4">
-      <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] px-6 py-10'>
+      <div className='bg-[#F9F8F6] rounded-lg overflow-hidden min-h-[calc(100vh-35px)] px-6 py-10'>
         {/* Header */}
         <PageHeader title="Settings" subtitle="Manage certification standards and portal configuration" />
 
@@ -125,11 +125,10 @@ const Settings = () => {
             <nav className="space-y-2">
               <button
                 onClick={() => setActiveSection('certificates')}
-                className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
-                  activeSection === 'certificates'
+                className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${activeSection === 'certificates'
                     ? 'bg-[#0c684b] text-white'
                     : 'text-gray-700 hover:bg-gray-100'
-                }`}
+                  }`}
               >
                 Certification
               </button>
@@ -140,23 +139,23 @@ const Settings = () => {
           <div className="flex-1">
             {activeSection === '' && (
               <div className="flex flex-col items-center justify-center h-96">
-                <svg 
-                  className="w-16 h-16 text-gray-400 mb-4" 
-                  fill="none" 
-                  stroke="currentColor" 
+                <svg
+                  className="w-16 h-16 text-gray-400 mb-4"
+                  fill="none"
+                  stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={1.5} 
-                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" 
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
                   />
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={1.5} 
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" 
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
                   />
                 </svg>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Welcome to Settings</h3>
@@ -165,12 +164,12 @@ const Settings = () => {
                 </p>
               </div>
             )}
-            
+
             {activeSection === 'certificates' && (
               <div>
                 <div className="mb-6">
                   <h2 className="text-lg font-semibold text-gray-900 mb-4">Certification Standards</h2>
-          
+
                   <div className='py-6'>
                     <div className="flex items-center gap-3">
                       <div className="relative w-72">
@@ -183,7 +182,7 @@ const Settings = () => {
                           className="w-full pl-10 pr-3 py-[10px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-xs"
                         />
                       </div>
-                      
+
                       <div className="ml-auto">
                         {hasPermission('Settings', 'create') && (
                           <button
@@ -199,83 +198,83 @@ const Settings = () => {
                     </div>
                   </div>
 
-          <div className="w-full">
-            {loading || filteredStandards.length === 0 ? (
-              <div className="bg-white rounded-lg border border-gray-200">
-                {loading ? (
-                  <div className="p-6">
-                    <div className="animate-pulse space-y-4">
-                      {Array.from({ length: 5 }).map((_, index) => (
-                        <div key={index} className="h-16 bg-gray-200 rounded"></div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="p-12 text-center text-gray-500">
-                    {searchTerm ? 'No certification standards found matching your search' : 'No certification standards yet. Add your first one!'}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <StyledTable<CertificationStandard>
-                data={filteredStandards}
-                columns={[
-                  { 
-                    key: 'name', 
-                    header: 'Certification Standard Name', 
-                    render: (s: CertificationStandard) => (
-                      <span className="text-sm font-medium text-gray-900">{s.name}</span>
-                    ) 
-                  },
-                  { 
-                    key: 'createdAt', 
-                    header: 'Created At', 
-                    render: (s: CertificationStandard) => (
-                      <span className="text-sm text-gray-600">
-                        {new Date(s.createdAt).toLocaleDateString('en-US', { 
-                          year: 'numeric', 
-                          month: 'short', 
-                          day: 'numeric' 
-                        })}
-                      </span>
-                    ) 
-                  },
-                  {
-                    key: 'actions',
-                    header: 'Actions',
-                    render: (s: CertificationStandard) => (
-                      <div className="flex items-center gap-2">
-                        {hasPermission('Settings', 'update') && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleEditStandard(s)
-                            }}
-                            className="p-2 text-[#0c684b] hover:bg-green-50 rounded transition-colors"
-                            title="Edit"
-                          >
-                            <FiEdit2 size={16} />
-                          </button>
-                        )}
-                        {hasPermission('Settings', 'delete') && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleDeleteStandard(s)
-                            }}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
-                            title="Delete"
-                          >
-                            <FiTrash2 size={16} />
-                          </button>
+                  <div className="w-full">
+                    {loading || filteredStandards.length === 0 ? (
+                      <div className="bg-white rounded-lg border border-gray-200">
+                        {loading ? (
+                          <div className="p-6">
+                            <div className="animate-pulse space-y-4">
+                              {Array.from({ length: 5 }).map((_, index) => (
+                                <div key={index} className="h-16 bg-gray-200 rounded"></div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="p-12 text-center text-gray-500">
+                            {searchTerm ? 'No certification standards found matching your search' : 'No certification standards yet. Add your first one!'}
+                          </div>
                         )}
                       </div>
-                    )
-                  }
-                ]}
-              />
-            )}
-          </div>
+                    ) : (
+                      <StyledTable<CertificationStandard>
+                        data={filteredStandards}
+                        columns={[
+                          {
+                            key: 'name',
+                            header: 'Certification Standard Name',
+                            render: (s: CertificationStandard) => (
+                              <span className="text-sm font-medium text-gray-900">{s.name}</span>
+                            )
+                          },
+                          {
+                            key: 'createdAt',
+                            header: 'Created At',
+                            render: (s: CertificationStandard) => (
+                              <span className="text-sm text-gray-600">
+                                {new Date(s.createdAt).toLocaleDateString('en-US', {
+                                  year: 'numeric',
+                                  month: 'short',
+                                  day: 'numeric'
+                                })}
+                              </span>
+                            )
+                          },
+                          {
+                            key: 'actions',
+                            header: 'Actions',
+                            render: (s: CertificationStandard) => (
+                              <div className="flex items-center gap-2">
+                                {hasPermission('Settings', 'update') && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      handleEditStandard(s)
+                                    }}
+                                    className="p-2 text-[#0c684b] hover:bg-green-50 rounded transition-colors"
+                                    title="Edit"
+                                  >
+                                    <FiEdit2 size={16} />
+                                  </button>
+                                )}
+                                {hasPermission('Settings', 'delete') && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      handleDeleteStandard(s)
+                                    }}
+                                    className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                    title="Delete"
+                                  >
+                                    <FiTrash2 size={16} />
+                                  </button>
+                                )}
+                              </div>
+                            )
+                          }
+                        ]}
+                      />
+                    )}
+                  </div>
                 </div>
               </div>
             )}

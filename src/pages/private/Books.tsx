@@ -17,7 +17,7 @@ const Books = () => {
   // Hooks
   const { hasPermission } = usePermissions()
   const { showToast } = useToast()
-  
+
   // State management
   const [selectedBook, setSelectedBook] = useState<Book | null>(null)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
@@ -33,7 +33,7 @@ const Books = () => {
     totalItems: 0,
     itemsPerPage: 12,
   })
-  
+
   // Delete modal state
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [bookToDelete, setBookToDelete] = useState<Book | null>(null)
@@ -66,12 +66,12 @@ const Books = () => {
         showToast('success', 'Book deleted successfully!')
         setIsDeleteModalOpen(false)
         setBookToDelete(null)
-        
+
         if (selectedBook?.id === bookToDelete?.id) {
           setIsOverlayOpen(false)
           setSelectedBook(null)
         }
-        
+
         refetch()
       },
       onError: (error) => {
@@ -136,7 +136,7 @@ const Books = () => {
   const handleToggleStatus = async (book: Book, newStatus?: boolean) => {
     // Use provided newStatus or toggle current status
     const statusToSet = newStatus !== undefined ? newStatus : !book.isActive
-    
+
     const response = await fetch(`${API_CONFIG.baseURL}${BOOK_ENDPOINTS.update}/${book.id}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
@@ -154,9 +154,9 @@ const Books = () => {
     if (selectedBook?.id === book.id) {
       setSelectedBook(prev => prev ? { ...prev, isActive: statusToSet } : null)
     }
-    
+
     showToast('success', `Book ${statusToSet ? 'activated' : 'deactivated'} successfully!`)
-    
+
     // Refetch books to update the list
     refetch()
   }
@@ -186,12 +186,12 @@ const Books = () => {
     setIsSubmitting(true)
     try {
       const isEditing = !!selectedBook
-      const url = isEditing 
+      const url = isEditing
         ? `${API_CONFIG.baseURL}${BOOK_ENDPOINTS.update}/${selectedBook.id}`
         : `${API_CONFIG.baseURL}${BOOK_ENDPOINTS.create}`
-      
+
       const method = isEditing ? 'PUT' : 'POST'
-      
+
       const response = await fetch(url, {
         method,
         headers: getAuthHeaders(),
@@ -205,10 +205,10 @@ const Books = () => {
 
       const result = await response.json()
       console.log(`Book ${isEditing ? 'updated' : 'created'} successfully:`, result)
-      
+
       // Show success toast
       showToast('success', `Book ${isEditing ? 'updated' : 'created'} successfully!`)
-      
+
       // Close modal and refetch books
       setIsAddModalOpen(false)
       refetch()
@@ -246,226 +246,226 @@ const Books = () => {
 
   return (
     <div className="py-3 lg:py-4">
-      <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] max-h-[calc(100vh-35px)] overflow-y-auto px-4 lg:px-6 py-6 lg:py-10'>
-      {/* Header */}
-      <div className="mb-4 lg:mb-6">
-        <PageHeader title="Books" subtitle="View & manage books." />
-      </div>
+      <div className='bg-[#F9F8F6] rounded-lg overflow-hidden min-h-[calc(100vh-35px)] max-h-[calc(100vh-35px)] overflow-y-auto px-4 lg:px-6 py-6 lg:py-10'>
+        {/* Header */}
+        <div className="mb-4 lg:mb-6">
+          <PageHeader title="Books" subtitle="View & manage books." />
+        </div>
 
-      {/* Clean Filters */}
-      <div className='py-6'>
-        <div className="flex items-center gap-3">
-          {/* Search */}
-          <div className="relative w-72">
-            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-            <input
-              type="text"
-              placeholder="Search books by title, author, or published by..."
-              value={searchTerm}
-              onChange={(e) => handleSearch(e.target.value)}
-              className="w-full pl-10 pr-3 py-[10px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-xs"
+        {/* Clean Filters */}
+        <div className='py-6'>
+          <div className="flex items-center gap-3">
+            {/* Search */}
+            <div className="relative w-72">
+              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+              <input
+                type="text"
+                placeholder="Search books by title, author, or published by..."
+                value={searchTerm}
+                onChange={(e) => handleSearch(e.target.value)}
+                className="w-full pl-10 pr-3 py-[10px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-xs"
+              />
+            </div>
+
+            {/* Language Filter */}
+            <CustomDropdown
+              placeholder="All Languages"
+              value={filters.contentLanguage}
+              onChange={(value) => handleFilterChange('contentLanguage', value as string)}
+              options={[
+                { value: '', label: 'All Languages' },
+                { value: 'English', label: 'English' },
+                { value: 'Urdu', label: 'Urdu' },
+                { value: 'Arabic', label: 'Arabic' },
+              ]}
+              className="w-[150px] text-xs"
             />
-          </div>
 
-          {/* Language Filter */}
-          <CustomDropdown
-            placeholder="All Languages"
-            value={filters.contentLanguage}
-            onChange={(value) => handleFilterChange('contentLanguage', value as string)}
-            options={[
-              { value: '', label: 'All Languages' },
-              { value: 'English', label: 'English' },
-              { value: 'Urdu', label: 'Urdu' },
-              { value: 'Arabic', label: 'Arabic' },
-            ]}
-            className="w-[150px] text-xs"
-          />
+            {/* Status Filter */}
+            <CustomDropdown
+              placeholder="All Status"
+              value={filters.isActive}
+              onChange={(value) => handleFilterChange('isActive', value as string)}
+              options={[
+                { value: '', label: 'All Status' },
+                { value: 'true', label: 'Active' },
+                { value: 'false', label: 'Inactive' },
+              ]}
+              className="w-[150px] text-xs"
+            />
 
-          {/* Status Filter */}
-          <CustomDropdown
-            placeholder="All Status"
-            value={filters.isActive}
-            onChange={(value) => handleFilterChange('isActive', value as string)}
-            options={[
-              { value: '', label: 'All Status' },
-              { value: 'true', label: 'Active' },
-              { value: 'false', label: 'Inactive' },
-            ]}
-            className="w-[150px] text-xs"
-          />
-
-          <div className="ml-auto flex items-center gap-2">
-            {hasPermission('Books', 'create') && (
-              <button
-                onClick={handleAddBook}
-                className="flex items-center space-x-2 px-10 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors"
-              >
-                <span>Add Book</span>
-              </button>
-            )}
+            <div className="ml-auto flex items-center gap-2">
+              {hasPermission('Knowledge Base', 'create') && (
+                <button
+                  onClick={handleAddBook}
+                  className="flex items-center space-x-2 px-10 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors"
+                >
+                  <span>Add Book</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Books Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 lg:gap-6">
-        {loading ? (
-          // Loading shimmer cards
-          Array.from({ length: 12 }).map((_, index) => (
-            <BookCardShimmer key={index} />
-          ))
-        ) : books.length === 0 ? (
-          <div className="col-span-full text-center py-12">
-            <p className="text-gray-500 text-lg">No books found</p>
-          </div>
-        ) : (
-          books.map((book: Book) => (
-            <div
-              key={book.id}
-              onClick={() => handleViewBook(book)}
-              className="p-3 lg:p-4 cursor-pointer group"
-            >
-              {/* Book Image with Language Chip */}
-              <div className="relative mb-3">
-                <img
-                  src={book.imageUrl || '/placeholder-book.jpg'}
-                  alt={book.title}
-                  className="w-full h-48 object-cover rounded-lg"
-                  onError={(e) => {
-                    e.currentTarget.src = '/placeholder-book.jpg'
-                  }}
-                />
-                {/* Language Chip */}
-                <div className="absolute top-2 right-2">
-                  <span className="bg-black/20 border border-white/20 backdrop-blur-sm shadow-lg text-white text-xs px-2 py-1 rounded-[8px]">
-                    {book.contentLanguage || 'N/A'}
-                  </span>
+        {/* Books Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 lg:gap-6">
+          {loading ? (
+            // Loading shimmer cards
+            Array.from({ length: 12 }).map((_, index) => (
+              <BookCardShimmer key={index} />
+            ))
+          ) : books.length === 0 ? (
+            <div className="col-span-full text-center py-12">
+              <p className="text-gray-500 text-lg">No books found</p>
+            </div>
+          ) : (
+            books.map((book: Book) => (
+              <div
+                key={book.id}
+                onClick={() => handleViewBook(book)}
+                className="p-3 lg:p-4 cursor-pointer group"
+              >
+                {/* Book Image with Language Chip */}
+                <div className="relative mb-3">
+                  <img
+                    src={book.imageUrl || '/placeholder-book.jpg'}
+                    alt={book.title}
+                    className="w-full h-48 object-cover rounded-lg"
+                    onError={(e) => {
+                      e.currentTarget.src = '/placeholder-book.jpg'
+                    }}
+                  />
+                  {/* Language Chip */}
+                  <div className="absolute top-2 right-2">
+                    <span className="bg-black/20 border border-white/20 backdrop-blur-sm shadow-lg text-white text-xs px-2 py-1 rounded-[8px]">
+                      {book.contentLanguage || 'N/A'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Book Info */}
+                <div className="space-y-1">
+                  <h3 className="font-medium text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px] text-gray-900 line-clamp-2 group-hover:text-[#0c684b] transition-colors">
+                    {book.title || 'Untitled'}
+                  </h3>
+                  <p className="text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] text-gray-600">
+                    {book.author || 'Unknown Author'}
+                  </p>
+                  <p className="text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] text-gray-500">
+                    {book.publishedBy || 'Unknown Publisher'}
+                  </p>
                 </div>
               </div>
-
-              {/* Book Info */}
-              <div className="space-y-1">
-                <h3 className="font-medium text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px] text-gray-900 line-clamp-2 group-hover:text-[#0c684b] transition-colors">
-                  {book.title || 'Untitled'}
-                </h3>
-                <p className="text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] text-gray-600">
-                  {book.author || 'Unknown Author'}
-                </p>
-                <p className="text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] text-gray-500">
-                  {book.publishedBy || 'Unknown Publisher'}
-                </p>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-
-      {/* Pagination */}
-      {!loading && pagination.totalPages > 1 && (
-        <div className="mt-8">
-          <Pagination
-            currentPage={pagination.currentPage}
-            totalPages={pagination.totalPages}
-            totalItems={pagination.totalItems}
-            itemsPerPage={pagination.itemsPerPage}
-            onPageChange={handlePageChange}
-            className="justify-center"
-          />
+            ))
+          )}
         </div>
-      )}
 
-      {/* Book Detail Sheet */}
-      <EntityDetailSheet
-        entity={selectedBook}
-        open={isOverlayOpen}
-        onClose={closeOverlay}
-        onEdit={(book) => {
-          setIsOverlayOpen(false)
-          handleEditBook(book as Book)
-        }}
-        onDelete={(book) => {
-          setIsOverlayOpen(false)
-          handleDeleteBook(book as Book)
-        }}
-        hasUpdatePermission={hasPermission('Books', 'update')}
-        hasDeletePermission={hasPermission('Books', 'delete')}
-        titleAccessor={(book: Book) => book.title}
-        imageAccessor={(book: Book) => book.imageUrl}
-        statusToggle={{
-          checked: Boolean(selectedBook?.isActive),
-          onChange: async (checked: boolean) => {
-            if (!selectedBook) return
-            await handleToggleStatus(selectedBook, checked)
-          },
-          enabled: hasPermission('Books', 'update'),
-          labelActive: 'Active',
-          labelInactive: 'Inactive',
-        }}
-        sections={[
-          {
-            title: 'Book Information',
-            items: [
-              { label: 'Author', value: selectedBook?.author || 'N/A' },
-              { label: 'Published By', value: selectedBook?.publishedBy || 'N/A' },
-              { label: 'Content Language', value: selectedBook?.contentLanguage || 'N/A' },
-            ]
-          },
-          {
-            title: 'Description',
-            items: [
-              { label: 'Description', value: selectedBook?.description || 'N/A' },
-            ]
-          },
-        ]}
-        linkSection={selectedBook?.url ? {
-          title: 'Archive Link',
-          links: [{
-            url: selectedBook.url,
-            typeTag: 'Archive'
-          }],
-          maxHeightClass: 'max-h-[60px] min-h-[40px]'
-        } : undefined}
-        additionalLinkSection={selectedBook?.amazonUrl ? {
-          title: 'Amazon Link',
-          links: [{
-            url: selectedBook.amazonUrl,
-            typeTag: 'Amazon'
-          }],
-          maxHeightClass: 'max-h-[60px] min-h-[40px]'
-        } : undefined}
-      />
-
-      {/* Add/Edit Book Modal */}
-      {isAddModalOpen && (
-        <Modal
-          isOpen={isAddModalOpen}
-          onClose={handleBookFormCancel}
-          title={selectedBook ? 'Edit Book' : 'Add New Book'}
-          size="xl"
-        >
-          <div className="h-[70vh] overflow-hidden">
-            <BookForm
-              book={selectedBook}
-              onSubmit={handleBookFormSubmit}
-              onCancel={handleBookFormCancel}
-              loading={isSubmitting}
+        {/* Pagination */}
+        {!loading && pagination.totalPages > 1 && (
+          <div className="mt-8">
+            <Pagination
+              currentPage={pagination.currentPage}
+              totalPages={pagination.totalPages}
+              totalItems={pagination.totalItems}
+              itemsPerPage={pagination.itemsPerPage}
+              onPageChange={handlePageChange}
+              className="justify-center"
             />
           </div>
-        </Modal>
-      )}
+        )}
 
-      {/* Delete Confirmation Modal */}
-      <DeleteConfirmationModal
-        isOpen={isDeleteModalOpen}
-        onClose={handleCancelDeleteBook}
-        onConfirm={handleConfirmDeleteBook}
-        title="Delete Book"
-        message="Are you sure you want to delete this book? This action cannot be undone."
+        {/* Book Detail Sheet */}
+        <EntityDetailSheet
+          entity={selectedBook}
+          open={isOverlayOpen}
+          onClose={closeOverlay}
+          onEdit={(book) => {
+            setIsOverlayOpen(false)
+            handleEditBook(book as Book)
+          }}
+          onDelete={(book) => {
+            setIsOverlayOpen(false)
+            handleDeleteBook(book as Book)
+          }}
+          hasUpdatePermission={hasPermission('Knowledge Base', 'update')}
+          hasDeletePermission={hasPermission('Knowledge Base', 'delete')}
+          titleAccessor={(book: Book) => book.title}
+          imageAccessor={(book: Book) => book.imageUrl}
+          statusToggle={{
+            checked: Boolean(selectedBook?.isActive),
+            onChange: async (checked: boolean) => {
+              if (!selectedBook) return
+              await handleToggleStatus(selectedBook, checked)
+            },
+            enabled: hasPermission('Knowledge Base', 'update'),
+            labelActive: 'Active',
+            labelInactive: 'Inactive',
+          }}
+          sections={[
+            {
+              title: 'Book Information',
+              items: [
+                { label: 'Author', value: selectedBook?.author || 'N/A' },
+                { label: 'Published By', value: selectedBook?.publishedBy || 'N/A' },
+                { label: 'Content Language', value: selectedBook?.contentLanguage || 'N/A' },
+              ]
+            },
+            {
+              title: 'Description',
+              items: [
+                { label: 'Description', value: selectedBook?.description || 'N/A' },
+              ]
+            },
+          ]}
+          linkSection={selectedBook?.url ? {
+            title: 'Archive Link',
+            links: [{
+              url: selectedBook.url,
+              typeTag: 'Archive'
+            }],
+            maxHeightClass: 'max-h-[60px] min-h-[40px]'
+          } : undefined}
+          additionalLinkSection={selectedBook?.amazonUrl ? {
+            title: 'Amazon Link',
+            links: [{
+              url: selectedBook.amazonUrl,
+              typeTag: 'Amazon'
+            }],
+            maxHeightClass: 'max-h-[60px] min-h-[40px]'
+          } : undefined}
+        />
 
-        isLoading={deleteBookMutation.isPending}
-      />
+        {/* Add/Edit Book Modal */}
+        {isAddModalOpen && (
+          <Modal
+            isOpen={isAddModalOpen}
+            onClose={handleBookFormCancel}
+            title={selectedBook ? 'Edit Book' : 'Add New Book'}
+            size="xl"
+          >
+            <div className="h-[70vh] overflow-hidden">
+              <BookForm
+                book={selectedBook}
+                onSubmit={handleBookFormSubmit}
+                onCancel={handleBookFormCancel}
+                loading={isSubmitting}
+              />
+            </div>
+          </Modal>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        <DeleteConfirmationModal
+          isOpen={isDeleteModalOpen}
+          onClose={handleCancelDeleteBook}
+          onConfirm={handleConfirmDeleteBook}
+          title="Delete Book"
+          message="Are you sure you want to delete this book? This action cannot be undone."
+
+          isLoading={deleteBookMutation.isPending}
+        />
       </div>
-      
+
     </div>
   )
 }

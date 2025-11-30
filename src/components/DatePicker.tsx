@@ -21,6 +21,8 @@ const DatePicker: React.FC<DatePickerProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(value ? new Date(value) : null);
+  const [isYearPickerOpen, setIsYearPickerOpen] = useState(false);
+  const [yearPickerStart, setYearPickerStart] = useState(currentDate.getFullYear() - 6);
 
   const months = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -35,6 +37,12 @@ const DatePicker: React.FC<DatePickerProps> = ({
     }
   }, [value]);
 
+  useEffect(() => {
+    if (isYearPickerOpen) {
+      setYearPickerStart(currentDate.getFullYear() - 6);
+    }
+  }, [isYearPickerOpen, currentDate]);
+
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
     const month = date.getMonth();
@@ -42,19 +50,19 @@ const DatePicker: React.FC<DatePickerProps> = ({
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
     const firstDayOfWeek = firstDay.getDay();
-    
+
     // Adjust for Monday start (0 = Sunday, 1 = Monday, etc.)
     const startOffset = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
-    
+
     const days = [];
-    
+
     // Add previous month days
     const prevMonth = new Date(year, month - 1, 0);
     for (let i = startOffset - 1; i >= 0; i--) {
       const dayDate = new Date(year, month - 1, prevMonth.getDate() - i);
       const dayOfWeek = dayDate.getDay();
       const isSelected = selectedDate ? isSameDay(dayDate, selectedDate) : false;
-      
+
       days.push({
         date: dayDate,
         isCurrentMonth: false,
@@ -63,13 +71,13 @@ const DatePicker: React.FC<DatePickerProps> = ({
         isWeekend: dayOfWeek === 0 || dayOfWeek === 6
       });
     }
-    
+
     // Add current month days
     for (let i = 1; i <= daysInMonth; i++) {
       const dayDate = new Date(year, month, i);
       const dayOfWeek = dayDate.getDay();
       const isSelected = selectedDate ? isSameDay(dayDate, selectedDate) : false;
-      
+
       days.push({
         date: dayDate,
         isCurrentMonth: true,
@@ -78,14 +86,14 @@ const DatePicker: React.FC<DatePickerProps> = ({
         isWeekend: dayOfWeek === 0 || dayOfWeek === 6
       });
     }
-    
+
     // Add next month days to fill the grid
     const remainingDays = 42 - days.length; // 6 rows * 7 days
     for (let i = 1; i <= remainingDays; i++) {
       const dayDate = new Date(year, month + 1, i);
       const dayOfWeek = dayDate.getDay();
       const isSelected = selectedDate ? isSameDay(dayDate, selectedDate) : false;
-      
+
       days.push({
         date: dayDate,
         isCurrentMonth: false,
@@ -94,7 +102,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
         isWeekend: dayOfWeek === 0 || dayOfWeek === 6
       });
     }
-    
+
     return days;
   };
 
@@ -105,8 +113,8 @@ const DatePicker: React.FC<DatePickerProps> = ({
 
   const isSameDay = (date1: Date, date2: Date) => {
     return date1.getDate() === date2.getDate() &&
-           date1.getMonth() === date2.getMonth() &&
-           date1.getFullYear() === date2.getFullYear();
+      date1.getMonth() === date2.getMonth() &&
+      date1.getFullYear() === date2.getFullYear();
   };
 
   // Fix timezone issue by using local date formatting
@@ -121,6 +129,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
     setSelectedDate(date);
     onChange(formatDate(date));
     setIsOpen(false);
+    setIsYearPickerOpen(false);
   };
 
   const handlePrevMonth = () => {
@@ -131,10 +140,24 @@ const DatePicker: React.FC<DatePickerProps> = ({
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
   };
 
+  const handleYearSelect = (year: number) => {
+    setCurrentDate(new Date(year, currentDate.getMonth(), 1));
+    setIsYearPickerOpen(false);
+  };
+
+  const handlePrevYearRange = () => {
+    setYearPickerStart(prev => prev - 12);
+  };
+
+  const handleNextYearRange = () => {
+    setYearPickerStart(prev => prev + 12);
+  };
+
   const handleClear = () => {
     setSelectedDate(null);
     onChange('');
     setIsOpen(false);
+    setIsYearPickerOpen(false);
   };
 
   const getDisplayText = () => {
@@ -161,7 +184,12 @@ const DatePicker: React.FC<DatePickerProps> = ({
           value={getDisplayText()}
           placeholder={placeholder}
           readOnly
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={() => {
+            setIsOpen(!isOpen);
+            if (isOpen) {
+              setIsYearPickerOpen(false);
+            }
+          }}
           className="w-full px-3 py-2 border border-gray-300 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent cursor-pointer"
         />
         <div className="absolute inset-y-0 right-0 flex items-center pr-3">
@@ -188,62 +216,109 @@ const DatePicker: React.FC<DatePickerProps> = ({
           <div className="flex items-center justify-between p-4 border-b border-gray-200">
             <button
               type="button"
-              onClick={handlePrevMonth}
+              onClick={() => {
+                if (isYearPickerOpen) {
+                  handlePrevYearRange();
+                } else {
+                  handlePrevMonth();
+                }
+              }}
               className="p-1 hover:bg-gray-100 rounded transition-colors"
             >
               <FiChevronLeft size={16} />
             </button>
-            <div className="text-center">
-              <h3 className="text-sm font-semibold text-gray-900">
-                {months[currentDate.getMonth()]} {currentDate.getFullYear()}
-              </h3>
-            </div>
             <button
               type="button"
-              onClick={handleNextMonth}
+              onClick={() => setIsYearPickerOpen(true)}
+              className="text-center flex-1"
+            >
+              <h3 className="text-sm font-semibold text-gray-900 hover:text-[#0c684b] transition-colors">
+                {isYearPickerOpen
+                  ? `${yearPickerStart} - ${yearPickerStart + 11}`
+                  : `${months[currentDate.getMonth()]} ${currentDate.getFullYear()}`
+                }
+              </h3>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (isYearPickerOpen) {
+                  handleNextYearRange();
+                } else {
+                  handleNextMonth();
+                }
+              }}
               className="p-1 hover:bg-gray-100 rounded transition-colors"
             >
               <FiChevronRight size={16} />
             </button>
           </div>
 
-          {/* Days of Week */}
-          <div className="grid grid-cols-7 gap-1 px-4 pt-4">
-            {daysOfWeek.map((day) => (
-              <div key={day} className="w-8 h-8 flex items-center justify-center text-xs font-medium text-gray-500">
-                {day}
-              </div>
-            ))}
-          </div>
-
-          {/* Calendar Grid */}
-          <div className="grid grid-cols-7 gap-1 px-4 pb-4">
-            {days.map((day, index) => (
-              <button
-                key={index}
-                type="button"
-                onClick={() => day.isCurrentMonth && !isDateDisabled(day.date) && handleDateSelect(day.date)}
-                disabled={!day.isCurrentMonth || isDateDisabled(day.date)}
-                className={`
-                  w-8 h-8 rounded text-sm font-medium transition-colors
-                  ${!day.isCurrentMonth 
-                    ? 'text-gray-300 cursor-default' 
-                    : isDateDisabled(day.date)
-                      ? 'text-gray-300 cursor-not-allowed'
-                      : day.isSelected
+          {isYearPickerOpen ? (
+            <div className="px-4 py-4">
+              <div className="grid grid-cols-3 gap-2">
+                {Array.from({ length: 12 }, (_, idx) => yearPickerStart + idx).map((year) => {
+                  const isActiveYear = year === currentDate.getFullYear();
+                  const isSelectedYear = selectedDate ? year === selectedDate.getFullYear() : false;
+                  return (
+                    <button
+                      key={year}
+                      type="button"
+                      onClick={() => handleYearSelect(year)}
+                      className={`py-2 rounded-md text-sm font-medium transition-colors ${isSelectedYear
                         ? 'bg-[#0c684b] text-white'
-                        : day.isToday
-                          ? 'bg-green-100 text-[#0c684b] border border-[#0c684b]'
-                          : day.isWeekend
-                            ? 'text-[#0c684b] hover:bg-green-50'
-                            : 'text-gray-700 hover:bg-gray-100'
-                  }
-                `}
-              >
-                {day.date.getDate()}
-              </button>
-            ))}
-          </div>
+                        : isActiveYear
+                          ? 'border border-[#0c684b] text-[#0c684b]'
+                          : 'text-gray-700 hover:bg-gray-100'
+                        }`}
+                    >
+                      {year}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Days of Week */}
+              <div className="grid grid-cols-7 gap-1 px-4 pt-4">
+                {daysOfWeek.map((day) => (
+                  <div key={day} className="w-8 h-8 flex items-center justify-center text-xs font-medium text-gray-500">
+                    {day}
+                  </div>
+                ))}
+              </div>
+
+              {/* Calendar Grid */}
+              <div className="grid grid-cols-7 gap-1 px-4 pb-4">
+                {days.map((day, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => day.isCurrentMonth && !isDateDisabled(day.date) && handleDateSelect(day.date)}
+                    disabled={!day.isCurrentMonth || isDateDisabled(day.date)}
+                    className={`
+                      w-8 h-8 rounded text-sm font-medium transition-colors
+                      ${!day.isCurrentMonth
+                        ? 'text-gray-300 cursor-default'
+                        : isDateDisabled(day.date)
+                          ? 'text-gray-300 cursor-not-allowed'
+                          : day.isSelected
+                            ? 'bg-[#0c684b] text-white'
+                            : day.isToday
+                              ? 'bg-green-100 text-[#0c684b] border border-[#0c684b]'
+                              : day.isWeekend
+                                ? 'text-[#0c684b] hover:bg-green-50'
+                                : 'text-gray-700 hover:bg-gray-100'
+                      }
+                    `}
+                  >
+                    {day.date.getDate()}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       )}
 
@@ -251,7 +326,10 @@ const DatePicker: React.FC<DatePickerProps> = ({
       {isOpen && (
         <div
           className="fixed inset-0 z-40"
-          onClick={() => setIsOpen(false)}
+          onClick={() => {
+            setIsOpen(false);
+            setIsYearPickerOpen(false);
+          }}
         />
       )}
     </div>

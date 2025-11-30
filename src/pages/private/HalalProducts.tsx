@@ -315,7 +315,7 @@ const HalalProducts = () => {
 
   return (
     <div className="py-4">
-      <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] p-6'>
+      <div className='bg-[#F9F8F6] rounded-lg overflow-hidden min-h-[calc(100vh-35px)] p-6'>
         {/* Header */}
         <PageHeader title="Halal Products" subtitle="Manage halal product information and certifications" />
 

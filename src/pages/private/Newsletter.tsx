@@ -13,7 +13,7 @@ import PageHeader from '../../components/PageHeader'
 
 const Newsletter = () => {
   const { showToast } = useToast()
-  
+
   // State for newsletter form
   const [newsletterData, setNewsletterData] = useState<NewsletterData>({
     mainHeading: '',
@@ -25,7 +25,7 @@ const Newsletter = () => {
       }
     ]
   })
-  
+
   // State for sending
   const [isSendingBulk, setIsSendingBulk] = useState(false)
 
@@ -43,7 +43,7 @@ const Newsletter = () => {
   const handleSectionChange = (index: number, field: keyof NewsletterSection, value: string) => {
     setNewsletterData(prev => ({
       ...prev,
-      sections: prev.sections.map((section, i) => 
+      sections: prev.sections.map((section, i) =>
         i === index ? { ...section, [field]: value } : section
       )
     }))
@@ -113,7 +113,7 @@ const Newsletter = () => {
 
   return (
     <div className="py-4">
-      <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] px-6 py-10'>
+      <div className='bg-[#F9F8F6] rounded-lg overflow-hidden min-h-[calc(100vh-35px)] px-6 py-10'>
         {/* Header */}
         <PageHeader title="Newsletter" subtitle="Create and send newsletters to subscribers." />
 

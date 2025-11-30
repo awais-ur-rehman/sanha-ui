@@ -388,7 +388,7 @@ const ECodes = () => {
 
   return (
     <div className="py-4">
-      <div className="bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] px-6 py-10">
+      <div className="bg-[#F9F8F6] rounded-lg overflow-hidden min-h-[calc(100vh-35px)] px-6 py-10">
         {/* Header */}
         <PageHeader title="E-Codes" subtitle="View & manage E-Codes." />
 
@@ -446,7 +446,7 @@ const ECodes = () => {
               >
                 Export
               </button>
-              {hasPermission("E-Codes", "create") && (
+              {hasPermission("Knowledge Base", "create") && (
                 <>
                   <button
                     onClick={handleImportClick}
@@ -590,8 +590,8 @@ const ECodes = () => {
             setIsOverlayOpen(false);
             handleDeleteECode(ecode as ECode);
           }}
-          hasUpdatePermission={hasPermission("E-Codes", "update")}
-          hasDeletePermission={hasPermission("E-Codes", "delete")}
+          hasUpdatePermission={hasPermission("Knowledge Base", "update")}
+          hasDeletePermission={hasPermission("Knowledge Base", "delete")}
           titleAccessor={(ecode: ECode) => ecode.name}
           statusToggle={{
             checked: Boolean(selectedECode?.isActive),
@@ -599,7 +599,7 @@ const ECodes = () => {
               if (!selectedECode) return;
               await handleToggleStatus(selectedECode, checked);
             },
-            enabled: hasPermission("E-Codes", "update"),
+            enabled: hasPermission("Knowledge Base", "update"),
             labelActive: "Active",
             labelInactive: "Inactive",
           }}

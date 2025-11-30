@@ -20,13 +20,13 @@ const Clients = () => {
   // Hooks
   const { hasPermission } = usePermissions()
   const { showToast } = useToast()
-  
+
   // Check if user has read permission for Clients
   const hasReadPermission = hasPermission('Clients', 'read')
   const hasCreatePermission = hasPermission('Clients', 'create')
   const hasUpdatePermission = hasPermission('Clients', 'update')
   const hasDeletePermission = hasPermission('Clients', 'delete')
-  
+
   // State management
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [isOverlayOpen, setIsOverlayOpen] = useState(false)
@@ -87,12 +87,61 @@ const Clients = () => {
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `clients-${new Date().toISOString().slice(0,10)}.csv`
+      a.download = `clients-${new Date().toISOString().slice(0, 10)}.csv`
       document.body.appendChild(a)
       a.click()
       a.remove()
       window.URL.revokeObjectURL(url)
-    } catch {}
+    } catch { }
+  }
+
+  const getUserFriendlyErrorMessage = (error: unknown, fallbackMessage = 'Something went wrong. Please try again.') => {
+    if (!error) return fallbackMessage
+
+    const typedError = error as { message?: string; response?: { data?: any }; data?: any }
+    const responseData = typedError?.response?.data || typedError?.data
+    const apiErrors = responseData?.data?.errors
+
+    if (Array.isArray(apiErrors) && apiErrors.length > 0) {
+      const formattedErrors = apiErrors
+        .map((err) => {
+          if (typeof err !== 'string') return ''
+          const [rawField, ...rest] = err.split(':')
+          const detail = rest.join(':').trim()
+          const normalizedField = rawField?.trim()
+            .replace(/[_-]+/g, ' ')
+            .replace(/\b\w/g, (char) => char.toUpperCase()) || ''
+
+          if (!detail) {
+            return normalizedField || err
+          }
+
+          const lowerField = (rawField || '').trim().toLowerCase()
+          const detailStartsWithField = lowerField && detail.toLowerCase().startsWith(lowerField)
+          const normalizedDetail = detail.charAt(0).toLowerCase() + detail.slice(1)
+
+          if (detailStartsWithField) {
+            return detail.charAt(0).toUpperCase() + detail.slice(1)
+          }
+
+          return `${normalizedField || 'Field'} ${normalizedDetail}`
+        })
+        .filter(Boolean)
+
+      if (formattedErrors.length > 0) {
+        return formattedErrors.join(' • ')
+      }
+    }
+
+    if (responseData?.message) {
+      return responseData.message
+    }
+
+    if (typedError?.message) {
+      return typedError.message
+    }
+
+    return fallbackMessage
   }
 
   const createClientMutation = usePostApi<ClientCreateRequest, any>(
@@ -105,7 +154,7 @@ const Clients = () => {
         refetch()
       },
       onError: (error) => {
-        showToast('error', error.message || 'Failed to create client')
+        showToast('error', getUserFriendlyErrorMessage(error, 'Failed to create client'))
       },
     }
   )
@@ -122,7 +171,7 @@ const Clients = () => {
         refetch()
       },
       onError: (error) => {
-        showToast('error', error.message || 'Failed to update client')
+        showToast('error', getUserFriendlyErrorMessage(error, 'Failed to update client'))
       },
     }
   )
@@ -141,7 +190,7 @@ const Clients = () => {
         refetch()
       },
       onError: (error) => {
-        showToast('error', error.message || 'Failed to delete client')
+        showToast('error', getUserFriendlyErrorMessage(error, 'Failed to delete client'))
       },
     }
   )
@@ -179,18 +228,18 @@ const Clients = () => {
   }
 
   const handleDateFilterApply = (startDate: string, endDate: string) => {
-    setFilters(prev => ({ 
-      ...prev, 
-      startDate, 
-      endDate 
+    setFilters(prev => ({
+      ...prev,
+      startDate,
+      endDate
     }))
     setPagination(prev => ({ ...prev, currentPage: 1 }))
   }
 
   const handleStatusFilterChange = (value: string | number) => {
-    setFilters(prev => ({ 
-      ...prev, 
-      status: value.toString() 
+    setFilters(prev => ({
+      ...prev,
+      status: value.toString()
     }))
     setPagination(prev => ({ ...prev, currentPage: 1 }))
   }
@@ -279,282 +328,281 @@ const Clients = () => {
 
   return (
     <div className="py-4">
-      <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] p-6'>
+      <div className='bg-[#F9F8F6] rounded-lg overflow-hidden min-h-[calc(100vh-35px)] p-6'>
 
-      {/* Header */}
-      <div className="mb-4">
-        <PageHeader title="Clients" subtitle="Manage client information and certifications" />
-      </div>
-
-      {/* Filters */}
-      <div className='py-6'>
-        <div className="flex items-center gap-3">
-          {/* Search */}
-          <div className="relative w-72">
-            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-            <input
-              type="text"
-              placeholder="Search clients by name, standard, client code, email, fax, or website..."
-              value={searchTerm}
-              onChange={(e) => handleSearch(e.target.value)}
-              className="w-full pl-10 pr-3 py-[10px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-xs"
-            />
-          </div>
-
-          {/* Status Filter */}
-          <div >
-            <CustomDropdown
-              options={[
-                { value: '', label: 'All Status' },
-                { value: CLIENT_STATUS.ACTIVE, label: CLIENT_STATUS.ACTIVE },
-                { value: CLIENT_STATUS.ON_HOLD, label: CLIENT_STATUS.ON_HOLD },
-                { value: CLIENT_STATUS.CERTIFICATE_ON_HOLD, label: CLIENT_STATUS.CERTIFICATE_ON_HOLD },
-                { value: CLIENT_STATUS.EXPIRED, label: CLIENT_STATUS.EXPIRED },
-              ]}
-              value={filters.status}
-              onChange={handleStatusFilterChange}
-              placeholder="Filter by status"
-              className="text-xs w-[180px]"
-            />
-          </div>
-
-          {/* Date Range Picker */}
-          <DateRangePicker
-            startDate={filters.startDate}
-            endDate={filters.endDate}
-            onDateRangeChange={handleDateFilterApply}
-            placeholder="Filter by date range"
-            className="w-72 text-xs"
-            includeTime={true}
-          />
-
-        <div className="ml-auto flex items-center gap-2">
-          <button
-            onClick={handleExport}
-            className="px-10 py-[10px] text-xs border border-[#0c684b] text-[#0c684b] rounded-sm hover:bg-gray-50 transition-colors"
-          >
-            Export
-          </button>
-          {hasCreatePermission && (
-            <button
-              onClick={handleAddClient}
-              className="flex items-center space-x-2 px-10 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors"
-            >
-     
-              <span>Add Client</span>
-            </button>
-          )}
+        {/* Header */}
+        <div className="mb-4">
+          <PageHeader title="Clients" subtitle="Manage client information and certifications" />
         </div>
-        </div>
-      </div>
 
-      {/* Content */}
-      {loading || clients.length === 0 ? (
-        <div className="bg-white rounded-lg border border-gray-200">
-          {loading ? (
-            <div className="p-6">
-              <div className="animate-pulse space-y-4">
-                {Array.from({ length: 5 }).map((_, index) => (
-                  <div key={index} className="h-16 bg-gray-200 rounded"></div>
-                ))}
-              </div>
+        {/* Filters */}
+        <div className='py-6'>
+          <div className="flex items-center gap-3">
+            {/* Search */}
+            <div className="relative w-72">
+              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+              <input
+                type="text"
+                placeholder="Search clients by name, standard, client code, email, fax, or website..."
+                value={searchTerm}
+                onChange={(e) => handleSearch(e.target.value)}
+                className="w-full pl-10 pr-3 py-[10px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-xs"
+              />
             </div>
-          ) : (
-            <div className="p-12 text-center">
-              <div className="text-gray-500">
-                <p className="text-lg font-medium">No clients found</p>
-                <p className="text-sm">Try adjusting your search or filters</p>
-              </div>
+
+            {/* Status Filter */}
+            <div >
+              <CustomDropdown
+                options={[
+                  { value: '', label: 'All Status' },
+                  { value: CLIENT_STATUS.ACTIVE, label: CLIENT_STATUS.ACTIVE },
+                  { value: CLIENT_STATUS.ON_HOLD, label: CLIENT_STATUS.ON_HOLD },
+                  { value: CLIENT_STATUS.CERTIFICATE_ON_HOLD, label: CLIENT_STATUS.CERTIFICATE_ON_HOLD },
+                  { value: CLIENT_STATUS.EXPIRED, label: CLIENT_STATUS.EXPIRED },
+                ]}
+                value={filters.status}
+                onChange={handleStatusFilterChange}
+                placeholder="Filter by status"
+                className="text-xs w-[180px]"
+              />
             </div>
-          )}
+
+            {/* Date Range Picker */}
+            <DateRangePicker
+              startDate={filters.startDate}
+              endDate={filters.endDate}
+              onDateRangeChange={handleDateFilterApply}
+              placeholder="Filter by date range"
+              className="w-72 text-xs"
+              includeTime={true}
+            />
+
+            <div className="ml-auto flex items-center gap-2">
+              <button
+                onClick={handleExport}
+                className="px-10 py-[10px] text-xs border border-[#0c684b] text-[#0c684b] rounded-sm hover:bg-gray-50 transition-colors"
+              >
+                Export
+              </button>
+              {hasCreatePermission && (
+                <button
+                  onClick={handleAddClient}
+                  className="flex items-center space-x-2 px-10 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors"
+                >
+
+                  <span>Add Client</span>
+                </button>
+              )}
+            </div>
+          </div>
         </div>
-      ) : (
-        <>
-          <StyledTable<Client>
-            data={clients}
-            columns={[
-              {
-                key: 'client',
-                header: 'Client',
-                render: (client: Client) => (
-                  <div className="flex items-center">
-                    {client.logoUrl && (
-                      <img
-                        src={client.logoUrl}
-                        alt={`${client.name} logo`}
-                        className="w-10 h-10 rounded-lg object-cover mr-3"
-                        onError={(e) => { const t = e.target as HTMLImageElement; t.style.display = 'none' }}
-                      />
-                    )}
-                    <div className='mr-2'>
-                      <div className="text-sm font-medium text-gray-900 max-w-[200px] truncate" title={client.name}>{client.name}</div>
+
+        {/* Content */}
+        {loading || clients.length === 0 ? (
+          <div className="bg-white rounded-lg border border-gray-200">
+            {loading ? (
+              <div className="p-6">
+                <div className="animate-pulse space-y-4">
+                  {Array.from({ length: 5 }).map((_, index) => (
+                    <div key={index} className="h-16 bg-gray-200 rounded"></div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="p-12 text-center">
+                <div className="text-gray-500">
+                  <p className="text-lg font-medium">No clients found</p>
+                  <p className="text-sm">Try adjusting your search or filters</p>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <>
+            <StyledTable<Client>
+              data={clients}
+              columns={[
+                {
+                  key: 'client',
+                  header: 'Client',
+                  render: (client: Client) => (
+                    <div className="flex items-center">
+                      {client.logoUrl && (
+                        <img
+                          src={client.logoUrl}
+                          alt={`${client.name} logo`}
+                          className="w-10 h-10 rounded-lg object-cover mr-3"
+                          onError={(e) => { const t = e.target as HTMLImageElement; t.style.display = 'none' }}
+                        />
+                      )}
+                      <div className='mr-2'>
+                        <div className="text-sm font-medium text-gray-900 max-w-[200px] truncate" title={client.name}>{client.name}</div>
+                      </div>
                     </div>
-                  </div>
-                )
-              },
-              {
-                key: 'contact',
-                header: 'Contact',
-                render: (client: Client) => (
-                  <div>
-                    <div className="text-sm text-gray-900 max-w-[220px] truncate" title={client.email}>{client.email}</div>
-                
-                  </div>
-                )
-              },
-              {
-                key: 'certification',
-                header: 'Certification',
-                render: (client: Client) => (
-                  <div>
-                    <div className="text-sm text-gray-900 max-w-[200px] truncate" title={client.standard}>{client.standard}</div>
-                  
-                  </div>
-                )
-              },
-              {
-                key: 'status',
-                header: 'Status',
-                render: (client: Client) => (
-                  <div className={`flex items-center justify-center text-center space-x-1 px-2 max-w-40 py-1 rounded-full text-xs font-medium ${
-                    client.status === CLIENT_STATUS.ACTIVE
+                  )
+                },
+                {
+                  key: 'contact',
+                  header: 'Contact',
+                  render: (client: Client) => (
+                    <div>
+                      <div className="text-sm text-gray-900 max-w-[220px] truncate" title={client.email}>{client.email}</div>
+
+                    </div>
+                  )
+                },
+                {
+                  key: 'certification',
+                  header: 'Certification',
+                  render: (client: Client) => (
+                    <div>
+                      <div className="text-sm text-gray-900 max-w-[200px] truncate" title={client.standard}>{client.standard}</div>
+
+                    </div>
+                  )
+                },
+                {
+                  key: 'status',
+                  header: 'Status',
+                  render: (client: Client) => (
+                    <div className={`flex items-center justify-center text-center space-x-1 px-2 max-w-40 py-1 rounded-full text-xs font-medium ${client.status === CLIENT_STATUS.ACTIVE
                       ? 'bg-green-100 text-green-800'
                       : client.status === CLIENT_STATUS.EXPIRED
                         ? 'bg-red-100 text-red-800'
                         : client.status === CLIENT_STATUS.ON_HOLD
                           ? 'bg-yellow-100 text-yellow-800'
                           : 'bg-purple-100 text-purple-800'
-                  }`}>
-                    <span>{client.status}</span>
-                  </div>
-                )
-              },
-              {
-                key: 'expiry',
-                header: 'Expiry',
-                render: (client: Client) => (
-                  <div>
-                    <div className="text-sm text-gray-900">{formatDate(client.expiryDate)}</div>
-                    {isExpired(client.expiryDate) && (
-                      <div className="text-xs text-red-600">Expired</div>
-                    )}
-                  </div>
-                )
-              }
-            ]}
-            onRowClick={handleRowClick}
-          />
+                      }`}>
+                      <span>{client.status}</span>
+                    </div>
+                  )
+                },
+                {
+                  key: 'expiry',
+                  header: 'Expiry',
+                  render: (client: Client) => (
+                    <div>
+                      <div className="text-sm text-gray-900">{formatDate(client.expiryDate)}</div>
+                      {isExpired(client.expiryDate) && (
+                        <div className="text-xs text-red-600">Expired</div>
+                      )}
+                    </div>
+                  )
+                }
+              ]}
+              onRowClick={handleRowClick}
+            />
 
-          <Pagination
-            currentPage={pagination.currentPage}
-            totalPages={pagination.totalPages}
-            totalItems={pagination.totalItems}
-            itemsPerPage={pagination.itemsPerPage}
-            onPageChange={handlePageChange}
-          />
-        </>
-      )}
+            <Pagination
+              currentPage={pagination.currentPage}
+              totalPages={pagination.totalPages}
+              totalItems={pagination.totalItems}
+              itemsPerPage={pagination.itemsPerPage}
+              onPageChange={handlePageChange}
+            />
+          </>
+        )}
 
-      {/* Modals */}
-      <Modal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        title="Add New Client"
-        size="xl"
-      >
-        <div className="h-[70vh] overflow-hidden">
-          <ClientForm
-            onSubmit={(data: ClientCreateRequest | ClientUpdateRequest) => handleSubmitCreate(data as ClientCreateRequest)}
-            onCancel={() => setIsAddModalOpen(false)}
-            isLoading={isSubmitting}
-          />
-        </div>
-      </Modal>
+        {/* Modals */}
+        <Modal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          title="Add New Client"
+          size="xl"
+        >
+          <div className="h-[70vh] overflow-hidden">
+            <ClientForm
+              onSubmit={(data: ClientCreateRequest | ClientUpdateRequest) => handleSubmitCreate(data as ClientCreateRequest)}
+              onCancel={() => setIsAddModalOpen(false)}
+              isLoading={isSubmitting}
+            />
+          </div>
+        </Modal>
 
-      <Modal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        title="Edit Client"
-        size="xl"
-      >
-        <div className="h-[70vh] overflow-hidden">
-          <ClientForm
-            client={selectedClient || undefined}
-            onSubmit={handleSubmitUpdate}
-            onCancel={() => setIsEditModalOpen(false)}
-            isLoading={isSubmitting}
-          />
-        </div>
-      </Modal>
+        <Modal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          title="Edit Client"
+          size="xl"
+        >
+          <div className="h-[70vh] overflow-hidden">
+            <ClientForm
+              client={selectedClient || undefined}
+              onSubmit={handleSubmitUpdate}
+              onCancel={() => setIsEditModalOpen(false)}
+              isLoading={isSubmitting}
+            />
+          </div>
+        </Modal>
 
-      {hasDeletePermission && (
-        <DeleteConfirmationModal
-          isOpen={isDeleteModalOpen}
-          onClose={() => setIsDeleteModalOpen(false)}
-          onConfirm={handleConfirmDelete}
-          title="Delete Client"
-          message={`Are you sure you want to delete "${selectedClient?.name}"? This action cannot be undone.`}
-          isLoading={isDeleting}
+        {hasDeletePermission && (
+          <DeleteConfirmationModal
+            isOpen={isDeleteModalOpen}
+            onClose={() => setIsDeleteModalOpen(false)}
+            onConfirm={handleConfirmDelete}
+            title="Delete Client"
+            message={`Are you sure you want to delete "${selectedClient?.name}"? This action cannot be undone.`}
+            isLoading={isDeleting}
+          />
+        )}
+
+        {/* Client Detail Sheet (Unified) */}
+        <EntityDetailSheet<Client>
+          entity={selectedClient}
+          open={isOverlayOpen}
+          onClose={closeOverlay}
+          dense
+          title={`Client Details - ${selectedClient?.name || ''}`}
+          headerTitle={selectedClient?.name || ''}
+          image={{ src: selectedClient?.logoUrl, alt: `${selectedClient?.name || ''} logo` }}
+          sections={selectedClient ? [
+            { title: 'Status', type: 'chips', items: [selectedClient.status] },
+          ] : []}
+          headerRows={selectedClient ? [
+            {
+              label: 'Client Code',
+              value: selectedClient.clientCode && selectedClient.clientCode.length > 0 ? selectedClient.clientCode.join(', ') : '—',
+              tooltip: selectedClient.clientCode && selectedClient.clientCode.length > 0 ? selectedClient.clientCode.join(', ') : '—',
+              truncateWidth: 'max-w-[320px]'
+            },
+            {
+              label: 'Standard',
+              value: selectedClient.standard || '—',
+              tooltip: selectedClient.standard || '—',
+              truncateWidth: 'max-w-[420px]'
+            },
+          ] : []}
+          chipSections={selectedClient ? [
+            { title: 'Categories', items: selectedClient.category || [], limit: 3 },
+            { title: 'Certification Scopes', items: selectedClient.scope || [], limit: 3 },
+            { title: 'Products', items: selectedClient.products || [], limit: 3 },
+          ] : []}
+          infoGrid={selectedClient ? [
+            { label: 'Email', value: selectedClient.email || '—', icon: (<FiMail className="text-gray-400 mt-1" size={16} />), tooltip: selectedClient.email, truncateWidth: 'max-w-[200px]' },
+            ...(selectedClient.fax ? [{ label: 'Fax', value: selectedClient.fax }] : []),
+            ...(selectedClient.website ? [{ label: 'Website', value: selectedClient.website, link: true, icon: (<FiGlobe className="text-gray-400 mt-1" size={16} />), tooltip: selectedClient.website, truncateWidth: 'max-w-[140px]' }] : []),
+            ...(selectedClient.phone && selectedClient.phone.length > 0 ? [{ label: 'Phone Numbers', value: selectedClient.phone[0], icon: (<FiPhone className="text-gray-400 mt-1" size={16} />), tooltip: selectedClient.phone.join(', '), truncateWidth: 'max-w-[200px]' }] : []),
+            ...(selectedClient.address && selectedClient.address.length > 0 ? [{ label: 'Addresses', value: selectedClient.address[0], icon: (<FiMapPin className="text-gray-400 mt-1" size={16} />), tooltip: selectedClient.address.join(', '), truncateWidth: 'max-w-[200px]' }] : []),
+          ] : []}
+          dateGrid={selectedClient ? [
+            { label: 'Certified Since', date: selectedClient.certifiedSince },
+            { label: 'Expiry Date', date: selectedClient.expiryDate, isExpired: isExpired(selectedClient.expiryDate), showExpiredBadge: true },
+          ] : []}
+          footerActions={{
+            onEdit: (client) => {
+              setIsOverlayOpen(false)
+              handleEditClient(client)
+            },
+            onDelete: (client) => {
+              setIsOverlayOpen(false)
+              handleDeleteClient(client)
+            },
+            hasUpdatePermission,
+            hasDeletePermission,
+          }}
         />
-      )}
-
-      {/* Client Detail Sheet (Unified) */}
-      <EntityDetailSheet<Client>
-        entity={selectedClient}
-        open={isOverlayOpen}
-        onClose={closeOverlay}
-        dense
-        title={`Client Details - ${selectedClient?.name || ''}`}
-        headerTitle={selectedClient?.name || ''}
-        image={{ src: selectedClient?.logoUrl, alt: `${selectedClient?.name || ''} logo` }}
-        sections={selectedClient ? [
-          { title: 'Status', type: 'chips', items: [selectedClient.status] },
-        ] : []}
-        headerRows={selectedClient ? [
-          {
-            label: 'Client Code',
-            value: selectedClient.clientCode && selectedClient.clientCode.length > 0 ? selectedClient.clientCode.join(', ') : '—',
-            tooltip: selectedClient.clientCode && selectedClient.clientCode.length > 0 ? selectedClient.clientCode.join(', ') : '—',
-            truncateWidth: 'max-w-[320px]'
-          },
-          {
-            label: 'Standard',
-            value: selectedClient.standard || '—',
-            tooltip: selectedClient.standard || '—',
-            truncateWidth: 'max-w-[420px]'
-          },
-        ] : []}
-        chipSections={selectedClient ? [
-          { title: 'Categories', items: selectedClient.category || [], limit: 3 },
-          { title: 'Certification Scopes', items: selectedClient.scope || [], limit: 3 },
-          { title: 'Products', items: selectedClient.products || [], limit: 3 },
-        ] : []}
-        infoGrid={selectedClient ? [
-          { label: 'Email', value: selectedClient.email || '—', icon: (<FiMail className="text-gray-400 mt-1" size={16} />), tooltip: selectedClient.email, truncateWidth: 'max-w-[200px]' },
-          ...(selectedClient.fax ? [{ label: 'Fax', value: selectedClient.fax }] : []),
-          ...(selectedClient.website ? [{ label: 'Website', value: selectedClient.website, link: true, icon: (<FiGlobe className="text-gray-400 mt-1" size={16} />), tooltip: selectedClient.website, truncateWidth: 'max-w-[140px]' }] : []),
-          ...(selectedClient.phone && selectedClient.phone.length > 0 ? [{ label: 'Phone Numbers', value: selectedClient.phone[0], icon: (<FiPhone className="text-gray-400 mt-1" size={16} />), tooltip: selectedClient.phone.join(', '), truncateWidth: 'max-w-[200px]' }] : []),
-          ...(selectedClient.address && selectedClient.address.length > 0 ? [{ label: 'Addresses', value: selectedClient.address[0], icon: (<FiMapPin className="text-gray-400 mt-1" size={16} />), tooltip: selectedClient.address.join(', '), truncateWidth: 'max-w-[200px]' }] : []),
-        ] : []}
-        dateGrid={selectedClient ? [
-          { label: 'Certified Since', date: selectedClient.certifiedSince },
-          { label: 'Expiry Date', date: selectedClient.expiryDate, isExpired: isExpired(selectedClient.expiryDate), showExpiredBadge: true },
-        ] : []}
-        footerActions={{
-          onEdit: (client) => {
-            setIsOverlayOpen(false)
-            handleEditClient(client)
-          },
-          onDelete: (client) => {
-            setIsOverlayOpen(false)
-            handleDeleteClient(client)
-          },
-          hasUpdatePermission,
-          hasDeletePermission,
-        }}
-      />
       </div>
-      
+
     </div>
   )
 }

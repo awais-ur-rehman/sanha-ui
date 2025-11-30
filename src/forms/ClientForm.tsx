@@ -472,8 +472,6 @@ const ClientForm: React.FC<ClientFormProps> = ({
           items={phones}
           setItems={setPhones}
           placeholder="Enter phone number"
-          validate={(v) => /^\d{11,}$/.test(v)}
-          invalidMessage="Phone must be at least 11 digits"
         />
 
         {/* Addresses - initial input editable; plus adds more rows */}

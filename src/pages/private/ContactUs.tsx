@@ -402,7 +402,7 @@ const ContactUs = () => {
 
   return (
     <div className="py-4">
-      <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] px-6 py-10'>
+      <div className='bg-[#F9F8F6] rounded-lg overflow-hidden min-h-[calc(100vh-35px)] px-6 py-10'>
         {/* Header */}
         <PageHeader title="Contact Us" subtitle="View & manage contact us inquiries and replies." />
 

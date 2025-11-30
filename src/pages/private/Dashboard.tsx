@@ -7,7 +7,7 @@ const Dashboard = () => {
 
   return (
     <div className="py-4">
-        <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] px-6 py-10'>
+      <div className='bg-[#F9F8F6] rounded-lg overflow-hidden min-h-[calc(100vh-35px)] px-6 py-10'>
         {/* Header */}
         <PageHeader title="Dashboard" subtitle="Welcome to the Sanha Admin Portal" />
 
@@ -20,7 +20,7 @@ const Dashboard = () => {
                 <FiHome size={48} className="text-gray-400" />
               </div>
             </div>
-            
+
             {/* Welcome Content */}
             <div className="text-gray-500">
               <p className="text-[14px] md:text-[15px] lg:text-[15px] xl:text-[16px] font-medium mb-2">Dashboard coming soon</p>

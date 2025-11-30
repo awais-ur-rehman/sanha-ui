@@ -411,7 +411,7 @@ const AccessControl = () => {
 
   return (
     <div className="py-2 lg:py-3">
-      <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] p-3 lg:p-4 space-y-3 lg:space-y-4'>
+      <div className='bg-[#F9F8F6] rounded-lg overflow-hidden min-h-[calc(100vh-35px)] p-3 lg:p-4 space-y-3 lg:space-y-4'>
         {/* Page Header */}
         <PageHeader title="Roles and Permissions" subtitle="View & manage permissions and roles." />
 

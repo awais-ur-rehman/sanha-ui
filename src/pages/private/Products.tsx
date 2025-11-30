@@ -97,7 +97,7 @@ const Products = () => {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
-    } catch {}
+    } catch { }
   };
 
   const createProductMutation = usePostApi<ProductCreateRequest, any>(
@@ -247,8 +247,7 @@ const Products = () => {
 
       showToast(
         "success",
-        `Product ${
-          !product.isActive ? "activated" : "deactivated"
+        `Product ${!product.isActive ? "activated" : "deactivated"
         } successfully!`
       );
       refetch(); // Refresh the product list
@@ -312,7 +311,7 @@ const Products = () => {
 
   return (
     <div className="py-4">
-      <div className="bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] p-6">
+      <div className="bg-[#F9F8F6] rounded-lg overflow-hidden min-h-[calc(100vh-35px)] p-6">
         {/* Header */}
         <PageHeader title="Products" subtitle="Manage product information and certifications" />
 
@@ -450,13 +449,12 @@ const Products = () => {
                   header: "Status",
                   render: (product: Product) => (
                     <div
-                      className={`flex items-center justify-center px-2 max-w-20 py-1 rounded-full text-xs font-medium ${
-                        product.status === "Halal"
+                      className={`flex items-center justify-center px-2 max-w-20 py-1 rounded-full text-xs font-medium ${product.status === "Halal"
                           ? "bg-green-100 text-green-800"
                           : product.status === "Haraam"
-                          ? "bg-red-100 text-red-800"
-                          : "bg-yellow-100 text-yellow-800"
-                      }`}
+                            ? "bg-red-100 text-red-800"
+                            : "bg-yellow-100 text-yellow-800"
+                        }`}
                     >
                       <span>{product.status}</span>
                     </div>
@@ -467,11 +465,10 @@ const Products = () => {
                   header: "Active Status",
                   render: (product: Product) => (
                     <div
-                      className={`flex items-center space-x-1 px-2 max-w-20 py-1 rounded-full text-xs font-medium ${
-                        product.isActive
+                      className={`flex items-center space-x-1 px-2 max-w-20 py-1 rounded-full text-xs font-medium ${product.isActive
                           ? "bg-green-100 text-green-800"
                           : "bg-red-100 text-red-800"
-                      }`}
+                        }`}
                     >
                       {product.isActive ? (
                         <FiCheckCircle size={12} />
@@ -574,42 +571,42 @@ const Products = () => {
           statusBadge={
             selectedProduct
               ? {
-                  text: selectedProduct.status,
-                  color:
-                    selectedProduct.status === "Halal"
-                      ? "green"
-                      : selectedProduct.status === "Haraam"
+                text: selectedProduct.status,
+                color:
+                  selectedProduct.status === "Halal"
+                    ? "green"
+                    : selectedProduct.status === "Haraam"
                       ? "red"
                       : "yellow",
-                }
+              }
               : undefined
           }
           chipSections={
             selectedProduct
               ? [
-                  {
-                    title: "Contains/Ingredients",
-                    items: selectedProduct.contains || [],
-                    limit: 99,
-                  },
-                ]
+                {
+                  title: "Contains/Ingredients",
+                  items: selectedProduct.contains || [],
+                  limit: 99,
+                },
+              ]
               : []
           }
           infoGridTitle="Product Information"
           infoGrid={
             selectedProduct
               ? [
-                  {
-                    label: "Manufacturer",
-                    value: selectedProduct.manufacturer || "—",
-                    icon: <FiMapPin className="text-gray-400 mt-1" size={16} />,
-                  },
-                  {
-                    label: "Country of Origin",
-                    value: selectedProduct.madeIn || "—",
-                    icon: <FiMapPin className="text-gray-400 mt-1" size={16} />,
-                  },
-                ]
+                {
+                  label: "Manufacturer",
+                  value: selectedProduct.manufacturer || "—",
+                  icon: <FiMapPin className="text-gray-400 mt-1" size={16} />,
+                },
+                {
+                  label: "Country of Origin",
+                  value: selectedProduct.madeIn || "—",
+                  icon: <FiMapPin className="text-gray-400 mt-1" size={16} />,
+                },
+              ]
               : []
           }
           footerActions={{

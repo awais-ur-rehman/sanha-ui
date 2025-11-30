@@ -18,10 +18,10 @@ const Resources = () => {
   // Hooks
   const { hasPermission } = usePermissions()
   const { showToast } = useToast()
-  
+
   // Check if user has read permission for Resources
 
-  
+
   // State management
   const [selectedResource, setSelectedResource] = useState<Resource | null>(null)
   const [isOverlayOpen, setIsOverlayOpen] = useState(false)
@@ -78,7 +78,7 @@ const Resources = () => {
     return url || '/placeholder-resource.jpg'
   }
 
-  
+
   // Delete modal state
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [resourceToDelete, setResourceToDelete] = useState<Resource | null>(null)
@@ -113,12 +113,12 @@ const Resources = () => {
         showToast('success', 'Resource deleted successfully!')
         setIsDeleteModalOpen(false)
         setResourceToDelete(null)
-        
+
         if (selectedResource?.id === resourceToDelete?.id) {
           setIsOverlayOpen(false)
           setSelectedResource(null)
         }
-        
+
         refetch()
       },
       onError: (error) => {
@@ -187,7 +187,7 @@ const Resources = () => {
     try {
       // Use provided newStatus or toggle current status
       const statusToSet = newStatus !== undefined ? newStatus : !resource.isActive
-      
+
       const response = await fetch(`${API_CONFIG.baseURL}${RESOURCE_ENDPOINTS.update}/${resource.id}`, {
         method: 'PUT',
         headers: getAuthHeaders(),
@@ -212,9 +212,9 @@ const Resources = () => {
       if (selectedResource?.id === resource.id) {
         setSelectedResource(prev => prev ? { ...prev, isActive: statusToSet } : null)
       }
-      
+
       showToast('success', `Resource ${statusToSet ? 'activated' : 'deactivated'} successfully!`)
-      
+
       // Refetch resources to update the list
       refetch()
     } catch (error) {
@@ -235,12 +235,12 @@ const Resources = () => {
     setIsSubmitting(true)
     try {
       const isEditing = !!selectedResource
-      const url = isEditing 
+      const url = isEditing
         ? `${API_CONFIG.baseURL}${RESOURCE_ENDPOINTS.update}/${selectedResource.id}`
         : `${API_CONFIG.baseURL}${RESOURCE_ENDPOINTS.create}`
-      
+
       const method = isEditing ? 'PUT' : 'POST'
-      
+
       const response = await fetch(url, {
         method,
         headers: getAuthHeaders(),
@@ -254,10 +254,10 @@ const Resources = () => {
 
       const result = await response.json()
       console.log(`Resource ${isEditing ? 'updated' : 'created'} successfully:`, result)
-      
+
       // Show success toast
       showToast('success', `Resource ${isEditing ? 'updated' : 'created'} successfully!`)
-      
+
       // Close modal and refetch resources
       setIsAddModalOpen(false)
       setSelectedResource(null)
@@ -282,19 +282,19 @@ const Resources = () => {
   // Function to extract plain text from description (removes all HTML tags)
   const extractPlainTextFromDescription = (htmlDescription: string): string => {
     if (!htmlDescription) return ''
-    
+
     // Create a temporary DOM element to parse HTML
     const tempDiv = document.createElement('div')
     tempDiv.innerHTML = htmlDescription
-    
+
     // Return all plain text content without any HTML tags
     return tempDiv.textContent || tempDiv.innerText || ''
   }
 
   // Resource Card Component
   const ResourceCard = ({ resource }: { resource: Resource }) => (
-    <div 
-      className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer overflow-hidden"
+    <div
+      className="bg-[#F9F8F6] rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer overflow-hidden"
       onClick={() => handleViewResource(resource)}
     >
       <div className="relative h-48 overflow-hidden">
@@ -307,26 +307,25 @@ const Resources = () => {
           }}
         />
       </div>
-      
+
       <div className="p-4">
         <div className="flex items-center justify-between mb-2">
-          <h3 
+          <h3
             className="font-semibold text-gray-900 truncate flex-1 mr-2"
           >
             {resource.title}
           </h3>
-          <span className={`px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${
-            resource.isActive 
+          <span className={`px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${resource.isActive
               ? 'bg-green-100 text-green-800'
               : 'bg-red-100 text-red-800'
-          }`}>
+            }`}>
             {resource.isActive ? 'Active' : 'Inactive'}
           </span>
         </div>
         <p className="text-sm text-gray-600 mb-2">
           By {resource.authorName}
         </p>
-        <p 
+        <p
           className="text-sm text-gray-500 line-clamp-2"
         >
           {extractPlainTextFromDescription(resource.description)}
@@ -362,210 +361,209 @@ const Resources = () => {
   return (
     <div className="py-4">
       <div className='bg-white rounded-lg overflow-hidden min-h-[calc(100vh-35px)] px-6 py-10'>
-         {/* Header */}
-      <PageHeader title="Resources" subtitle="View & manage resources." />
+        {/* Header */}
+        <PageHeader title="Resources" subtitle="View & manage resources." />
 
-      {/* Tab Navigation */}
-      <div className="mb-6">
-        <div className="inline-flex bg-gray-100 rounded-lg p-1">
-          {(['Policies','Guides','Articles','Videos','Podcast'] as const).map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                activeTab === tab
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className='py-6'>
-        <div className="flex items-center gap-3">
-          {/* Search */}
-          <div className="relative w-72">
-            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-            <input
-              type="text"
-              placeholder={`Search ${activeTab.toLowerCase()} by title, author, or description...`}
-              value={searchTerm}
-              onChange={(e) => handleSearch(e.target.value)}
-              className="w-full pl-10 pr-3 py-[10px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-xs"
-            />
-          </div>
-
-          {/* Date Range Picker */}
-          <DateRangePicker
-            startDate={filters.startDate}
-            endDate={filters.endDate}
-            onDateRangeChange={(startDate, endDate) => {
-              setFilters(prev => ({ 
-                ...prev, 
-                startDate, 
-                endDate 
-              }));
-              setPagination(prev => ({ ...prev, currentPage: 1 }));
-            }}
-            placeholder="Select date range"
-            className="w-[250px] text-xs"
-            includeTime={true}
-          />
-
-          {/* Status Filter */}
-          <CustomDropdown
-            placeholder="All Status"
-            value={filters.isActive}
-            onChange={(value) => handleFilterChange('isActive', value as string)}
-            options={[
-              { value: '', label: 'All Status' },
-              { value: 'true', label: 'Active' },
-              { value: 'false', label: 'Inactive' },
-            ]}
-            className="w-[150px] text-xs"
-          />
-
-          <div className="ml-auto flex items-center gap-2">
-            {hasPermission('Resources', 'create') && (
+        {/* Tab Navigation */}
+        <div className="mb-6">
+          <div className="inline-flex bg-gray-100 rounded-lg p-1">
+            {(['Policies', 'Guides', 'Articles', 'Videos', 'Podcast'] as const).map(tab => (
               <button
-                onClick={handleAddResource}
-                disabled={isSubmitting}
-                className="flex items-center space-x-2 px-10 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${activeTab === tab
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                  }`}
               >
-                <span>Add Resource</span>
+                {tab}
               </button>
-            )}
+            ))}
           </div>
         </div>
-      </div>
 
-      {/* Resources Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {loading ? (
-          // Loading shimmer
-          Array.from({ length: 8 }).map((_, index) => (
-            <ResourceCardShimmer key={index} />
-          ))
-        ) : resources.length === 0 ? (
-          <div className="col-span-full text-center py-12">
-            <div className="text-gray-500">
-              <p className="text-lg font-medium">No {activeTab.toLowerCase()} found</p>
-              <p className="text-sm">Try adjusting your search or filters</p>
+        {/* Filters */}
+        <div className='py-6'>
+          <div className="flex items-center gap-3">
+            {/* Search */}
+            <div className="relative w-72">
+              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+              <input
+                type="text"
+                placeholder={`Search ${activeTab.toLowerCase()} by title, author, or description...`}
+                value={searchTerm}
+                onChange={(e) => handleSearch(e.target.value)}
+                className="w-full pl-10 pr-3 py-[10px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-xs"
+              />
+            </div>
+
+            {/* Date Range Picker */}
+            <DateRangePicker
+              startDate={filters.startDate}
+              endDate={filters.endDate}
+              onDateRangeChange={(startDate, endDate) => {
+                setFilters(prev => ({
+                  ...prev,
+                  startDate,
+                  endDate
+                }));
+                setPagination(prev => ({ ...prev, currentPage: 1 }));
+              }}
+              placeholder="Select date range"
+              className="w-[250px] text-xs"
+              includeTime={true}
+            />
+
+            {/* Status Filter */}
+            <CustomDropdown
+              placeholder="All Status"
+              value={filters.isActive}
+              onChange={(value) => handleFilterChange('isActive', value as string)}
+              options={[
+                { value: '', label: 'All Status' },
+                { value: 'true', label: 'Active' },
+                { value: 'false', label: 'Inactive' },
+              ]}
+              className="w-[150px] text-xs"
+            />
+
+            <div className="ml-auto flex items-center gap-2">
+              {hasPermission('Knowledge Base', 'create') && (
+                <button
+                  onClick={handleAddResource}
+                  disabled={isSubmitting}
+                  className="flex items-center space-x-2 px-10 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span>Add Resource</span>
+                </button>
+              )}
             </div>
           </div>
-        ) : (
-          resources.map((resource: Resource) => (
-            <ResourceCard key={resource.id} resource={resource} />
-          ))
-        )}
-      </div>
-
-      {/* Pagination */}
-      {!loading && pagination.totalPages > 1 && (
-        <div className="mt-8">
-          <Pagination
-            currentPage={pagination.currentPage}
-            totalPages={pagination.totalPages}
-            totalItems={pagination.totalItems}
-            itemsPerPage={pagination.itemsPerPage}
-            onPageChange={handlePageChange}
-            className="justify-center"
-          />
         </div>
-      )}
 
-      {/* Resource Detail Sheet */}
-      <EntityDetailSheet
-        entity={selectedResource}
-        open={isOverlayOpen}
-        onClose={closeOverlay}
-        onEdit={(resource) => {
-          setIsOverlayOpen(false)
-          handleEditResource(resource as Resource)
-        }}
-        onDelete={(resource) => {
-          setResourceToDelete(resource as Resource)
-          setIsOverlayOpen(false)
-          setIsDeleteModalOpen(true)
-        }}
-        hasUpdatePermission={hasPermission('Resources', 'update')}
-        hasDeletePermission={hasPermission('Resources', 'delete')}
-        titleAccessor={(resource: Resource) => resource.title}
-        imageAccessor={(resource: Resource) => getResourceThumbnail(resource)}
-        statusToggle={{
-          checked: Boolean(selectedResource?.isActive),
-          onChange: async (checked: boolean) => {
-            if (!selectedResource) return
-            await handleToggleStatus(selectedResource, checked)
-          },
-          enabled: hasPermission('Resources', 'update'),
-          labelActive: 'Active',
-          labelInactive: 'Inactive',
-        }}
-        sections={[
-          {
-            title: 'Resource Information',
-            items: [
-              { label: 'Author', value: selectedResource?.authorName || 'N/A' },
-              { label: 'Category', value: selectedResource?.category || 'N/A' },
-              { label: 'Published Date', value: selectedResource?.publishedDate ? new Date(selectedResource.publishedDate).toLocaleDateString() : 'N/A' },
-            ]
-          },
-          {
-            title: 'Description',
-            items: [
-              { 
-                label: 'Description', 
-                value: selectedResource?.description || 'N/A'
-              },
-            ]
-          },
-        ]}
-        linkSection={{
-          title: 'Resource Links',
-          links: selectedResource?.listUrl?.map(link => ({
-            url: link.url,
-            typeTag: link.type
-          })) || [],
-          maxHeightClass: 'max-h-[120px] min-h-[60px]'
-        }}
-      />
+        {/* Resources Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {loading ? (
+            // Loading shimmer
+            Array.from({ length: 8 }).map((_, index) => (
+              <ResourceCardShimmer key={index} />
+            ))
+          ) : resources.length === 0 ? (
+            <div className="col-span-full text-center py-12">
+              <div className="text-gray-500">
+                <p className="text-lg font-medium">No {activeTab.toLowerCase()} found</p>
+                <p className="text-sm">Try adjusting your search or filters</p>
+              </div>
+            </div>
+          ) : (
+            resources.map((resource: Resource) => (
+              <ResourceCard key={resource.id} resource={resource} />
+            ))
+          )}
+        </div>
 
-      {/* Add/Edit Resource Modal */}
-      {isAddModalOpen && (
-        <Modal
-          isOpen={isAddModalOpen}
-          onClose={handleResourceFormCancel}
-          title={selectedResource ? 'Edit Resource' : 'Add New Resource'}
-          size="xl"
-        >
-          <div className="h-[70vh] overflow-hidden">
-            <ResourceForm
-              resource={selectedResource}
-              category={activeTab}
-              onSubmit={handleResourceFormSubmit}
-              onCancel={handleResourceFormCancel}
-              isLoading={isSubmitting}
+        {/* Pagination */}
+        {!loading && pagination.totalPages > 1 && (
+          <div className="mt-8">
+            <Pagination
+              currentPage={pagination.currentPage}
+              totalPages={pagination.totalPages}
+              totalItems={pagination.totalItems}
+              itemsPerPage={pagination.itemsPerPage}
+              onPageChange={handlePageChange}
+              className="justify-center"
             />
           </div>
-        </Modal>
-      )}
+        )}
 
-      {/* Delete Confirmation Modal */}
-      <DeleteConfirmationModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        onConfirm={() => deleteResourceMutation.mutate()}
-        title="Delete Resource"
-        message={`Are you sure you want to permanently delete the resource "${resourceToDelete?.title}"? This action cannot be undone.`}
-        isLoading={deleteResourceMutation.isPending}
-      />
+        {/* Resource Detail Sheet */}
+        <EntityDetailSheet
+          entity={selectedResource}
+          open={isOverlayOpen}
+          onClose={closeOverlay}
+          onEdit={(resource) => {
+            setIsOverlayOpen(false)
+            handleEditResource(resource as Resource)
+          }}
+          onDelete={(resource) => {
+            setResourceToDelete(resource as Resource)
+            setIsOverlayOpen(false)
+            setIsDeleteModalOpen(true)
+          }}
+          hasUpdatePermission={hasPermission('Knowledge Base', 'update')}
+          hasDeletePermission={hasPermission('Knowledge Base', 'delete')}
+          titleAccessor={(resource: Resource) => resource.title}
+          imageAccessor={(resource: Resource) => getResourceThumbnail(resource)}
+          statusToggle={{
+            checked: Boolean(selectedResource?.isActive),
+            onChange: async (checked: boolean) => {
+              if (!selectedResource) return
+              await handleToggleStatus(selectedResource, checked)
+            },
+            enabled: hasPermission('Knowledge Base', 'update'),
+            labelActive: 'Active',
+            labelInactive: 'Inactive',
+          }}
+          sections={[
+            {
+              title: 'Resource Information',
+              items: [
+                { label: 'Author', value: selectedResource?.authorName || 'N/A' },
+                { label: 'Category', value: selectedResource?.category || 'N/A' },
+                { label: 'Published Date', value: selectedResource?.publishedDate ? new Date(selectedResource.publishedDate).toLocaleDateString() : 'N/A' },
+              ]
+            },
+            {
+              title: 'Description',
+              items: [
+                {
+                  label: 'Description',
+                  value: selectedResource?.description || 'N/A'
+                },
+              ]
+            },
+          ]}
+          linkSection={{
+            title: 'Resource Links',
+            links: selectedResource?.listUrl?.map(link => ({
+              url: link.url,
+              typeTag: link.type
+            })) || [],
+            maxHeightClass: 'max-h-[120px] min-h-[60px]'
+          }}
+        />
+
+        {/* Add/Edit Resource Modal */}
+        {isAddModalOpen && (
+          <Modal
+            isOpen={isAddModalOpen}
+            onClose={handleResourceFormCancel}
+            title={selectedResource ? 'Edit Resource' : 'Add New Resource'}
+            size="xl"
+          >
+            <div className="h-[70vh] overflow-hidden">
+              <ResourceForm
+                resource={selectedResource}
+                category={activeTab}
+                onSubmit={handleResourceFormSubmit}
+                onCancel={handleResourceFormCancel}
+                isLoading={isSubmitting}
+              />
+            </div>
+          </Modal>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        <DeleteConfirmationModal
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          onConfirm={() => deleteResourceMutation.mutate()}
+          title="Delete Resource"
+          message={`Are you sure you want to permanently delete the resource "${resourceToDelete?.title}"? This action cannot be undone.`}
+          isLoading={deleteResourceMutation.isPending}
+        />
       </div>
-     
+
     </div>
   )
 }

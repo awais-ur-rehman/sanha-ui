@@ -20,7 +20,16 @@ export const usePostApi = <T, R = any>(
       })
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        let errorData
+        try {
+          errorData = await response.json()
+        } catch {
+          errorData = { message: `HTTP error! status: ${response.status}` }
+        }
+
+        const error = new Error(errorData.message || `HTTP error! status: ${response.status}`)
+          ; (error as any).response = { data: errorData }
+        throw error
       }
 
       return response.json()
