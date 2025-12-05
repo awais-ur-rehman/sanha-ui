@@ -750,7 +750,7 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
         </div>
 
         {/* Form Actions - fixed bottom within modal content */}
-        <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200 mt-4 flex-shrink-0 bg-white">
+        <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200 mt-4 flex-shrink-0 bg-[#F9F8F6]">
           <button
             type="button"
             onClick={onCancel}

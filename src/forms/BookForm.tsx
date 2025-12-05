@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { FiX, FiImage } from 'react-icons/fi'
+import { FiX, FiImage, FiUpload } from 'react-icons/fi'
 import CustomInput from '../components/CustomInput'
 import CustomTextarea from '../components/CustomTextarea'
 import SearchableDropdown from '../components/SearchableDropdown'
@@ -29,6 +29,7 @@ const BookForm = ({ book, onSubmit, onCancel, loading = false }: BookFormProps) 
 
 
   const [uploadingImage, setUploadingImage] = useState(false)
+  const [uploadingPdf, setUploadingPdf] = useState(false)
 
   const { showToast } = useToast()
 
@@ -118,6 +119,59 @@ const BookForm = ({ book, onSubmit, onCancel, loading = false }: BookFormProps) 
     }
   }
 
+  const handlePdfUpload = async (file: File) => {
+    const formData = new FormData()
+    formData.append('files', file)
+
+    try {
+      setUploadingPdf(true)
+
+      const fileType = 'documents'
+      
+      const token = localStorage.getItem('token')
+      const headers: Record<string, string> = {}
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+      
+      const response = await fetch(`${API_CONFIG.baseURL}${FILE_ENDPOINTS.upload}/${fileType}`, {
+        method: 'POST',
+        headers,
+        body: formData,
+      })
+
+      if (!response.ok) {
+        throw new Error('Upload failed')
+      }
+
+      const result = await response.json()
+      
+      if (result.success) {
+        const fileUrl = result.data.files[0].url
+        setFormData(prev => ({ ...prev, url: fileUrl }))
+        showToast('success', 'PDF uploaded successfully')
+      } else {
+        throw new Error(result.message || 'Upload failed')
+      }
+    } catch (error) {
+      console.error('Upload error:', error)
+      showToast('error', 'Failed to upload PDF')
+    } finally {
+      setUploadingPdf(false)
+    }
+  }
+
+  const handlePdfChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+        handlePdfUpload(file)
+      } else {
+        showToast('error', 'Please select a valid PDF file')
+      }
+    }
+  }
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -193,7 +247,7 @@ const BookForm = ({ book, onSubmit, onCancel, loading = false }: BookFormProps) 
         />
       </div>
 
-      {/* Amazon URL and Archive URL - Parallel */}
+      {/* Amazon URL and PDF Link - Parallel */}
       <div className="grid grid-cols-2 gap-4">
         <CustomInput
           label="Amazon URL *"
@@ -202,13 +256,46 @@ const BookForm = ({ book, onSubmit, onCancel, loading = false }: BookFormProps) 
           placeholder="Enter Amazon URL for the book"
           required
         />
-        <CustomInput
-          label="Archive URL *"
-          value={formData.url}
-          onChange={(value) => handleInputChange('url', value)}
-          placeholder="Enter Archive.org URL"
-          required
-        />
+        <div>
+          <label className="block text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px] font-medium text-gray-700 mb-1">
+            PDF Link *
+          </label>
+          <div className="flex items-center gap-2">
+            {/* URL Input */}
+            <div className="flex-1">
+              <input
+                type="url"
+                value={formData.url}
+                onChange={(e) => handleInputChange('url', e.target.value)}
+                placeholder="Enter PDF URL or upload a file"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px]"
+              />
+            </div>
+
+            {/* Upload Button */}
+            <div className="flex items-center gap-2">
+              <input
+                type="file"
+                accept=".pdf"
+                onChange={handlePdfChange}
+                className="hidden"
+                id="pdf-upload"
+                disabled={uploadingPdf}
+              />
+              <label
+                htmlFor="pdf-upload"
+                className={`inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px] font-medium text-gray-700 bg-[#F9F8F6] hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#0c684b] cursor-pointer transition-colors ${
+                  uploadingPdf ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
+                <FiUpload size={16} />
+              </label>
+            </div>
+          </div>
+          {uploadingPdf && (
+            <p className="text-[10px] md:text-[11px] lg:text-[11px] xl:text-[12px] text-blue-600 mt-1">Uploading...</p>
+          )}
+        </div>
       </div>
 
       {/* Book Cover Image - Full Width */}
@@ -259,7 +346,7 @@ const BookForm = ({ book, onSubmit, onCancel, loading = false }: BookFormProps) 
         </div>
 
         {/* Form Actions - fixed bottom within modal content */}
-        <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200 mt-4 flex-shrink-0 bg-white">
+        <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200 mt-4 flex-shrink-0 bg-[#F9F8F6]">
           <button
             type="button"
             onClick={onCancel}
@@ -269,7 +356,7 @@ const BookForm = ({ book, onSubmit, onCancel, loading = false }: BookFormProps) 
           </button>
           <button
             type="submit"
-            disabled={loading || uploadingImage || !isFormValid()}
+            disabled={loading || uploadingImage || uploadingPdf || !isFormValid()}
             className="flex items-center space-x-2 px-10 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span>{loading ? 'Saving...' : book ? 'Update Book' : 'Add Book'}</span>
