@@ -202,7 +202,8 @@ const ClientForm: React.FC<ClientFormProps> = ({
       }
     }
 
-    const formData = {
+    const websiteValue = (data.website ?? '').toString().trim()
+    const formData: any = {
       ...data,
       address: addresses.filter(addr => addr.trim() !== ''),
       phone: phones.filter(phone => phone.trim() !== ''),
@@ -211,6 +212,13 @@ const ClientForm: React.FC<ClientFormProps> = ({
       scope: scopes.filter(scope => scope.trim() !== ''),
       clientCode: clientCodes.filter(code => code.trim() !== ''),
       ...(client ? { status: (data as ClientUpdateRequest).status || statusValue } : { status: statusValue })
+    }
+
+    // Only include website if it has a value
+    if (websiteValue) {
+      formData.website = websiteValue
+    } else {
+      delete formData.website
     }
     onSubmit(formData)
   }
@@ -426,7 +434,6 @@ const ClientForm: React.FC<ClientFormProps> = ({
             <input
               type="email"
               {...register('email', {
-                required: 'Email is required',
                 pattern: {
                   value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
                   message: 'Invalid email address'
