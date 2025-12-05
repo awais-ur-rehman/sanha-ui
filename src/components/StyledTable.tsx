@@ -23,7 +23,7 @@ const StyledTable = <T extends { id?: number }>({
   onRowClick,
 }: StyledTableProps<T>) => {
   return (
-    <div className="bg-white rounded-lg border border-gray-200">
+    <div className="bg-[#F9F8F6] rounded-lg border border-gray-200">
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead className="bg-gray-100">
@@ -38,7 +38,7 @@ const StyledTable = <T extends { id?: number }>({
               ))}
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-[#F9F8F6] divide-y divide-gray-200">
             {loading ? (
               <tr>
                 <td colSpan={columns.length} className="px-6 py-8 text-center">

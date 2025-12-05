@@ -53,7 +53,7 @@ const CustomDropdown = forwardRef<HTMLDivElement, CustomDropdownProps>(
                
                px-3 py-[10px] border border-gray-300 rounded-md 
               focus:outline-none focus:ring-1 focus:ring-[#0c684b] focus:border-[#0c684b]
-              transition-colors duration-200 bg-white text-left 
+              transition-colors duration-200 bg-[#F9F8F6] text-left 
               ${error ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : ''}
               ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-gray-400'}
               ${className}
@@ -69,7 +69,7 @@ const CustomDropdown = forwardRef<HTMLDivElement, CustomDropdownProps>(
           </button>
 
             {isOpen && (
-              <div className="absolute z-[9999] mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto w-full p-2">
+              <div className="absolute z-[9999] mt-1 bg-[#F9F8F6] border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto w-full p-2">
                 {options.map((option) => {
                   const isActive = option.value === value
                   return (

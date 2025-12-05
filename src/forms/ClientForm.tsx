@@ -203,6 +203,8 @@ const ClientForm: React.FC<ClientFormProps> = ({
     }
 
     const websiteValue = (data.website ?? '').toString().trim()
+    const emailValue = (data.email ?? '').toString().trim()
+    const faxValue = (data.fax ?? '').toString().trim()
     const formData: any = {
       ...data,
       address: addresses.filter(addr => addr.trim() !== ''),
@@ -220,12 +222,25 @@ const ClientForm: React.FC<ClientFormProps> = ({
     } else {
       delete formData.website
     }
+
+    // Only include email if it has a value
+    if (emailValue) {
+      formData.email = emailValue
+    } else {
+      delete formData.email
+    }
+
+    // Only include fax if it has a value
+    if (faxValue) {
+      formData.fax = faxValue
+    } else {
+      delete formData.fax
+    }
     onSubmit(formData)
   }
 
   const requiredReadyBase = (
     (watch('name') ?? '').toString().trim() !== '' &&
-    (watch('email') ?? '').toString().trim() !== '' &&
     (watch('standard') ?? '').toString().trim() !== '' &&
     (watch('certifiedSince') ?? '').toString().trim() !== '' &&
     (watch('expiryDate') ?? '').toString().trim() !== '' &&
@@ -429,14 +444,14 @@ const ClientForm: React.FC<ClientFormProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email *
+              Email
             </label>
             <input
               type="email"
               {...register('email', {
-                pattern: {
-                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: 'Invalid email address'
+                validate: (value) => {
+                  if (!value || value.trim() === '') return true
+                  return /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(value) || 'Invalid email address'
                 }
               })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent"
@@ -639,7 +654,7 @@ const ClientForm: React.FC<ClientFormProps> = ({
 
         {/* Form Actions - fixed bottom within modal content */}
       </div>
-      <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200 mt-4 flex-shrink-0 bg-white">
+      <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200 mt-4 flex-shrink-0 bg-[#F9F8F6]">
         <button
           type="button"
           onClick={onCancel}

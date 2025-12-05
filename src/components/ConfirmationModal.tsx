@@ -49,7 +49,7 @@ const ConfirmationModal = ({
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+      <div className="bg-[#F9F8F6] rounded-lg shadow-xl max-w-md w-full mx-4">
         {/* Header */}
         <div className="flex flex-col items-start space-x-3 p-6">
           <div className="flex justify-center items-center space-x-2">

@@ -130,7 +130,7 @@ const SearchableDropdown = forwardRef<HTMLDivElement, SearchableDropdownProps>(
             className={`
               w-full px-4 py-2 border border-gray-300 rounded-lg 
               focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-[#0c684b]
-              transition-colors duration-200 bg-white
+              transition-colors duration-200 bg-[#F9F8F6]
               ${error ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : ''}
               ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-text'}
               ${className}
@@ -156,7 +156,7 @@ const SearchableDropdown = forwardRef<HTMLDivElement, SearchableDropdownProps>(
           </div>
 
           {isOpen && (
-            <div className="absolute z-[9999] w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-auto">
+            <div className="absolute z-[9999] w-full mt-1 bg-[#F9F8F6] border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-auto">
               {filteredOptions.length > 0 ? (
                 filteredOptions.map((option) => (
                   <button

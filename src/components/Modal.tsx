@@ -22,7 +22,7 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }: ModalProps) =>
   return (
     <div className="fixed inset-0 z-50 bg-black/20 flex items-center justify-center p-4">
       {/* Modal container */}
-      <div className={`w-full ${sizeClasses[size]} bg-white rounded-md shadow-xl flex flex-col `}>
+      <div className={`w-full ${sizeClasses[size]} bg-[#F9F8F6] rounded-md shadow-xl flex flex-col `}>
         {/* Header */}
         {title && (
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
