@@ -25,7 +25,7 @@ const SearchableDropdown = forwardRef<HTMLDivElement, SearchableDropdownProps>(
     disabled, 
     className = '',
     allowCustomValue = true,
-    maxDisplayed = 5
+    maxDisplayed
   }, ref) => {
     const [isOpen, setIsOpen] = useState(false)
     const [searchTerm, setSearchTerm] = useState('')
@@ -36,9 +36,13 @@ const SearchableDropdown = forwardRef<HTMLDivElement, SearchableDropdownProps>(
 
 
     // Filter options based on search term
-    const filteredOptions = options.filter(option =>
-      option.label.toLowerCase().includes(searchTerm.toLowerCase())
-    ).slice(0, maxDisplayed)
+    const filteredOptions = maxDisplayed && maxDisplayed > 0
+      ? options.filter(option =>
+          option.label.toLowerCase().includes(searchTerm.toLowerCase())
+        ).slice(0, maxDisplayed)
+      : options.filter(option =>
+          option.label.toLowerCase().includes(searchTerm.toLowerCase())
+        )
 
     useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {

@@ -558,7 +558,6 @@ const ClientForm: React.FC<ClientFormProps> = ({
               onChange={(value) => setValue('standard', value)}
               placeholder="Search or type certification standard (e.g., ISO 9001, ISO 14001)"
               allowCustomValue={true}
-              maxDisplayed={5}
             />
             {errors.standard && (
               <p className="text-red-500 text-xs mt-1">{errors.standard.message}</p>
