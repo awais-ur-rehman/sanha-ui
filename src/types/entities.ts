@@ -196,6 +196,7 @@ export interface ECode {
 export interface ResourceUrl {
   url: string;
   type: string;
+  language?: string;
 }
 
 export interface Resource {
@@ -203,6 +204,8 @@ export interface Resource {
   authorName: string;
   title: string;
   description: string;
+  urduDescription?: string;
+  arabicDescription?: string;
   category: string;
   imageUrl: string;
   listUrl: ResourceUrl[];

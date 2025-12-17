@@ -1,14 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiX } from 'react-icons/fi';
 import RichTextEditor from './RichTextEditor';
 
 interface RichTextModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (content: string) => void;
+  onSave: (content: string | { description?: string; urduDescription?: string; arabicDescription?: string }) => void;
   initialContent?: string;
+  initialDescriptions?: {
+    description?: string;
+    urduDescription?: string;
+    arabicDescription?: string;
+  };
   title?: string;
   buttonText?: string;
+  multiLanguage?: boolean;
 }
 
 const RichTextModal: React.FC<RichTextModalProps> = ({
@@ -16,14 +22,58 @@ const RichTextModal: React.FC<RichTextModalProps> = ({
   onClose,
   onSave,
   initialContent = '',
+  initialDescriptions,
   title = 'Add Description',
-  buttonText = 'Add Resource'
+  buttonText = 'Add Resource',
+  multiLanguage = false
 }) => {
   const [content, setContent] = useState(initialContent);
+  const [descriptions, setDescriptions] = useState<{
+    description?: string;
+    urduDescription?: string;
+    arabicDescription?: string;
+  }>(initialDescriptions || {
+    description: '',
+    urduDescription: '',
+    arabicDescription: ''
+  });
+
+  // Update descriptions when initialDescriptions changes (for edit mode)
+  useEffect(() => {
+    if (initialDescriptions) {
+      setDescriptions(initialDescriptions);
+    }
+  }, [initialDescriptions]);
 
   const handleSave = () => {
-    onSave(content);
-    onClose();
+    if (multiLanguage) {
+      // Validate that at least one language description is filled
+      // Remove HTML tags and check for actual content
+      const stripHtml = (html: string | undefined) => {
+        if (!html) return '';
+        const tmp = document.createElement('DIV');
+        tmp.innerHTML = html;
+        return tmp.textContent || tmp.innerText || '';
+      };
+
+      const hasContent =
+        (descriptions.description && stripHtml(descriptions.description).trim() !== '') ||
+        (descriptions.urduDescription && stripHtml(descriptions.urduDescription).trim() !== '') ||
+        (descriptions.arabicDescription && stripHtml(descriptions.arabicDescription).trim() !== '');
+
+      if (!hasContent) {
+        // Return false to indicate validation failed - don't close modal
+        return false;
+      }
+
+      onSave(descriptions);
+      onClose();
+      return true;
+    } else {
+      onSave(content);
+      onClose();
+      return true;
+    }
   };
 
   if (!isOpen) return null;
@@ -31,11 +81,11 @@ const RichTextModal: React.FC<RichTextModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
-      <div 
+      <div
         className="absolute inset-0 bg-black/20 bg-opacity-50"
         onClick={onClose}
       />
-      
+
       {/* Modal */}
       <div className="relative bg-white rounded-lg shadow-xl w-[55vw] h-[85vh] max-w-7xl flex flex-col">
         {/* Header */}
@@ -51,13 +101,23 @@ const RichTextModal: React.FC<RichTextModalProps> = ({
 
         {/* Content */}
         <div className="flex-1 p-4">
-          <RichTextEditor
-            value={content}
-            onChange={setContent}
-            placeholder="Enter your description here..."
-            rows={20}
-            className="h-full"
-          />
+          {multiLanguage ? (
+            <RichTextEditor
+              descriptions={descriptions}
+              onDescriptionsChange={setDescriptions}
+              placeholder="Enter your description here..."
+              rows={20}
+              className="h-full"
+            />
+          ) : (
+            <RichTextEditor
+              value={content}
+              onChange={setContent}
+              placeholder="Enter your description here..."
+              rows={20}
+              className="h-full"
+            />
+          )}
         </div>
 
         {/* Footer */}
@@ -69,7 +129,13 @@ const RichTextModal: React.FC<RichTextModalProps> = ({
             Cancel
           </button>
           <button
-            onClick={handleSave}
+            onClick={() => {
+              const saved = handleSave();
+              if (saved === false && multiLanguage) {
+                // Validation failed - show error (parent component will also validate)
+                alert('Please enter description in at least one language.');
+              }
+            }}
             className="px-4 py-2 text-sm font-medium text-white bg-[#0c684b] border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0c684b]"
           >
             {buttonText}

@@ -40,7 +40,7 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
 
 
 
-  const [resourceRows, setResourceRows] = useState<Array<{ url: string; type: string }>>([
+  const [resourceRows, setResourceRows] = useState<Array<{ url: string; type: string; language?: string }>>([
     { url: '', type: 'link' }
   ]);
   const { showToast } = useToast();
@@ -76,7 +76,8 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
       if (resource.listUrl && resource.listUrl.length > 0) {
         setResourceRows(resource.listUrl.map(link => ({
           url: link.url,
-          type: link.type
+          type: link.type,
+          language: link.language
         })));
       } else {
         setResourceRows([{ url: '', type: 'link' }]);
@@ -347,7 +348,15 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
     newRows[index].url = url;
     if (url.trim()) {
       newRows[index].type = detectUrlPlatform(url);
+      // Clear language when URL is changed (not a PDF upload)
+      newRows[index].language = undefined;
     }
+    setResourceRows(newRows);
+  };
+
+  const handleLanguageChange = (index: number, language: string | number) => {
+    const newRows = [...resourceRows];
+    newRows[index].language = language as string;
     setResourceRows(newRows);
   };
 
@@ -356,7 +365,7 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
       showToast('error', 'Maximum 3 resources allowed');
       return;
     }
-    setResourceRows(prev => [...prev, { url: '', type: 'link' }]);
+    setResourceRows(prev => [...prev, { url: '', type: 'link', language: undefined }]);
   };
 
   const handleFileUploadForRow = async (file: File, rowIndex: number) => {
@@ -442,7 +451,10 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
         const newRows = [...resourceRows];
         newRows[rowIndex] = {
           url: fileUrl,
-          type: detectedType
+          type: detectedType,
+          // For PDFs, language will be set by user via dropdown
+          // For other files, language remains undefined
+          language: detectedType === 'pdf' ? undefined : newRows[rowIndex]?.language
         };
         setResourceRows(newRows);
 
@@ -469,10 +481,17 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
     // Convert resource rows to listUrl format
     const listUrl = resourceRows
       .filter(row => row.url.trim()) // Only include rows with URLs
-      .map(row => ({
-        url: row.url,
-        type: row.type
-      }));
+      .map(row => {
+        const linkData: { url: string; type: string; language?: string } = {
+          url: row.url,
+          type: row.type
+        };
+        // Only include language for PDF files
+        if (row.type === 'pdf' && row.language) {
+          linkData.language = row.language;
+        }
+        return linkData;
+      });
 
     const formData = {
       ...data,
@@ -486,8 +505,22 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
       formData.publishedDate = currentDate;
     }
 
+    // Validate PDF language selection for rich text categories
+    const isRichTextCategory = category === 'Articles' || category === 'News' || category === 'Policies' || category === 'Guides';
+    if (isRichTextCategory) {
+      // Check if there are any PDF files without language selection
+      const pdfsWithoutLanguage = resourceRows.filter(
+        row => row.url.trim() && row.type === 'pdf' && !row.language
+      );
+
+      if (pdfsWithoutLanguage.length > 0) {
+        showToast('error', 'Please select a language for all uploaded PDF files before proceeding.');
+        return;
+      }
+    }
+
     // For rich text categories, show modal for description
-    if (category === 'Articles' || category === 'News' || category === 'Policies' || category === 'Guides') {
+    if (isRichTextCategory) {
       setFormData(formData);
       setShowRichTextModal(true);
     } else {
@@ -495,12 +528,42 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
     }
   };
 
-  const handleRichTextSave = (description: string) => {
-    const finalData = {
-      ...formData,
-      description
-    };
-    onSubmit(finalData);
+  const handleRichTextSave = (description: string | { description?: string; urduDescription?: string; arabicDescription?: string }) => {
+    if (typeof description === 'string') {
+      // Legacy single description format
+      const finalData = {
+        ...formData,
+        description
+      };
+      onSubmit(finalData);
+    } else {
+      // Multi-language descriptions format
+      // Validate that at least one language has content
+      const stripHtml = (html: string | undefined) => {
+        if (!html) return '';
+        const tmp = document.createElement('DIV');
+        tmp.innerHTML = html;
+        return tmp.textContent || tmp.innerText || '';
+      };
+
+      const hasContent =
+        (description.description && stripHtml(description.description).trim() !== '') ||
+        (description.urduDescription && stripHtml(description.urduDescription).trim() !== '') ||
+        (description.arabicDescription && stripHtml(description.arabicDescription).trim() !== '');
+
+      if (!hasContent) {
+        showToast('error', 'Please enter description in at least one language.');
+        return;
+      }
+
+      const finalData = {
+        ...formData,
+        description: description.description || null,
+        urduDescription: description.urduDescription || null,
+        arabicDescription: description.arabicDescription || null
+      };
+      onSubmit(finalData);
+    }
   };
 
   return (
@@ -691,39 +754,73 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
                 Resource Links & Files
               </label>
               <div className="space-y-3">
-                {resourceRows.map((row, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    {/* URL Input */}
-                    <div className="flex-1">
-                      <input
-                        type="url"
-                        value={row.url}
-                        onChange={(e) => handleUrlChange(index, e.target.value)}
-                        placeholder="Enter URL or upload a file"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px]"
-                      />
-                    </div>
+                {resourceRows.map((row, index) => {
+                  const isPDF = row.type === 'pdf';
+                  const showLanguageDropdown = isPDF && (category === 'Policies' || category === 'Guides' || category === 'Articles' || category === 'News');
 
-                    {/* Upload Button */}
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="file"
-                        accept=".pdf,.doc,.docx,.txt,.mp4,.avi,.mov,.wmv,.flv,.webm,.mkv,.mp3,.wav,.flac,.aac,.ogg,.wma"
-                        onChange={(e) => handleFileChangeForRow(e, index)}
-                        className="hidden"
-                        id={`file-upload-${index}`}
-                        disabled={uploadingDocuments}
-                      />
-                      <label
-                        htmlFor={`file-upload-${index}`}
-                        className={`inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px] font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#0c684b] cursor-pointer transition-colors ${uploadingDocuments ? 'opacity-50 cursor-not-allowed' : ''
-                          }`}
-                      >
-                        <FiUpload size={16} />
-                      </label>
+                  return (
+                    <div key={index} className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        {/* URL Input */}
+                        <div className="flex-1">
+                          <input
+                            type="url"
+                            value={row.url}
+                            onChange={(e) => handleUrlChange(index, e.target.value)}
+                            placeholder="Enter URL or upload a file"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px]"
+                          />
+                        </div>
+
+                        {/* Upload Button */}
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="file"
+                            accept=".pdf,.doc,.docx,.txt,.mp4,.avi,.mov,.wmv,.flv,.webm,.mkv,.mp3,.wav,.flac,.aac,.ogg,.wma"
+                            onChange={(e) => handleFileChangeForRow(e, index)}
+                            className="hidden"
+                            id={`file-upload-${index}`}
+                            disabled={uploadingDocuments}
+                          />
+                          <label
+                            htmlFor={`file-upload-${index}`}
+                            className={`inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg text-[12px] md:text-[13px] lg:text-[13px] xl:text-[14px] font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#0c684b] cursor-pointer transition-colors ${uploadingDocuments ? 'opacity-50 cursor-not-allowed' : ''
+                              }`}
+                          >
+                            <FiUpload size={16} />
+                          </label>
+                        </div>
+                      </div>
+
+                      {/* Language Chips - Only show for PDF files in Policies, Guides, Articles, News */}
+                      {showLanguageDropdown && (
+                        <div className="flex items-center gap-3">
+                          <label className="text-[11px] md:text-[12px] lg:text-[12px] xl:text-[13px] font-medium text-gray-700 whitespace-nowrap">
+                            Language:
+                          </label>
+                          <div className="flex items-center gap-2">
+                            {['English', 'Urdu', 'Arabic'].map((lang) => {
+                              const isSelected = row.language === lang;
+                              return (
+                                <button
+                                  key={lang}
+                                  type="button"
+                                  onClick={() => handleLanguageChange(index, isSelected ? '' : lang)}
+                                  className={`px-3 py-1.5 rounded-full text-[11px] md:text-[12px] lg:text-[12px] xl:text-[13px] font-medium transition-colors ${isSelected
+                                    ? 'bg-[#0c684b] text-white'
+                                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                                    }`}
+                                >
+                                  {lang}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
 
                 {/* Add Row Button */}
                 {resourceRows.length < 3 && (
@@ -776,6 +873,12 @@ const ResourceForm: React.FC<ResourceFormProps> = ({
         onClose={() => setShowRichTextModal(false)}
         onSave={handleRichTextSave}
         initialContent={resource?.description || ""}
+        initialDescriptions={{
+          description: resource?.description || '',
+          urduDescription: resource?.urduDescription || '',
+          arabicDescription: resource?.arabicDescription || ''
+        }}
+        multiLanguage={true}
         title={resource ? "Edit Description" : "Add Description"}
         buttonText={resource ? "Edit Resource" : "Add Resource"}
       />
