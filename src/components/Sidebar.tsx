@@ -277,7 +277,7 @@ const Sidebar = () => {
     },
     {
       id: 'e-codes',
-      title: 'E-Codes',
+      title: 'E Numbers',
       path: ROUTES.E_CODES,
       icon: getIcon('e-codes', isActive(ROUTES.E_CODES))
     }

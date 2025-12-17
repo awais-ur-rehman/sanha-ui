@@ -66,9 +66,9 @@ const ECodeDetailSheet: React.FC<ECodeDetailSheetProps> = ({
   };
 
   return (
-    <Sheet open={open} close={onClose} title={`E-Code Details - ${ecode.name}`}>
+    <Sheet open={open} close={onClose} title={`E Number Details - ${ecode.name}`}>
       <div className="flex flex-col h-full p-6">
-        {/* E-Code Info */}
+        {/* E Number Info */}
         <div className="flex flex-col gap-4 flex-1 pt-10">
           <div className="text-left flex justify-between items-start">
             <h2 className="font-semibold text-xl text-gray-900 mb-2">

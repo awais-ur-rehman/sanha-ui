@@ -341,7 +341,7 @@ const ECodeForm: React.FC<ECodeFormProps> = ({ ecode, onSubmit, onCancel, isLoad
             disabled={isLoading}
             className="flex items-center space-x-2 px-10 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <span>{isLoading ? 'Saving...' : ecode ? 'Update E-Code' : 'Add E-Code'}</span>
+            <span>{isLoading ? 'Saving...' : ecode ? 'Update E Number' : 'Add E Number'}</span>
           </button>
         </div>
       </form>

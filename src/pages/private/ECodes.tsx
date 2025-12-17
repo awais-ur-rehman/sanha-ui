@@ -54,7 +54,7 @@ const ECodes = () => {
   } = useBulkImport({
     endpoint: ECODE_ENDPOINTS.bulkImport,
     onSuccess: () => {
-      showToast("success", "E-Codes imported successfully!");
+      showToast("success", "E Numbers imported successfully!");
     },
     onError: (error) => {
       showToast("error", error);
@@ -109,25 +109,25 @@ const ECodes = () => {
     } catch { }
   };
 
-  // Delete E-Code mutation
+  // Delete E Number mutation
   const deleteECodeMutation = useDeleteApi(
     `${ECODE_ENDPOINTS.delete}/${selectedECode?.id}?hardDelete=true`,
     {
       requireAuth: true,
       onSuccess: () => {
-        showToast("success", "E-Code deleted successfully!");
+        showToast("success", "E Number deleted successfully!");
         setIsDeleteModalOpen(false);
         setIsOverlayOpen(false);
         setSelectedECode(null);
         refetch();
       },
       onError: (error) => {
-        showToast("error", error.message || "Failed to delete E-Code");
+        showToast("error", error.message || "Failed to delete E Number");
       },
     }
   );
 
-  // Process E-Codes data
+  // Process E Numbers data
   const ecodes =
     ecodesResponse?.data?.data?.map((ecode: ECode) => ({
       ...ecode,
@@ -214,31 +214,31 @@ const ECodes = () => {
         const errorData = await response.json();
         throw new Error(
           errorData.message ||
-          `Failed to ${isEditing ? "update" : "create"} E-Code`
+          `Failed to ${isEditing ? "update" : "create"} E Number`
         );
       }
 
       const result = await response.json();
       console.log(
-        `E-Code ${isEditing ? "updated" : "created"} successfully:`,
+        `E Number ${isEditing ? "updated" : "created"} successfully:`,
         result
       );
 
       // Show success toast
       showToast(
         "success",
-        `E-Code ${isEditing ? "updated" : "created"} successfully!`
+        `E Number ${isEditing ? "updated" : "created"} successfully!`
       );
 
-      // Close modal and refetch E-Codes
+      // Close modal and refetch E Numbers
       setIsAddModalOpen(false);
       setSelectedECode(null);
       refetch();
     } catch (error) {
-      console.error("Error saving E-Code:", error);
+      console.error("Error saving E Number:", error);
       showToast(
         "error",
-        error instanceof Error ? error.message : "Failed to save E-Code"
+        error instanceof Error ? error.message : "Failed to save E Number"
       );
     } finally {
       setIsSubmitting(false);
@@ -316,10 +316,10 @@ const ECodes = () => {
       if (!response.ok) {
         // Special handling for 404 error when deactivating
         if (response.status === 404 && !statusToSet) {
-          // The E-Code was successfully deactivated but the API can't find it to return
+          // The E Number was successfully deactivated but the API can't find it to return
           // This is likely a backend issue where inactive records are filtered out
           console.log(
-            "E-Code deactivated successfully but API returned 404 (backend filtering issue)"
+            "E Number deactivated successfully but API returned 404 (backend filtering issue)"
           );
 
           // Update selected ecode if it's the same
@@ -329,7 +329,7 @@ const ECodes = () => {
             );
           }
 
-          showToast("success", "E-Code deactivated successfully!");
+          showToast("success", "E Number deactivated successfully!");
 
           // Refetch ecodes to update the list
           refetch();
@@ -337,7 +337,7 @@ const ECodes = () => {
         }
 
         const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to update E-Code status");
+        throw new Error(errorData.message || "Failed to update E Number status");
       }
 
       // Update selected ecode if it's the same
@@ -349,18 +349,18 @@ const ECodes = () => {
 
       showToast(
         "success",
-        `E-Code ${statusToSet ? "activated" : "deactivated"} successfully!`
+        `E Number ${statusToSet ? "activated" : "deactivated"} successfully!`
       );
 
       // Refetch ecodes to update the list
       refetch();
     } catch (error) {
-      console.error("Error updating E-Code status:", error);
+      console.error("Error updating E Number status:", error);
       showToast(
         "error",
         error instanceof Error
           ? error.message
-          : "Failed to update E-Code status"
+          : "Failed to update E Number status"
       );
       throw error; // Re-throw to allow the component to revert the local state
     }
@@ -390,7 +390,7 @@ const ECodes = () => {
     <div className="py-4">
       <div className="bg-[#F9F8F6] rounded-lg overflow-hidden min-h-[calc(100vh-35px)] px-6 py-10">
         {/* Header */}
-        <PageHeader title="E-Codes" subtitle="View & manage E-Codes." />
+        <PageHeader title="E Numbers" subtitle="View & manage E Numbers." />
 
         {/* Filters */}
         <div className="py-6">
@@ -403,7 +403,7 @@ const ECodes = () => {
               />
               <input
                 type="text"
-                placeholder="Search E-Codes by code, name, or status..."
+                placeholder="Search E Numbers by code, name, or status..."
                 value={searchTerm}
                 onChange={(e) => handleSearch(e.target.value)}
                 className="w-full pl-10 pr-3 py-[10px] border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-xs"
@@ -468,7 +468,7 @@ const ECodes = () => {
                     disabled={isSubmitting}
                     className="flex items-center space-x-2 px-10 py-[10px] text-xs bg-[#0c684b] text-white rounded-sm hover:bg-green-700 border border-[#0c684b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <span>Add E-Code</span>
+                    <span>Add E Number</span>
                   </button>
                 </>
               )}
@@ -476,7 +476,7 @@ const ECodes = () => {
           </div>
         </div>
 
-        {/* E-Codes Table */}
+        {/* E Numbers Table */}
         {loading || ecodes.length === 0 ? (
           <div className="bg-white rounded-lg border border-gray-200">
             {loading ? (
@@ -489,7 +489,7 @@ const ECodes = () => {
               </div>
             ) : (
               <div className="p-12 text-center text-gray-500">
-                No E-Codes found
+                No E Numbers found
               </div>
             )}
           </div>
@@ -577,7 +577,7 @@ const ECodes = () => {
           </>
         )}
 
-        {/* E-Code Detail Sheet */}
+        {/* E Number Detail Sheet */}
         <EntityDetailSheet
           entity={selectedECode}
           open={isOverlayOpen}
@@ -618,7 +618,7 @@ const ECodes = () => {
           }
           sections={[
             {
-              title: "E-Code Information",
+              title: "E Number Information",
               items: [
                 { label: "Code", value: selectedECode?.code || "N/A" },
                 {
@@ -655,17 +655,17 @@ const ECodes = () => {
           isOpen={isDeleteModalOpen}
           onClose={() => setIsDeleteModalOpen(false)}
           onConfirm={() => deleteECodeMutation.mutate()}
-          title="Delete E-Code"
-          message={`Are you sure you want to permanently delete the E-Code "${selectedECode?.name}"? This action cannot be undone.`}
+          title="Delete E Number"
+          message={`Are you sure you want to permanently delete the E Number "${selectedECode?.name}"? This action cannot be undone.`}
           isLoading={deleteECodeMutation.isPending}
         />
 
-        {/* Add/Edit E-Code Modal */}
+        {/* Add/Edit E Number Modal */}
         {isAddModalOpen && (
           <Modal
             isOpen={isAddModalOpen}
             onClose={handleECodeFormCancel}
-            title={selectedECode ? "Edit E-Code" : "Add New E-Code"}
+            title={selectedECode ? "Edit E Number" : "Add New E Number"}
             size="xl"
           >
             <div className="h-[70vh] overflow-hidden">
@@ -684,7 +684,7 @@ const ECodes = () => {
           isOpen={isImportModalOpen}
           onClose={handleCloseImportModal}
           importState={importState}
-          entityType="E-Codes"
+          entityType="E Numbers"
         />
       </div>
     </div>
