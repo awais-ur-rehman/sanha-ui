@@ -26,7 +26,7 @@ const Resources = () => {
   const [selectedResource, setSelectedResource] = useState<Resource | null>(null)
   const [isOverlayOpen, setIsOverlayOpen] = useState(false)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState<'Policies' | 'Guides' | 'Articles' | 'Videos' | 'Podcast'>('Policies')
+  const [activeTab, setActiveTab] = useState<'Policies' | 'Guides' | 'Articles' | 'News' | 'Videos' | 'Podcast'>('Policies')
   const [searchTerm, setSearchTerm] = useState('')
   const [filters, setFilters] = useState({
     isActive: '',
@@ -316,8 +316,8 @@ const Resources = () => {
             {resource.title}
           </h3>
           <span className={`px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${resource.isActive
-              ? 'bg-green-100 text-green-800'
-              : 'bg-red-100 text-red-800'
+            ? 'bg-green-100 text-green-800'
+            : 'bg-red-100 text-red-800'
             }`}>
             {resource.isActive ? 'Active' : 'Inactive'}
           </span>
@@ -367,13 +367,13 @@ const Resources = () => {
         {/* Tab Navigation */}
         <div className="mb-6">
           <div className="inline-flex bg-gray-100 rounded-lg p-1">
-            {(['Policies', 'Guides', 'Articles', 'Videos', 'Podcast'] as const).map(tab => (
+            {(['Policies', 'Guides', 'Articles', 'News', 'Videos', 'Podcast'] as const).map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${activeTab === tab
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
                   }`}
               >
                 {tab}
