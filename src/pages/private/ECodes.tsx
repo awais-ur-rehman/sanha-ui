@@ -44,6 +44,7 @@ const ECodes = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [isImportInfoOpen, setIsImportInfoOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Bulk import
@@ -250,6 +251,10 @@ const ECodes = () => {
   };
 
   const handleImportClick = () => {
+    setIsImportInfoOpen(true);
+  };
+
+  const handleUploadClick = () => {
     fileInputRef.current?.click();
   };
 
@@ -263,6 +268,9 @@ const ECodes = () => {
       showToast("error", "Please select a CSV file");
       return;
     }
+
+    // Close the info modal once the user has selected a file
+    setIsImportInfoOpen(false);
 
     setIsImportModalOpen(true);
     await startImport(file);
@@ -680,6 +688,69 @@ const ECodes = () => {
         )}
 
         {/* Bulk Import Modal */}
+        <Modal
+          isOpen={isImportInfoOpen}
+          onClose={() => setIsImportInfoOpen(false)}
+          title="Import CSV"
+          size="md"
+        >
+          <div className="space-y-4">
+            <p className="text-sm text-gray-700">
+              <span className="font-semibold">Note:</span> The CSV must have the following columns.
+            </p>
+
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-gray-800">Required columns</p>
+              <div className="flex flex-wrap gap-2">
+                <span className="px-2 py-1 rounded-full bg-white border text-xs text-gray-800">
+                  Code / code
+                </span>
+                <span className="px-2 py-1 rounded-full bg-white border text-xs text-gray-800">
+                  Name / name
+                </span>
+                <span className="px-2 py-1 rounded-full bg-white border text-xs text-gray-800">
+                  Status / status
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-gray-800">Optional columns</p>
+              <div className="flex flex-wrap gap-2">
+                <span className="px-2 py-1 rounded-full bg-white border text-[11px] text-gray-800">
+                  Function / function (semicolon-separated)
+                </span>
+                <span className="px-2 py-1 rounded-full bg-white border text-[11px] text-gray-800">
+                  Source / source (comma or semicolon-separated)
+                </span>
+                <span className="px-2 py-1 rounded-full bg-white border text-[11px] text-gray-800">
+                  Uses / uses (comma or semicolon-separated)
+                </span>
+                <span className="px-2 py-1 rounded-full bg-white border text-[11px] text-gray-800">
+                  Health Info / health info / healthInfo (semicolon-separated)
+                </span>
+                <span className="px-2 py-1 rounded-full bg-white border text-[11px] text-gray-800">
+                  Alternative Name / alternative name / alternativeName / AlternateName (semicolon-separated)
+                </span>
+              </div>
+            </div>
+
+
+
+            <div className="pt-4">
+              <button
+                type="button"
+                onClick={handleUploadClick}
+                disabled={importState.isImporting}
+                className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium bg-[#0c684b] text-white rounded-sm hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <FiUpload className="mr-2" size={16} />
+                Upload CSV
+              </button>
+            </div>
+          </div>
+        </Modal>
+
         <BulkImportModal
           isOpen={isImportModalOpen}
           onClose={handleCloseImportModal}
