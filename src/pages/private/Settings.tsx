@@ -330,53 +330,47 @@ const Settings = () => {
                       </div>
                     </div>
                   ) : costConfigResponse?.data ? (
-                    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                      <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Cost Item
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Value (PKR)
-                            </th>
-                            {hasPermission('Settings', 'update') && (
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
-                                Actions
-                              </th>
-                            )}
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                          {[
-                            { key: 'applicationCost', label: 'Application Cost' },
-                            { key: 'stagesWithinCityCost', label: 'Stages Within City Cost' },
-                            { key: 'stagesOutsideCityCost', label: 'Stages Outside City Cost' },
-                            { key: 'under50RmCost', label: 'Under 50 RM Cost' },
-                            { key: 'under100RmCost', label: 'Under 100 RM Cost' },
-                            { key: 'adminCost', label: 'Admin Cost' },
-                            { key: 'licensingFeeCost', label: 'Licensing Fee Cost' },
-                          ].map((item) => {
-                            const isEditing = editingField === item.key
-                            const currentValue = costConfigResponse.data[item.key] || '0'
+                    <div className="w-full">
+                      <StyledTable
+                        data={[
+                          { key: 'applicationCost', label: 'Application Cost', id: 1 },
+                          { key: 'stagesWithinCityCost', label: 'Stages Within City Cost', id: 2 },
+                          { key: 'stagesOutsideCityCost', label: 'Stages Outside City Cost', id: 3 },
+                          { key: 'under50RmCost', label: 'Under 50 RM Cost', id: 4 },
+                          { key: 'under100RmCost', label: 'Under 100 RM Cost', id: 5 },
+                          { key: 'adminCost', label: 'Admin Cost', id: 6 },
+                          { key: 'licensingFeeCost', label: 'Licensing Fee Cost', id: 7 },
+                        ]}
+                        columns={[
+                          {
+                            key: 'label',
+                            header: 'Cost Item',
+                            render: (item: any) => (
+                              <span className="text-sm font-medium text-gray-900">{item.label}</span>
+                            )
+                          },
+                          {
+                            key: 'value',
+                            header: 'Value (PKR)',
+                            render: (item: any) => {
+                              const isEditing = editingField === item.key
+                              const currentValue = costConfigResponse.data[item.key] || '0'
 
-                            return (
-                              <tr key={item.key} className="hover:bg-gray-50">
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                  <span className="text-sm font-medium text-gray-900">{item.label}</span>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
+                              return (
+                                <>
                                   {isEditing ? (
                                     <div className="flex items-center gap-2">
                                       <input
                                         type="number"
                                         value={editValue}
                                         onChange={(e) => setEditValue(e.target.value)}
+                                        onClick={(e) => e.stopPropagation()}
                                         className="w-32 px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-sm"
                                         autoFocus
                                       />
                                       <button
-                                        onClick={async () => {
+                                        onClick={async (e) => {
+                                          e.stopPropagation()
                                           await updateCostConfigMutation.mutateAsync({
                                             [item.key]: editValue,
                                           })
@@ -388,7 +382,8 @@ const Settings = () => {
                                         <FiSave size={16} />
                                       </button>
                                       <button
-                                        onClick={() => {
+                                        onClick={(e) => {
+                                          e.stopPropagation()
                                           setEditingField(null)
                                           setEditValue('')
                                         }}
@@ -406,28 +401,39 @@ const Settings = () => {
                                       })}
                                     </span>
                                   )}
-                                </td>
-                                {hasPermission('Settings', 'update') && (
-                                  <td className="px-6 py-4 whitespace-nowrap">
-                                    {!isEditing && (
-                                      <button
-                                        onClick={() => {
-                                          setEditingField(item.key)
-                                          setEditValue(currentValue)
-                                        }}
-                                        className="p-2 text-[#0c684b] hover:bg-green-50 rounded transition-colors"
-                                        title="Edit"
-                                      >
-                                        <FiEdit2 size={16} />
-                                      </button>
-                                    )}
-                                  </td>
-                                )}
-                              </tr>
-                            )
-                          })}
-                        </tbody>
-                      </table>
+                                </>
+                              )
+                            }
+                          },
+                          ...(hasPermission('Settings', 'update') ? [{
+                            key: 'actions',
+                            header: 'Actions',
+                            render: (item: any) => {
+                              const isEditing = editingField === item.key
+                              const currentValue = costConfigResponse.data[item.key] || '0'
+
+                              return (
+                                <>
+                                  {!isEditing && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        setEditingField(item.key)
+                                        setEditValue(currentValue)
+                                      }}
+                                      className="p-2 text-[#0c684b] hover:bg-green-50 rounded transition-colors"
+                                      title="Edit"
+                                    >
+                                      <FiEdit2 size={16} />
+                                    </button>
+                                  )}
+                                </>
+                              )
+                            }
+                          }] : [])
+                        ]}
+                        emptyMessage="No cost configuration found"
+                      />
                     </div>
                   ) : (
                     <div className="bg-white rounded-lg border border-gray-200 p-12 text-center text-gray-500">
