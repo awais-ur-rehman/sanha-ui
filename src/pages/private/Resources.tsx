@@ -145,8 +145,8 @@ const Resources = () => {
     if (resourcesResponse?.data?.pagination) {
       setPagination(prev => ({
         ...prev,
-        totalPages: resourcesResponse.data.pagination.totalPages,
-        totalItems: resourcesResponse.data.pagination.totalItems,
+        totalPages: Number(resourcesResponse.data.pagination.totalPages) || 1,
+        totalItems: Number(resourcesResponse.data.pagination.total) || 0,
       }))
     }
   }, [resourcesResponse])
@@ -463,18 +463,13 @@ const Resources = () => {
         </div>
 
         {/* Pagination */}
-        {!loading && pagination.totalPages > 1 && (
-          <div className="mt-8">
-            <Pagination
-              currentPage={pagination.currentPage}
-              totalPages={pagination.totalPages}
-              totalItems={pagination.totalItems}
-              itemsPerPage={pagination.itemsPerPage}
-              onPageChange={handlePageChange}
-              className="justify-center"
-            />
-          </div>
-        )}
+        <Pagination
+          currentPage={pagination.currentPage}
+          totalPages={pagination.totalPages}
+          totalItems={pagination.totalItems}
+          itemsPerPage={pagination.itemsPerPage}
+          onPageChange={handlePageChange}
+        />
 
         {/* Resource Detail Sheet */}
         <EntityDetailSheet
@@ -509,18 +504,27 @@ const Resources = () => {
               title: 'Resource Information',
               items: [
                 { label: 'Author', value: selectedResource?.authorName || 'N/A' },
-                { label: 'Category', value: selectedResource?.category || 'N/A' },
-                { label: 'Published Date', value: selectedResource?.publishedDate ? new Date(selectedResource.publishedDate).toLocaleDateString() : 'N/A' },
               ]
             },
             {
               title: 'Description',
+              descriptionMaxHeightClass: 'max-h-[9.5rem]',
               items: [
                 {
                   label: 'Description',
                   value: selectedResource?.description || 'N/A'
                 },
               ]
+            },
+          ]}
+          infoGridTitle="Resource Details"
+          infoGrid={[
+            { label: 'Category', value: selectedResource?.category || 'N/A' },
+            {
+              label: 'Published Date',
+              value: selectedResource?.publishedDate
+                ? new Date(selectedResource.publishedDate).toLocaleDateString()
+                : 'N/A'
             },
           ]}
           linkSection={{

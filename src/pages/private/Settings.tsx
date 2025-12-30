@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { FiSearch, FiPlus, FiEdit2, FiTrash2 } from 'react-icons/fi'
+import { FiSearch, FiPlus, FiEdit2, FiTrash2, FiSave, FiX } from 'react-icons/fi'
 import { usePermissions } from '../../hooks/usePermissions'
 import PageHeader from '../../components/PageHeader'
-import { useGetApi, useDeleteApi } from '../../hooks'
+import { useGetApi, useDeleteApi, usePutApi } from '../../hooks'
 import { useToast } from '../../components/CustomToast/ToastContext'
-import { CERTIFICATION_STANDARD_ENDPOINTS, API_CONFIG, getAuthHeaders } from '../../config/api'
+import { CERTIFICATION_STANDARD_ENDPOINTS, COST_CONFIG_ENDPOINTS, API_CONFIG, getAuthHeaders } from '../../config/api'
 import type { CertificationStandard } from '../../types/entities'
 import Modal from '../../components/Modal'
 import DeleteConfirmationModal from '../../components/DeleteConfirmationModal'
@@ -22,12 +22,40 @@ const Settings = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [activeSection, setActiveSection] = useState('')
+  const [editingField, setEditingField] = useState<string | null>(null)
+  const [editValue, setEditValue] = useState<string>('')
 
   const { data: standardsResponse, isLoading: loading, refetch } = useGetApi<any>(
     CERTIFICATION_STANDARD_ENDPOINTS.getAll,
     {
       requireAuth: true,
       staleTime: 0,
+    }
+  )
+
+  // Cost configuration API
+  const { data: costConfigResponse, isLoading: loadingCostConfig, refetch: refetchCostConfig } = useGetApi<any>(
+    COST_CONFIG_ENDPOINTS.get,
+    {
+      requireAuth: true,
+      staleTime: 0,
+      enabled: activeSection === 'costing',
+    }
+  )
+
+  const updateCostConfigMutation = usePutApi<any, any>(
+    COST_CONFIG_ENDPOINTS.update,
+    {
+      requireAuth: true,
+      onSuccess: () => {
+        showToast('success', 'Cost configuration updated successfully!')
+        setEditingField(null)
+        setEditValue('')
+        refetchCostConfig()
+      },
+      onError: (error) => {
+        showToast('error', error.message || 'Failed to update cost configuration')
+      },
     }
   )
 
@@ -126,11 +154,20 @@ const Settings = () => {
               <button
                 onClick={() => setActiveSection('certificates')}
                 className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${activeSection === 'certificates'
-                    ? 'bg-[#0c684b] text-white'
-                    : 'text-gray-700 hover:bg-gray-100'
+                  ? 'bg-[#0c684b] text-white'
+                  : 'text-gray-700 hover:bg-gray-100'
                   }`}
               >
                 Certification
+              </button>
+              <button
+                onClick={() => setActiveSection('costing')}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${activeSection === 'costing'
+                  ? 'bg-[#0c684b] text-white'
+                  : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+              >
+                Costing
               </button>
             </nav>
           </div>
@@ -275,6 +312,128 @@ const Settings = () => {
                       />
                     )}
                   </div>
+                </div>
+              </div>
+            )}
+
+            {activeSection === 'costing' && (
+              <div>
+                <div className="mb-6">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Cost Configuration</h2>
+
+                  {loadingCostConfig ? (
+                    <div className="bg-white rounded-lg border border-gray-200 p-6">
+                      <div className="animate-pulse space-y-4">
+                        {Array.from({ length: 8 }).map((_, index) => (
+                          <div key={index} className="h-12 bg-gray-200 rounded"></div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : costConfigResponse?.data ? (
+                    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Cost Item
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Value (PKR)
+                            </th>
+                            {hasPermission('Settings', 'update') && (
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+                                Actions
+                              </th>
+                            )}
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {[
+                            { key: 'applicationCost', label: 'Application Cost' },
+                            { key: 'stagesWithinCityCost', label: 'Stages Within City Cost' },
+                            { key: 'stagesOutsideCityCost', label: 'Stages Outside City Cost' },
+                            { key: 'under50RmCost', label: 'Under 50 RM Cost' },
+                            { key: 'under100RmCost', label: 'Under 100 RM Cost' },
+                            { key: 'adminCost', label: 'Admin Cost' },
+                            { key: 'licensingFeeCost', label: 'Licensing Fee Cost' },
+                          ].map((item) => {
+                            const isEditing = editingField === item.key
+                            const currentValue = costConfigResponse.data[item.key] || '0'
+
+                            return (
+                              <tr key={item.key} className="hover:bg-gray-50">
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <span className="text-sm font-medium text-gray-900">{item.label}</span>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  {isEditing ? (
+                                    <div className="flex items-center gap-2">
+                                      <input
+                                        type="number"
+                                        value={editValue}
+                                        onChange={(e) => setEditValue(e.target.value)}
+                                        className="w-32 px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-sm"
+                                        autoFocus
+                                      />
+                                      <button
+                                        onClick={async () => {
+                                          await updateCostConfigMutation.mutateAsync({
+                                            [item.key]: editValue,
+                                          })
+                                        }}
+                                        disabled={updateCostConfigMutation.isPending}
+                                        className="p-1.5 text-[#0c684b] hover:bg-green-50 rounded transition-colors disabled:opacity-50"
+                                        title="Save"
+                                      >
+                                        <FiSave size={16} />
+                                      </button>
+                                      <button
+                                        onClick={() => {
+                                          setEditingField(null)
+                                          setEditValue('')
+                                        }}
+                                        className="p-1.5 text-gray-600 hover:bg-gray-100 rounded transition-colors"
+                                        title="Cancel"
+                                      >
+                                        <FiX size={16} />
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <span className="text-sm text-gray-600">
+                                      {parseFloat(currentValue).toLocaleString('en-PK', {
+                                        minimumFractionDigits: 0,
+                                        maximumFractionDigits: 0,
+                                      })}
+                                    </span>
+                                  )}
+                                </td>
+                                {hasPermission('Settings', 'update') && (
+                                  <td className="px-6 py-4 whitespace-nowrap">
+                                    {!isEditing && (
+                                      <button
+                                        onClick={() => {
+                                          setEditingField(item.key)
+                                          setEditValue(currentValue)
+                                        }}
+                                        className="p-2 text-[#0c684b] hover:bg-green-50 rounded transition-colors"
+                                        title="Edit"
+                                      >
+                                        <FiEdit2 size={16} />
+                                      </button>
+                                    )}
+                                  </td>
+                                )}
+                              </tr>
+                            )
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="bg-white rounded-lg border border-gray-200 p-12 text-center text-gray-500">
+                      No cost configuration found
+                    </div>
+                  )}
                 </div>
               </div>
             )}

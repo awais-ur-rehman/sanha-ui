@@ -86,6 +86,7 @@ interface Section {
   title: string
   items?: SectionItem[] | string[]
   type?: 'chips'
+  descriptionMaxHeightClass?: string
 }
 
 interface StatusAccessor {
@@ -242,7 +243,7 @@ const EntityDetailSheet = <T,>({
                   }}
                 />
               ) : null}
-              <div 
+              <div
                 className="w-full h-full bg-gray-200 flex items-center justify-center absolute inset-0"
                 style={{ display: computedImage.src ? 'none' : 'flex' }}
               >
@@ -273,7 +274,7 @@ const EntityDetailSheet = <T,>({
                       <span className="font-medium">{row.label}:</span>{' '}
                       {row.tooltip ? (
                         <Tooltip content={row.tooltip}>
-                          <span 
+                          <span
                             className={`truncate inline-block ${row.truncateWidth || 'max-w-[420px]'} align-bottom`}
                             dir={row.textDirection || 'ltr'}
                             style={{ textAlign: row.textDirection === 'RTL' ? 'right' : 'left' }}
@@ -288,10 +289,10 @@ const EntityDetailSheet = <T,>({
                           </span>
                         </Tooltip>
                       ) : row.link ? (
-                        <a 
-                          href={row.value} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
+                        <a
+                          href={row.value}
+                          target="_blank"
+                          rel="noopener noreferrer"
                           className="text-[#0c684b] hover:underline"
                           dir={row.textDirection || 'ltr'}
                           style={{ textAlign: row.textDirection === 'RTL' ? 'right' : 'left' }}
@@ -299,7 +300,7 @@ const EntityDetailSheet = <T,>({
                           {row.value}
                         </a>
                       ) : (
-                        <span 
+                        <span
                           dir={row.textDirection || 'ltr'}
                           style={{ textAlign: row.textDirection === 'RTL' ? 'right' : 'left' }}
                         >
@@ -337,15 +338,15 @@ const EntityDetailSheet = <T,>({
                       <span className={`${dense ? 'text-[10px]' : 'text-xs'} text-gray-600`}>{computedStatus.isActive ? 'Active' : 'Inactive'}</span>
                       <Switch
                         checked={computedStatus.isActive}
-                      onCheckedChange={async () => {
-                        if (onToggleStatus) {
-                          try {
-                            await onToggleStatus(entity)
-                          } catch (error) {
-                            console.error('Error toggling status:', error)
+                        onCheckedChange={async () => {
+                          if (onToggleStatus) {
+                            try {
+                              await onToggleStatus(entity)
+                            } catch (error) {
+                              console.error('Error toggling status:', error)
+                            }
                           }
-                        }
-                      }}
+                        }}
                         size="sm"
                       />
                     </div>
@@ -399,13 +400,13 @@ const EntityDetailSheet = <T,>({
                   )}
                 </div>
               ) : section.title.toLowerCase().includes('description') ? (
-                <div className={`${dense ? 'max-h-[12rem] p-3' : 'max-h-[16rem] p-4'} overflow-y-auto bg-gray-50 rounded-lg`}>
+                <div className={`${section.descriptionMaxHeightClass || (dense ? 'max-h-[12rem]' : 'max-h-[16rem]')} ${dense ? 'p-3' : 'p-4'} overflow-y-auto bg-gray-50 rounded-lg`}>
                   {(section.items as SectionItem[])?.filter(item => item && item.label && item.value).map((item, i) => (
                     <div key={`${item.label}-${i}`} className="mb-2 last:mb-0">
-                      <div 
+                      <div
                         className={`${dense ? 'text-xs leading-snug' : 'text-sm leading-relaxed'} text-gray-900 max-w-none rich-text-content`}
                         dir={item.textDirection || 'ltr'}
-                        style={{ 
+                        style={{
                           textAlign: item.textDirection === 'RTL' ? 'right' : 'left',
                           lineHeight: '1.6'
                         }}
@@ -423,7 +424,7 @@ const EntityDetailSheet = <T,>({
                     <div key={`${item.label}-${i}`} className="flex items-start space-x-3">
                       <div>
                         <p className={`${dense ? 'text-xs' : 'text-sm'} font-medium text-gray-700`}>{item.label}</p>
-                        <p 
+                        <p
                           className={`${dense ? 'text-xs' : 'text-sm'} text-gray-900`}
                           dir={item.textDirection || 'ltr'}
                           style={{ textAlign: item.textDirection === 'RTL' ? 'right' : 'left' }}

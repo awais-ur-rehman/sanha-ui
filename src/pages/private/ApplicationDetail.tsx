@@ -231,7 +231,8 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = () => {
     // Listen to WebSocket events for application form generation
     useEffect(() => {
         if (!socket) return
-        const downloadZip = async (appId: number, pdfPath: string, csvPath: string) => {
+
+        const downloadZip = async (appId: number, zipPath: string) => {
             try {
                 const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}${CERTIFICATION_ENDPOINTS.downloadApplicationForm}`, {
                     method: 'POST',
@@ -240,17 +241,20 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = () => {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`,
                         'ngrok-skip-browser-warning': 'true'
                     },
-                    body: JSON.stringify({ applicationId: appId, pdfPath, csvPath })
+                    body: JSON.stringify({ applicationId: appId, zipPath })
                 })
+
                 if (!res.ok) {
                     showToast('error', 'Failed to download application ZIP')
                     return
                 }
                 const blob = await res.blob()
+
                 // Try to get filename from header
                 const dispo = res.headers.get('Content-Disposition') || ''
                 const match = dispo.match(/filename="?([^";]+)"?/i)
                 const filename = match?.[1] || 'application.zip'
+
                 const url = window.URL.createObjectURL(blob)
                 const a = document.createElement('a')
                 a.href = url
@@ -259,44 +263,83 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = () => {
                 a.click()
                 a.remove()
                 window.URL.revokeObjectURL(url)
+                showToast('success', 'Application form downloaded successfully!')
             } catch {
                 showToast('error', 'Download failed')
             }
         }
+
         const onEvent = (event: any) => {
             if (!event || !event.type) return
-            if (event.type === 'APPLICATION_FORM_GENERATION_PROGRESS') {
-                const p = Math.max(0, Math.min(100, Number(event.data?.progress ?? 0)))
+
+            // Handle progress updates (backend sends lowercase event type)
+            if (event.type === 'application_form_generation_progress' || event.type === 'APPLICATION_FORM_GENERATION_PROGRESS') {
                 setGenToastVisible(true)
                 setGenStatus('processing')
-                setGenProgress(p)
-                setGenMessage(event.data?.message || 'Generating...')
-            } else if (event.type === 'APPLICATION_FORM_GENERATION_COMPLETED') {
+
+                // Calculate progress from currentStep or use provided progress
+                let progress = 0
+                if (event.data?.progress !== undefined) {
+                    progress = Math.max(0, Math.min(100, Number(event.data.progress)))
+                } else if (event.data?.currentStep) {
+                    // Map common steps to progress percentages
+                    const step = event.data.currentStep.toLowerCase()
+                    if (step.includes('fetching') || step.includes('starting')) progress = 10
+                    else if (step.includes('pdf')) progress = 50
+                    else if (step.includes('csv')) progress = 75
+                    else if (step.includes('finalizing') || step.includes('packaging')) progress = 90
+                    else progress = 30 // Default for unknown steps
+                }
+
+                setGenProgress(progress)
+                setGenMessage(event.data?.currentStep || event.data?.message || 'Generating...')
+            }
+            // Handle completion (backend sends lowercase event type)
+            else if (event.type === 'application_form_generation_completed' || event.type === 'APPLICATION_FORM_GENERATION_COMPLETED') {
                 const status = event.data?.status
                 if (status === 'completed') {
                     setGenStatus('completed')
                     setGenProgress(100)
                     setGenMessage('Generated successfully. Downloading...')
                     const appIdNum = parseInt(applicationId || '0')
-                    const pdfPath = event.data?.pdfPath
-                    const csvPath = event.data?.csvPath
-                    if (appIdNum && pdfPath && csvPath) {
+                    const zipPath = event.data?.zipPath
+
+
+                    if (appIdNum && zipPath) {
                         // Fire and forget
-                        void downloadZip(appIdNum, pdfPath, csvPath)
+                        void downloadZip(appIdNum, zipPath)
+                        setTimeout(() => setGenToastVisible(false), 3000)
+                    } else {
+                        setGenStatus('failed')
+                        setGenMessage('Missing file paths in completion event')
+                        setTimeout(() => setGenToastVisible(false), 4000)
                     }
-                    setTimeout(() => setGenToastVisible(false), 3000)
                 } else {
                     setGenStatus('failed')
-                    setGenMessage('Application form generation failed')
-                    setTimeout(() => setGenToastVisible(false), 4000)
+
+                    // Try to get a more detailed error message
+                    let failureMessage = 'Application form generation failed'
+                    if (event.data?.message) {
+                        failureMessage = event.data.message
+                    } else if (event.data?.error) {
+                        failureMessage = `Generation failed: ${event.data.error}`
+                    } else if (event.data?.reason) {
+                        failureMessage = `Generation failed: ${event.data.reason}`
+                    }
+
+                    setGenMessage(failureMessage)
+                    showToast('error', failureMessage)
+                    setTimeout(() => setGenToastVisible(false), 5000)
                 }
             }
         }
+
         socket.on('event', onEvent)
+
         return () => {
             socket.off('event', onEvent)
         }
-    }, [socket])
+    }, [socket, applicationId, showToast])
 
     return (
         <div className="py-4">
@@ -492,7 +535,6 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = () => {
                     {currentForm === 8 && (
                         <div className={isApproved ? 'pointer-events-none select-none' : ''}>
                             <ProductListForm
-                                userId={userId}
                                 applicationId={applicationId}
                                 onSaveAndNext={(data: any) => handleSaveAndNext(data, 'products')}
                                 isLoading={isSubmitting}

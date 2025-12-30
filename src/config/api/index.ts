@@ -197,6 +197,12 @@ export const CERTIFICATION_ENDPOINTS = {
   productList: '/certification/product-list',
 }
 
+// Cost Configuration Endpoints
+export const COST_CONFIG_ENDPOINTS = {
+  get: '/cost-config',
+  update: '/cost-config',
+}
+
 // Export Endpoints for other modules
 export const CLIENT_EXPORT_ENDPOINT = '/clients/export/csv'
 export const ECODE_EXPORT_ENDPOINT = '/ecodes/export/csv'

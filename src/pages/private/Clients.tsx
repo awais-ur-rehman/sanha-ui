@@ -359,6 +359,7 @@ const Clients = () => {
                   { value: CLIENT_STATUS.ON_HOLD, label: CLIENT_STATUS.ON_HOLD },
                   { value: CLIENT_STATUS.CERTIFICATE_ON_HOLD, label: CLIENT_STATUS.CERTIFICATE_ON_HOLD },
                   { value: CLIENT_STATUS.EXPIRED, label: CLIENT_STATUS.EXPIRED },
+                  { value: CLIENT_STATUS.RENEWAL_IN_PROCESS, label: CLIENT_STATUS.RENEWAL_IN_PROCESS },
                 ]}
                 value={filters.status}
                 onChange={handleStatusFilterChange}
@@ -471,7 +472,9 @@ const Clients = () => {
                         ? 'bg-red-100 text-red-800'
                         : client.status === CLIENT_STATUS.ON_HOLD
                           ? 'bg-yellow-100 text-yellow-800'
-                          : 'bg-purple-100 text-purple-800'
+                          : client.status === CLIENT_STATUS.RENEWAL_IN_PROCESS
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'bg-purple-100 text-purple-800'
                       }`}>
                       <span>{client.status}</span>
                     </div>

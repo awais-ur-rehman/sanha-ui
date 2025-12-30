@@ -296,13 +296,14 @@ export interface UserFAQUpdateRequest {
 }
 
 // Client entity
-export type ClientStatus = 'Active' | 'On Hold' | 'Certificate on Hold' | 'Expired'
+export type ClientStatus = 'Active' | 'On Hold' | 'Certificate on Hold' | 'Expired' | 'Renewal In Process'
 
 export const CLIENT_STATUS = {
   ACTIVE: 'Active',
   ON_HOLD: 'On Hold',
   CERTIFICATE_ON_HOLD: 'Certificate on Hold',
   EXPIRED: 'Expired',
+  RENEWAL_IN_PROCESS: 'Renewal In Process',
 } as const
 
 export interface Client {

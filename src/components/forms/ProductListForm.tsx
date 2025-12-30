@@ -7,7 +7,6 @@ import CustomTextarea from '../CustomTextarea'
 import Button from '../Button'
 
 interface ProductListFormProps {
-    userId?: string
     applicationId?: string
     onSaveAndNext: (data: any) => void
     isLoading?: boolean
@@ -24,7 +23,6 @@ interface ProductListData {
 }
 
 const ProductListForm: React.FC<ProductListFormProps> = ({
-    userId,
     applicationId,
     onSaveAndNext,
     isLoading = false,
@@ -50,13 +48,13 @@ const ProductListForm: React.FC<ProductListFormProps> = ({
 
     // Fetch existing product list data
     const { data: productListData, refetch } = useGetApi<any>(
-        `${CERTIFICATION_ENDPOINTS.productList}?userId=${userId}&applicationId=${applicationId}`,
+        `${CERTIFICATION_ENDPOINTS.productList}?applicationId=${applicationId}`,
         {
             requireAuth: true,
-            enabled: !!userId && !!applicationId,
+            enabled: !!applicationId,
             onSuccess: (data) => {
-                if (data?.data && data.data.length > 0) {
-                    const formData = data.data[0] // API returns array, take first item
+                if (data?.data && data.data.products) {
+                    const formData = data.data // API returns object with products array
                     setOriginalData(formData)
 
                     const productsList = formData.products || []
@@ -101,8 +99,8 @@ const ProductListForm: React.FC<ProductListFormProps> = ({
     // Handle data when it arrives (initial load)
     useEffect(() => {
         if (productListData?.data && isLoadingData) {
-            if (productListData.data.length > 0) {
-                const formData = productListData.data[0] // API returns array, take first item
+            if (productListData.data.products) {
+                const formData = productListData.data // API returns object with products array
                 setOriginalData(formData)
 
                 const productsList = formData.products || []
@@ -127,8 +125,8 @@ const ProductListForm: React.FC<ProductListFormProps> = ({
     // Handle data after refetch
     useEffect(() => {
         if (productListData?.data && refetchTrigger > 0 && !isLoadingData) {
-            if (productListData.data.length > 0) {
-                const formData = productListData.data[0] // API returns array, take first item
+            if (productListData.data.products) {
+                const formData = productListData.data // API returns object with products array
                 setOriginalData(formData)
 
                 const productsList = formData.products || []
@@ -232,7 +230,7 @@ const ProductListForm: React.FC<ProductListFormProps> = ({
         }
     }, [watchedValues, originalData, isInitialLoad, newProduct, showNewProductRow])
 
-    const onSubmit = (_data: ProductListData) => {
+    const onSubmit = () => {
         if (!hasChanges) {
             // No changes made, just proceed to next form without API call
             onSaveAndNext({ skipApi: true })

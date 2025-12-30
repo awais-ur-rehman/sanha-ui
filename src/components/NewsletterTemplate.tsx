@@ -146,28 +146,28 @@ const NewsletterTemplate = ({ newsletterData }: NewsletterTemplateProps) => {
             alt="SANHA Logo"
             className="hero-logo"
           />
-          <div className="newsletter-title">SANHA Newsletter - {month} {year}</div>
+          <div className="newsletter-title">SANHA Pakistan Newsletter - {month} {year}</div>
           {mainHeading && <div className="special-edition">{mainHeading}</div>}
         </div>
 
         <div className="content-section">
           <div style={{ backgroundColor: '#f8f9fa', padding: '20px', marginBottom: '30px', borderRadius: '4px' }}>
             <p style={{ margin: 0, fontSize: '14px', lineHeight: '1.6', color: '#333333' }}>
-              We're excited to share the latest updates and insights from SANHA. Stay informed about halal certification trends, industry news, and educational opportunities.
+              We're excited to share the latest updates and insights from SANHA Pakistan. Stay informed about halal certification trends, industry news, and educational opportunities.
             </p>
           </div>
 
           <div dangerouslySetInnerHTML={{ __html: sectionsHTML }} />
 
           <p style={{ textAlign: 'center', marginTop: '30px', fontSize: '14px', color: '#666666' }}>
-            Thank you for being part of the SANHA community!<br />
-            <strong>Sanha Team</strong>
+            Thank you for being part of the SANHA Pakistan community!<br />
+            <strong>Sanha Pakistan Team</strong>
           </p>
         </div>
 
         <div className="footer">
           <div className="footer-text">
-            Thank you for choosing SANHA. We are committed to providing you with the highest quality halal certification services. If you have any questions or need assistance, please don't hesitate to contact us.
+            Thank you for choosing SANHA Pakistan. We are committed to providing you with the highest quality halal certification services. If you have any questions or need assistance, please don't hesitate to contact us.
           </div>
 
           <div className="social-links flex justify-center">

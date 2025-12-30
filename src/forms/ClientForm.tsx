@@ -431,6 +431,7 @@ const ClientForm: React.FC<ClientFormProps> = ({
                 { value: CLIENT_STATUS.ON_HOLD, label: CLIENT_STATUS.ON_HOLD },
                 { value: CLIENT_STATUS.CERTIFICATE_ON_HOLD, label: CLIENT_STATUS.CERTIFICATE_ON_HOLD },
                 { value: CLIENT_STATUS.EXPIRED, label: CLIENT_STATUS.EXPIRED },
+                { value: CLIENT_STATUS.RENEWAL_IN_PROCESS, label: CLIENT_STATUS.RENEWAL_IN_PROCESS },
               ]}
               value={statusValue}
               onChange={(val) => setStatusValue(val as ClientStatus)}

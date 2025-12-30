@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { useGetApi } from '../../hooks'
 import { CERTIFICATION_ENDPOINTS } from '../../config/api'
+import { useCertificationStandardsApi } from '../../hooks/useCertificationStandardsApi'
+import type { CertificationStandard } from '../../types/entities'
 import CustomTextarea from '../CustomTextarea'
 import Button from '../Button'
 
@@ -30,6 +32,12 @@ const ScopeOfCertificationForm: React.FC<ScopeOfCertificationFormProps> = ({
     const [originalData, setOriginalData] = useState<any>(null)
     const [hasChanges, setHasChanges] = useState(false)
     const [selectedStandards, setSelectedStandards] = useState<string[]>([])
+
+    // Fetch certification standards from API
+    const { data: certificationStandardsResponse, isLoading: isLoadingStandards } = useCertificationStandardsApi({
+        enabled: true,
+        requireAuth: true
+    })
 
     const {
         register,
@@ -174,20 +182,17 @@ const ScopeOfCertificationForm: React.FC<ScopeOfCertificationFormProps> = ({
         onSaveAndNext(payload)
     }
 
-    if (isLoadingData) {
+    // Get standard options from API response and add "Other" option
+    const apiStandards = certificationStandardsResponse?.data?.map((standard: CertificationStandard) => standard.name) || []
+    const standardOptions = [...apiStandards, 'Other']
+
+    if (isLoadingData || isLoadingStandards) {
         return (
             <div className="flex items-center justify-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0c684b]"></div>
             </div>
         )
     }
-
-    const standardOptions = [
-        'PS: 3733:2022 OIC/SMIIC 1:2019',
-        'PS: 5442:2021, Halal Pharma/Health Care',
-        'PS: OIC/SMIIC 24',
-        'Other'
-    ]
 
     return (
         <div className="relative">

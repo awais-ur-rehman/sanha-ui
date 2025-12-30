@@ -102,8 +102,8 @@ const Books = () => {
     if (booksResponse?.data?.pagination) {
       setPagination(prev => ({
         ...prev,
-        totalPages: booksResponse.data.pagination.totalPages,
-        totalItems: booksResponse.data.pagination.totalItems,
+        totalPages: Number(booksResponse.data.pagination.totalPages) || 1,
+        totalItems: Number(booksResponse.data.pagination.total) || 0,
       }))
     }
   }, [booksResponse])
@@ -361,18 +361,13 @@ const Books = () => {
         </div>
 
         {/* Pagination */}
-        {!loading && pagination.totalPages > 1 && (
-          <div className="mt-8">
-            <Pagination
-              currentPage={pagination.currentPage}
-              totalPages={pagination.totalPages}
-              totalItems={pagination.totalItems}
-              itemsPerPage={pagination.itemsPerPage}
-              onPageChange={handlePageChange}
-              className="justify-center"
-            />
-          </div>
-        )}
+        <Pagination
+          currentPage={pagination.currentPage}
+          totalPages={pagination.totalPages}
+          totalItems={pagination.totalItems}
+          itemsPerPage={pagination.itemsPerPage}
+          onPageChange={handlePageChange}
+        />
 
         {/* Book Detail Sheet */}
         <EntityDetailSheet
@@ -406,16 +401,20 @@ const Books = () => {
               title: 'Book Information',
               items: [
                 { label: 'Author', value: selectedBook?.author || 'N/A' },
-                { label: 'Published By', value: selectedBook?.publishedBy || 'N/A' },
-                { label: 'Content Language', value: selectedBook?.contentLanguage || 'N/A' },
               ]
             },
             {
               title: 'Description',
+              descriptionMaxHeightClass: 'max-h-[9.5rem]',
               items: [
                 { label: 'Description', value: selectedBook?.description || 'N/A' },
               ]
             },
+          ]}
+          infoGridTitle="Book Details"
+          infoGrid={[
+            { label: 'Published By', value: selectedBook?.publishedBy || 'N/A' },
+            { label: 'Content Language', value: selectedBook?.contentLanguage || 'N/A' },
           ]}
           linkSection={selectedBook?.url ? {
             title: 'Archive Link',
