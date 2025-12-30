@@ -12,20 +12,24 @@ interface SearchableDropdownProps {
   className?: string
   allowCustomValue?: boolean
   maxDisplayed?: number
+  onAddCustom?: (value: string) => Promise<void> | void
+  isAddingCustom?: boolean
 }
 
 const SearchableDropdown = forwardRef<HTMLDivElement, SearchableDropdownProps>(
-  ({ 
-    label, 
-    error, 
-    options, 
-    placeholder, 
-    value, 
-    onChange, 
-    disabled, 
+  ({
+    label,
+    error,
+    options,
+    placeholder,
+    value,
+    onChange,
+    disabled,
     className = '',
     allowCustomValue = true,
-    maxDisplayed
+    maxDisplayed,
+    onAddCustom,
+    isAddingCustom = false
   }, ref) => {
     const [isOpen, setIsOpen] = useState(false)
     const [searchTerm, setSearchTerm] = useState('')
@@ -38,11 +42,11 @@ const SearchableDropdown = forwardRef<HTMLDivElement, SearchableDropdownProps>(
     // Filter options based on search term
     const filteredOptions = maxDisplayed && maxDisplayed > 0
       ? options.filter(option =>
-          option.label.toLowerCase().includes(searchTerm.toLowerCase())
-        ).slice(0, maxDisplayed)
+        option.label.toLowerCase().includes(searchTerm.toLowerCase())
+      ).slice(0, maxDisplayed)
       : options.filter(option =>
-          option.label.toLowerCase().includes(searchTerm.toLowerCase())
-        )
+        option.label.toLowerCase().includes(searchTerm.toLowerCase())
+      )
 
     useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
@@ -70,7 +74,7 @@ const SearchableDropdown = forwardRef<HTMLDivElement, SearchableDropdownProps>(
       const newValue = e.target.value
       setInputValue(newValue)
       setSearchTerm(newValue)
-      
+
       if (!isOpen) {
         setIsOpen(true)
       }
@@ -93,11 +97,26 @@ const SearchableDropdown = forwardRef<HTMLDivElement, SearchableDropdownProps>(
       }
     }
 
-    const handleCustomValue = () => {
+    const handleCustomValue = async () => {
       if (inputValue.trim()) {
-        onChange?.(inputValue.trim())
-        setIsOpen(false)
-        setSearchTerm('')
+        // If onAddCustom is provided, call it first (for API calls)
+        if (onAddCustom) {
+          try {
+            await onAddCustom(inputValue.trim())
+            // After successful creation, set the value
+            onChange?.(inputValue.trim())
+            setIsOpen(false)
+            setSearchTerm('')
+          } catch {
+            // Error handling is done in the parent component
+            // Don't close dropdown or set value on error
+          }
+        } else {
+          // Fallback to original behavior if no onAddCustom provided
+          onChange?.(inputValue.trim())
+          setIsOpen(false)
+          setSearchTerm('')
+        }
       }
     }
 
@@ -105,7 +124,15 @@ const SearchableDropdown = forwardRef<HTMLDivElement, SearchableDropdownProps>(
       if (e.key === 'Enter') {
         e.preventDefault()
         if (allowCustomValue && inputValue.trim()) {
-          handleCustomValue()
+          // Check if it's a new value (not in existing options)
+          const isNewValue = !options.find(opt => opt.label.toLowerCase() === inputValue.trim().toLowerCase())
+          if (isNewValue && onAddCustom) {
+            handleCustomValue()
+          } else if (isNewValue) {
+            handleCustomValue()
+          } else if (filteredOptions.length > 0) {
+            handleSelect(filteredOptions[0].value)
+          }
         } else if (filteredOptions.length > 0) {
           handleSelect(filteredOptions[0].value)
         }
@@ -140,7 +167,7 @@ const SearchableDropdown = forwardRef<HTMLDivElement, SearchableDropdownProps>(
               ${className}
             `}
           />
-          
+
           <div className="absolute inset-y-0 right-0 flex items-center pr-3">
             {inputValue && (
               <button
@@ -182,15 +209,16 @@ const SearchableDropdown = forwardRef<HTMLDivElement, SearchableDropdownProps>(
                   No options found
                 </div>
               )}
-              
+
               {allowCustomValue && inputValue.trim() && !options.find(opt => opt.label.toLowerCase() === inputValue.toLowerCase()) && (
                 <button
                   type="button"
                   onClick={handleCustomValue}
-                  className="w-full px-4 py-3 text-left border-t border-black/10 bg-green-50 hover:bg-green-100 focus:bg-green-100 focus:outline-none text-green-700 transition-colors duration-150 flex items-center gap-2"
+                  disabled={isAddingCustom}
+                  className="w-full px-4 py-3 text-left border-t border-black/10 bg-green-50 hover:bg-green-100 focus:bg-green-100 focus:outline-none text-green-700 transition-colors duration-150 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <FiPlus size={14} />
-                  Add "{inputValue.trim()}"
+                  {isAddingCustom ? 'Adding...' : `Add "${inputValue.trim()}"`}
                 </button>
               )}
             </div>

@@ -33,10 +33,11 @@ const ClientForm: React.FC<ClientFormProps> = ({
   const [scopeInput, setScopeInput] = useState('')
 
   const [uploadingLogo, setUploadingLogo] = useState(false)
+  const [isAddingCertification, setIsAddingCertification] = useState(false)
   const { showToast } = useToast()
 
   // Fetch certification standards for dropdown
-  const { data: certificationStandardsResponse } = useCertificationStandardsApi()
+  const { data: certificationStandardsResponse, refetch: refetchCertificationStandards } = useCertificationStandardsApi()
 
   const {
     register,
@@ -171,37 +172,38 @@ const ClientForm: React.FC<ClientFormProps> = ({
     setter(prev => prev.map((item, i) => i === index ? value : item))
   }
 
-  const onSubmitForm = async (data: ClientCreateRequest | ClientUpdateRequest) => {
-    const standardValue = (data.standard ?? '').toString().trim()
+  // Handle adding a new certification standard when user clicks "+ Add" or presses Enter
+  const handleAddCertificationStandard = async (standardName: string) => {
+    setIsAddingCertification(true)
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}${CERTIFICATION_STANDARD_ENDPOINTS.create}`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ name: standardName }),
+      })
 
-    // Check if this is a new certification standard (not in the existing list)
-    const existingStandards = certificationStandardsResponse?.data || []
-    const isNewStandard = standardValue && !existingStandards.some(
-      std => std.name.toLowerCase() === standardValue.toLowerCase()
-    )
-
-    // If it's a new standard, create it first
-    if (isNewStandard) {
-      try {
-        const response = await fetch(`${API_CONFIG.baseURL}${CERTIFICATION_STANDARD_ENDPOINTS.create}`, {
-          method: 'POST',
-          headers: getAuthHeaders(),
-          body: JSON.stringify({ name: standardValue }),
-        })
-
-        if (!response.ok) {
-          const errorData = await response.json()
-          throw new Error(errorData.message || 'Failed to create certification standard')
-        }
-
-        showToast('success', 'New certification standard created successfully!')
-      } catch (error) {
-        console.error('Error creating certification standard:', error)
-        showToast('error', error instanceof Error ? error.message : 'Failed to create certification standard')
-        return // Don't proceed with client submission if standard creation failed
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to create certification standard')
       }
-    }
 
+      // Refetch the certification standards list to include the new one
+      await refetchCertificationStandards()
+      
+      // Set the newly created standard as the selected value
+      setValue('standard', standardName)
+      
+      showToast('success', 'New certification standard created successfully!')
+    } catch (error) {
+      console.error('Error creating certification standard:', error)
+      showToast('error', error instanceof Error ? error.message : 'Failed to create certification standard')
+      throw error // Re-throw to prevent setting the value in SearchableDropdown
+    } finally {
+      setIsAddingCertification(false)
+    }
+  }
+
+  const onSubmitForm = async (data: ClientCreateRequest | ClientUpdateRequest) => {
     const websiteValue = (data.website ?? '').toString().trim()
     const emailValue = (data.email ?? '').toString().trim()
     const faxValue = (data.fax ?? '').toString().trim()
@@ -559,6 +561,8 @@ const ClientForm: React.FC<ClientFormProps> = ({
               onChange={(value) => setValue('standard', value)}
               placeholder="Search or type certification standard (e.g., ISO 9001, ISO 14001)"
               allowCustomValue={true}
+              onAddCustom={handleAddCertificationStandard}
+              isAddingCustom={isAddingCertification}
             />
             {errors.standard && (
               <p className="text-red-500 text-xs mt-1">{errors.standard.message}</p>

@@ -194,9 +194,8 @@ const NewsletterTemplate = ({ newsletterData }: NewsletterTemplateProps) => {
           </div>
 
           <div className="company-info">
-            SANHA Pakistan<br />
-            Halal Certification Authority<br />
-            Lahore, Pakistan
+            SANHA Halal<br />
+            Associates Pakistan
           </div>
 
           <div className="footer-links">
