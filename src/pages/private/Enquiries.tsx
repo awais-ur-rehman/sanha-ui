@@ -491,22 +491,33 @@ const Enquiries = () => {
                     className={`p-4 border-b border-gray-100 cursor-pointer transition-colors hover:bg-gray-50 ${selectedEnquiry?.id === enquiry.id ? 'bg-[#0c684b]/5 border-l-4 border-l-[#0c684b]' : ''
                       }`}
                   >
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex-1">
+                    <div className="flex flex-col gap-1">
+                      {/* Row 1: Name and Badge */}
+                      <div className="flex items-start justify-between gap-2">
                         <h4 className="font-medium text-gray-900 text-sm">
                           {enquiry.firstName} {enquiry.lastName}
                         </h4>
-                        <p className="text-xs text-gray-600 mt-1">{enquiry.email}</p>
-                        <p className="text-xs text-gray-500 mt-1">{enquiry.phone}</p>
-                      </div>
-                      <div className="text-right">
-                        <span className={`inline-flex items-center px-2 py-1 rounded-md text-[10px] ${enquiry.state === 'Pending' ? 'bg-[#0c684b] text-white' :
+                        <span className={`inline-flex items-center px-2 py-1 rounded-md text-[10px] shrink-0 ${enquiry.state === 'Pending' ? 'bg-[#0c684b] text-white' :
                           enquiry.state === 'Accepted' ? 'bg-[#0c684b] text-white' :
                             'bg-[#0c684b] text-white'
                           }`}>
                           {enquiry.state}
                         </span>
-                        <p className="text-xs text-gray-400 mt-5">
+                      </div>
+
+                      {/* Row 2: Email */}
+                      <p className="text-xs text-gray-600 mt-0.5 break-all">
+                        {enquiry.email}
+                      </p>
+
+                      {/* Row 3: Phone */}
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        {enquiry.phone}
+                      </p>
+
+                      {/* Row 4: Date */}
+                      <div className="flex justify-end mt-1">
+                        <p className="text-xs text-gray-400">
                           {new Date(enquiry.createdAt).toLocaleDateString()}
                         </p>
                       </div>
