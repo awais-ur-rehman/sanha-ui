@@ -14,6 +14,13 @@ interface SearchableDropdownProps {
   maxDisplayed?: number
   onAddCustom?: (value: string) => Promise<void> | void
   isAddingCustom?: boolean
+  /**
+   * When true, filtering is delegated to the parent (server-side search):
+   * the component renders `options` as-is and reports the typed term via
+   * `onSearchChange` instead of filtering locally.
+   */
+  serverSide?: boolean
+  onSearchChange?: (term: string) => void
 }
 
 const SearchableDropdown = forwardRef<HTMLDivElement, SearchableDropdownProps>(
@@ -29,7 +36,9 @@ const SearchableDropdown = forwardRef<HTMLDivElement, SearchableDropdownProps>(
     allowCustomValue = true,
     maxDisplayed,
     onAddCustom,
-    isAddingCustom = false
+    isAddingCustom = false,
+    serverSide = false,
+    onSearchChange
   }, ref) => {
     const [isOpen, setIsOpen] = useState(false)
     const [searchTerm, setSearchTerm] = useState('')
@@ -39,14 +48,18 @@ const SearchableDropdown = forwardRef<HTMLDivElement, SearchableDropdownProps>(
 
 
 
-    // Filter options based on search term
-    const filteredOptions = maxDisplayed && maxDisplayed > 0
-      ? options.filter(option =>
-        option.label.toLowerCase().includes(searchTerm.toLowerCase())
-      ).slice(0, maxDisplayed)
-      : options.filter(option =>
-        option.label.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+    // Filter options based on search term.
+    // In server-side mode the parent already returns matches for the current
+    // term, so we render options as-is (optionally capped by maxDisplayed).
+    const filteredOptions = serverSide
+      ? (maxDisplayed && maxDisplayed > 0 ? options.slice(0, maxDisplayed) : options)
+      : maxDisplayed && maxDisplayed > 0
+        ? options.filter(option =>
+          option.label.toLowerCase().includes(searchTerm.toLowerCase())
+        ).slice(0, maxDisplayed)
+        : options.filter(option =>
+          option.label.toLowerCase().includes(searchTerm.toLowerCase())
+        )
 
     useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
@@ -62,13 +75,25 @@ const SearchableDropdown = forwardRef<HTMLDivElement, SearchableDropdownProps>(
     }, [])
 
     useEffect(() => {
+      // In server-side mode `options` changes on every fetch; re-deriving the
+      // input from it would wipe what the user is typing. The label is managed
+      // by handleSelect / the clear button instead.
+      if (serverSide) return
       if (value) {
         const selectedOption = options.find(option => option.value.toString() === value.toString())
         setInputValue(selectedOption ? selectedOption.label : value.toString())
       } else {
         setInputValue('')
       }
-    }, [value, options])
+    }, [value, options, serverSide])
+
+    // Report the typed term to the parent so it can drive a server-side search.
+    useEffect(() => {
+      if (serverSide && onSearchChange) {
+        onSearchChange(searchTerm)
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchTerm, serverSide])
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const newValue = e.target.value

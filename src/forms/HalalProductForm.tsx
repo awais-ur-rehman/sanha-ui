@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { FiPlus, FiX } from 'react-icons/fi'
-import { useGetApi } from '../hooks'
+import { useGetApi, useDebounce } from '../hooks'
 import { HALAL_PRODUCT_ENDPOINTS } from '../config/api'
 import type { HalalProduct, HalalProductCreateRequest, HalalProductUpdateRequest } from '../types/entities'
 import SearchableDropdown from '../components/SearchableDropdown'
@@ -97,17 +97,32 @@ const HalalProductForm: React.FC<HalalProductFormProps> = ({
     formState: { errors }
   } = useForm<HalalProductCreateRequest>()
 
-  // Fetch clients for dropdown
-  const { data: clientsResponse } = useGetApi<any>(
-    HALAL_PRODUCT_ENDPOINTS.getClients,
+  // Server-side client search: the client list can grow large, so we query the
+  // backend with the typed term (debounced) instead of filtering a single page
+  // client-side.
+  const [clientSearch, setClientSearch] = useState('')
+  const debouncedClientSearch = useDebounce(clientSearch, 300)
+  const [selectedClient, setSelectedClient] = useState<{ value: number; label: string } | null>(null)
+
+  const clientsUrl = `${HALAL_PRODUCT_ENDPOINTS.getClients}?page=1&limit=20${debouncedClientSearch ? `&search=${encodeURIComponent(debouncedClientSearch)}` : ''}`
+  const { data: clientsResponse } = useGetApi<{
+    data: { data: { id: number; name: string }[] }
+  }>(
+    clientsUrl,
     { requireAuth: true }
   )
 
   const clients = clientsResponse?.data?.data || []
-  const clientOptions = clients.map((client: any) => ({
+  const fetchedClientOptions = clients.map((client) => ({
     value: client.id,
     label: client.name
   }))
+
+  // Keep the currently-selected client in the option list even if it falls
+  // outside the latest search page, so the dropdown can render its label.
+  const clientOptions = selectedClient && !fetchedClientOptions.some((o) => o.value === selectedClient.value)
+    ? [selectedClient, ...fetchedClientOptions]
+    : fetchedClientOptions
 
   useEffect(() => {
     if (product) {
@@ -162,10 +177,20 @@ const HalalProductForm: React.FC<HalalProductFormProps> = ({
                 label="Client *"
                 options={clientOptions}
                 value={watch('clientId')?.toString() || ''}
-                onChange={(value) => setValue('clientId', parseInt(value))}
+                onChange={(value) => {
+                  const id = parseInt(value)
+                  if (Number.isNaN(id)) {
+                    setSelectedClient(null)
+                    return
+                  }
+                  setValue('clientId', id)
+                  const opt = clientOptions.find((o: { value: number; label: string }) => o.value === id)
+                  if (opt) setSelectedClient(opt)
+                }}
                 placeholder="Search or select a client"
                 allowCustomValue={false}
-                maxDisplayed={10}
+                serverSide
+                onSearchChange={setClientSearch}
               />
               {errors.clientId && (
                 <p className="text-red-500 text-xs mt-1">{errors.clientId.message}</p>

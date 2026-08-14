@@ -4,7 +4,7 @@ import { usePermissions } from '../../hooks/usePermissions'
 import PageHeader from '../../components/PageHeader'
 import { useGetApi, useDeleteApi, usePutApi } from '../../hooks'
 import { useToast } from '../../components/CustomToast/ToastContext'
-import { CERTIFICATION_STANDARD_ENDPOINTS, COST_CONFIG_ENDPOINTS, API_CONFIG, getAuthHeaders } from '../../config/api'
+import { CERTIFICATION_STANDARD_ENDPOINTS, COST_CONFIG_ENDPOINTS, SANHA_STATS_ENDPOINTS, API_CONFIG, getAuthHeaders } from '../../config/api'
 import type { CertificationStandard } from '../../types/entities'
 import Modal from '../../components/Modal'
 import DeleteConfirmationModal from '../../components/DeleteConfirmationModal'
@@ -55,6 +55,32 @@ const Settings = () => {
       },
       onError: (error) => {
         showToast('error', error.message || 'Failed to update cost configuration')
+      },
+    }
+  )
+
+  // Homepage statistics API (admin-configured)
+  const { data: statsResponse, isLoading: loadingStats, refetch: refetchStats } = useGetApi<any>(
+    SANHA_STATS_ENDPOINTS.get,
+    {
+      requireAuth: true,
+      staleTime: 0,
+      enabled: activeSection === 'statistics',
+    }
+  )
+
+  const updateStatsMutation = usePutApi<any, any>(
+    SANHA_STATS_ENDPOINTS.update,
+    {
+      requireAuth: true,
+      onSuccess: () => {
+        showToast('success', 'Statistics updated successfully!')
+        setEditingField(null)
+        setEditValue('')
+        refetchStats()
+      },
+      onError: (error) => {
+        showToast('error', error.message || 'Failed to update statistics')
       },
     }
   )
@@ -168,6 +194,15 @@ const Settings = () => {
                   }`}
               >
                 Costing
+              </button>
+              <button
+                onClick={() => setActiveSection('statistics')}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${activeSection === 'statistics'
+                  ? 'bg-[#0c684b] text-white'
+                  : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+              >
+                Statistics
               </button>
             </nav>
           </div>
@@ -438,6 +473,133 @@ const Settings = () => {
                   ) : (
                     <div className="bg-white rounded-lg border border-gray-200 p-12 text-center text-gray-500">
                       No cost configuration found
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {activeSection === 'statistics' && (
+              <div>
+                <div className="mb-6">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Homepage Statistics</h2>
+                  <p className="text-sm text-gray-500 mb-4">
+                    These values are shown on the public website. Set them here to control what visitors see.
+                  </p>
+
+                  {loadingStats ? (
+                    <div className="bg-white rounded-lg border border-gray-200 p-6">
+                      <div className="animate-pulse space-y-4">
+                        {Array.from({ length: 4 }).map((_, index) => (
+                          <div key={index} className="h-12 bg-gray-200 rounded"></div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : statsResponse?.data ? (
+                    <div className="w-full">
+                      <StyledTable
+                        data={[
+                          { key: 'products', label: 'Products', id: 1 },
+                          { key: 'brands', label: 'Brands', id: 2 },
+                          { key: 'years', label: 'Years', id: 3 },
+                          { key: 'ingredients', label: 'Ingredients', id: 4 },
+                        ]}
+                        columns={[
+                          {
+                            key: 'label',
+                            header: 'Statistic',
+                            render: (item: any) => (
+                              <span className="text-sm font-medium text-gray-900">{item.label}</span>
+                            )
+                          },
+                          {
+                            key: 'value',
+                            header: 'Value',
+                            render: (item: any) => {
+                              const isEditing = editingField === item.key
+                              const currentValue = statsResponse.data[item.key] ?? 0
+
+                              return (
+                                <>
+                                  {isEditing ? (
+                                    <div className="flex items-center gap-2">
+                                      <input
+                                        type="number"
+                                        min={0}
+                                        step={1}
+                                        value={editValue}
+                                        onChange={(e) => setEditValue(e.target.value)}
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="w-32 px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0c684b] focus:border-transparent text-sm"
+                                        autoFocus
+                                      />
+                                      <button
+                                        onClick={async (e) => {
+                                          e.stopPropagation()
+                                          await updateStatsMutation.mutateAsync({
+                                            [item.key]: editValue,
+                                          })
+                                        }}
+                                        disabled={updateStatsMutation.isPending}
+                                        className="p-1.5 text-[#0c684b] hover:bg-green-50 rounded transition-colors disabled:opacity-50"
+                                        title="Save"
+                                      >
+                                        <FiSave size={16} />
+                                      </button>
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          setEditingField(null)
+                                          setEditValue('')
+                                        }}
+                                        className="p-1.5 text-gray-600 hover:bg-gray-100 rounded transition-colors"
+                                        title="Cancel"
+                                      >
+                                        <FiX size={16} />
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <span className="text-sm text-gray-600">
+                                      {Number(currentValue).toLocaleString('en-US')}
+                                    </span>
+                                  )}
+                                </>
+                              )
+                            }
+                          },
+                          ...(hasPermission('Settings', 'update') ? [{
+                            key: 'actions',
+                            header: 'Actions',
+                            render: (item: any) => {
+                              const isEditing = editingField === item.key
+                              const currentValue = statsResponse.data[item.key] ?? 0
+
+                              return (
+                                <>
+                                  {!isEditing && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        setEditingField(item.key)
+                                        setEditValue(String(currentValue))
+                                      }}
+                                      className="p-2 text-[#0c684b] hover:bg-green-50 rounded transition-colors"
+                                      title="Edit"
+                                    >
+                                      <FiEdit2 size={16} />
+                                    </button>
+                                  )}
+                                </>
+                              )
+                            }
+                          }] : [])
+                        ]}
+                        emptyMessage="No statistics found"
+                      />
+                    </div>
+                  ) : (
+                    <div className="bg-white rounded-lg border border-gray-200 p-12 text-center text-gray-500">
+                      No statistics found
                     </div>
                   )}
                 </div>

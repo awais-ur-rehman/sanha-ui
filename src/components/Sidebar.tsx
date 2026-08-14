@@ -150,12 +150,13 @@ const Sidebar = () => {
   }
 
   const topSidebarItems: SidebarItem[] = [
-    {
-      id: 'dashboard',
-      title: 'Dashboard',
-      path: ROUTES.DASHBOARD,
-      icon: getIcon('dashboard', isActive(ROUTES.DASHBOARD))
-    },
+    // Dashboard hidden from sidebar (page is currently empty) — do not delete.
+    // {
+    //   id: 'dashboard',
+    //   title: 'Dashboard',
+    //   path: ROUTES.DASHBOARD,
+    //   icon: getIcon('dashboard', isActive(ROUTES.DASHBOARD))
+    // },
     {
       id: 'access-control',
       title: 'Access Control',

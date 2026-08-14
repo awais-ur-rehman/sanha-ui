@@ -1,5 +1,6 @@
 // Export all API hooks
 export { useGetApi } from './useGetApi'
+export { useDebounce } from './useDebounce'
 export { usePostApi } from './usePostApi'
 export { usePutApi } from './usePutApi'
 export { usePatchApi } from './usePatchApi'

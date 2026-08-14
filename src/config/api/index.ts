@@ -203,6 +203,12 @@ export const COST_CONFIG_ENDPOINTS = {
   update: '/cost-config',
 }
 
+// Sanha Statistics (homepage stats) Endpoints
+export const SANHA_STATS_ENDPOINTS = {
+  get: '/sanha-stats',
+  update: '/sanha-stats',
+}
+
 // Export Endpoints for other modules
 export const CLIENT_EXPORT_ENDPOINT = '/clients/export/csv'
 export const ECODE_EXPORT_ENDPOINT = '/ecodes/export/csv'

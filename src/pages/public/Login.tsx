@@ -13,7 +13,7 @@ const Login: React.FC = () => {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      navigate(ROUTES.DASHBOARD)
+      navigate(ROUTES.CLIENTS)
     }
   }, [isAuthenticated, navigate])
 
@@ -21,7 +21,7 @@ const Login: React.FC = () => {
     if (data.success && data.data) {
       localStorage.setItem('token', data.data.token)
       login(data.data.admin)
-      navigate(ROUTES.DASHBOARD)
+      navigate(ROUTES.CLIENTS)
     }
   }
 
